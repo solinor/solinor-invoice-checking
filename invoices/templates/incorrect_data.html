@@ -1,12 +1,42 @@
-<h2>Billable - incorrect price</h2>
+{% if billable_incorrect_price_count > 0 %}
+<h2>Billable - incorrect price ({{ billable_incorrect_price_count }})</h2>
 
 {% include "invalid_hours_table.html" with entries=billable_incorrect_price %}
+{% endif %}
 
-
-<h2>Non-billable hours</h2>
+{% if non_billable_hours_count > 0 %}
+<h2>Non-billable hours ({{ non_billable_hours_count }})</h2>
 
 {% include "invalid_hours_table.html" with entries=non_billable_hours %}
+{% endif %}
 
-<h2>Non-phase specific hours</h2>
+{% if non_phase_specific_count > 0 %}
+<h2>Non-phase specific hours ({{ non_phase_specific_count}})</h2>
 
 {% include "invalid_hours_table.html" with entries=non_phase_specific %}
+{% endif %}
+
+{% if not_approved_hours_count > 0 %}
+<h2>Not approved hours ({{ not_approved_hours_count }})</h2>
+
+{% include "invalid_hours_table.html" with entries=not_approved_hours %}
+{% endif %}
+
+{% if empty_descriptions_count > 0 %}
+<h2>Hour markings without descriptions ({{ empty_descriptions_count}})</h2>
+
+{% include "invalid_hours_table.html" with entries=empty_descriptions %}
+{% endif %}
+
+{% if empty_descriptions_count == 0 and not_approved_hours_count == 0 and non_phase_specific_count == 0 and non_billable_hours_count == 0 and billable_incorrect_price_count == 0 %}
+<h2>No errors detected with hour markings</h2>
+
+<p>All hour markings seems to be fine:</p>
+<ul>
+  <li>No empty descriptions</li>
+  <li>No pending (not approved) hour markings</li>
+  <li>No hour markings without phases</li>
+  <li>No non-billable hours</li>
+  <li>No billable hour markings without proper prices</li>
+</ul>
+{% endif %}

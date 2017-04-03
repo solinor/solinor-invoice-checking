@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from invoices.models import HourEntry, Invoice
 import datetime
 import django.db.utils
+from django.utils import timezone
 import sys
 
 
@@ -12,12 +13,13 @@ def parse_date(date):
 
 
 class Command(BaseCommand):
-    help = 'Import CSV file(s)'
+    help = 'Import CSV file(s). This will delete all previously imported hour entries within the timerange of the new CSV file.'
 
     def add_arguments(self, parser):
         parser.add_argument('csv_file', nargs='+', type=str)
 
     def handle(self, *args, **options):
+        now = timezone.now()
         for csv_file in options['csv_file']:
             if csv_file == "-":
                 f = sys.stdin
@@ -27,8 +29,16 @@ class Command(BaseCommand):
             _ = next(csvreader)
             projects = {}
 
+            first_entry = datetime.date(2100, 1, 1)
+            last_entry = datetime.date(1970, 1, 1)
+            entries = []
+
             for line in csvreader:
                 date = parse_date(line[1])
+                if date > last_entry:
+                    last_entry = date
+                if date < first_entry:
+                    first_entry = date
                 data = {
                     "date": date,
                     "year": date.year,
@@ -49,9 +59,16 @@ class Command(BaseCommand):
                     "phase_name": line[26],
                     "billable": line[37] == "1",
                     "approved": line[42] == "Approved",
+                    "last_updated_at": now,
                 }
+                assert data["year"] > 2000
+                assert data["year"] < 2050
+                assert data["bill_rate"] >= 0
+                assert data["incurred_money"] >= 0
+                assert data["incurred_hours"] >= 0
                 entry = HourEntry(**data)
-                entry.save()
+                entries.append(entry)
+
 
                 project_key = "%s %s - %s" % (data["date"].strftime("%Y-%m"), data["client"], data["project"])
                 if project_key not in projects:
@@ -62,3 +79,7 @@ class Command(BaseCommand):
                         print invoice.id
                     except django.db.utils.IntegrityError:
                         pass
+
+            # Note: this does not call .save() for entries.
+            HourEntry.objects.bulk_create(entries)
+            HourEntry.objects.filter(date__gte=first_entry, date__lte=last_entry, last_updated_at__lt=now).delete()

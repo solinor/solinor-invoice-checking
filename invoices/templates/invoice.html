@@ -39,13 +39,16 @@
                 </td>
             </tr>
 
+
+
+            {% for phase_name, phase in phases.items %}
             <tr class="heading">
                 <td>
-                    Phase
+                    {{ phase_name }}
                 </td>
 
                 <td>
-                    Person
+                  Bill rate
                 </td>
                 <td>
                     Hours
@@ -54,41 +57,38 @@
                     Price
                 </td>
             </tr>
+              {% for person_name, person_details in phase.items %}
+                {% for bill_rate, details in person_details.items %}
+                  {% if details.incurred_hours > 0 %}
+                    <tr class="item">
+                        <td>
+                          {{ person_name }}
+                        </td>
 
-            {% for phase_name, phase in phases.items %}
-              {% for person_name, details in phase.items %}
-                {% if details.incurred_hours > 0 %}
-
-                <tr class="item">
-                    <td>
-                        {{ phase_name }}
-                    </td>
-
-                    <td>
-                      {{ person_name }}
-                    </td>
-                    <td>
-                      {{ details.incurred_hours }}
-                    </td>
-                    <td>
-                      {{ details.incurred_money|intcomma }}&euro;
-                    </td>
-
-
-                </tr>
-                {% endif %}
+                        <td>
+                          {{ bill_rate|floatformat:2 }}&euro;
+                        </td>
+                        <td>
+                          {{ details.incurred_hours|floatformat:2 }}h
+                        </td>
+                        <td>
+                          {{ details.incurred_money|floatformat:2|intcomma }}&euro;
+                        </td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
               {% endfor %}
             {% endfor %}
 
             <tr class="total">
                 <td></td>
-                <td></td>
+                <td>{{ bill_rate_avg|floatformat:2 }}&euro;</td>
                 <td>
-                  {{ total_hours }}
+                  {{ total_hours|floatformat:2 }}h
                 </td>
 
                 <td>
-                  {{ total_money|intcomma }}&euro;
+                  {{ total_money|floatformat:2|intcomma }}&euro;
                 </td>
             </tr>
         </table>

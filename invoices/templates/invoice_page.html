@@ -33,7 +33,7 @@
       text-align: right;
     }
 
-    .invoice-box table tr td:nth-child(3){
+    .invoice-box table tr td:nth-child(1n+2){
         text-align:right;
     }
 
@@ -69,7 +69,7 @@
         border-bottom:none;
     }
 
-    .invoice-box table tr.total td:nth-child(1n+3){
+    .invoice-box table tr.total td:nth-child(1n+2){
         border-top:2px solid #eee;
         font-weight:bold;
     }
@@ -87,43 +87,52 @@
             text-align:center;
         }
     }
-    .container {
-      padding-top: 1em;
+    .number-column {
+      text-align: right;
     }
     </style>
     {% endblock %}
 
+{% block navbar_items %}
+<li class="active"><a href="#">Invoice details</a></li>
+{% endblock %}
+
 {% block content %}
+    <h2>Invoice details for {{ client }} - {{ project }} -- {{ year }}-{{ month }}</h2>
     <div class="row">
       <div class="col-md-8">
         {% include "invoice.html" %}
       </div>
 
       <div class="col-md-4">
+        <div class="well">
         <form  method="post">
           {% csrf_token %}
-          <div class="form-group">
-            <label for="invoiceChecked">I have checked this invoice</label>
-            <input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}>
-          </div>
-          {% if non_phase_specific_count > 0 %}
-          <div class="form-group">
-            <label for="nonPhaseSpecificOk">All {{ non_phase_specific_count }} non-phase specific hours should be there</label>
-            <input type="checkbox" id="nonPhaseSpecificOk" name="nonPhaseSpecificOk" {% if form_data.checked_phases_ok %}checked="checked"{% endif %}>
-          </div>
-          {% endif %}
-          {% if non_billable_hours_count > 0 %}
-          <div class="form-group">
-            <label for="nonBillableHoursOk">All {{ non_billable_hours_count }} non-billable hours should stay non-billable.</label>
-            <input type="checkbox" id="nonBillableHoursOk" name="nonBillableHoursOk" {% if form_data.checked_non_billable_ok %}checked="checked"{% endif %}>
-          </div>
-          {% endif %}
-          {% if billable_incorrect_price_count > 0 %}
-          <div class="form-group">
-            <label for="billableIncorrectPrice">All {{ billable_incorrect_price_count }} entries with weird hour rates are correct.</label>
-            <input type="checkbox" id="billableIncorrectPriceOk" name="billableIncorrectPriceOk" {% if form_data.checked_bill_rates_ok %}checked="checked"{% endif %}>
-          </div>
-          {% endif %}
+          <table>
+            <tr>
+              <td style="padding-right: 15px"><input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}></td>
+              <td><label for="invoiceChecked">I have checked this invoice, and I approve this (with comments I can put below)</label></td>
+            </tr>
+            {% if non_phase_specific_count > 0 %}
+            <tr>
+              <td><input type="checkbox" id="nonPhaseSpecificOk" name="nonPhaseSpecificOk" {% if form_data.checked_phases_ok %}checked="checked"{% endif %}></td>
+              <td><label for="nonPhaseSpecificOk">All ({{ non_phase_specific_count }}) non-phase specific hours should be there</label></td>
+            </tr>
+            {% endif %}
+            {% if non_billable_hours_count > 0 %}
+            <tr>
+              <td><input type="checkbox" id="nonBillableHoursOk" name="nonBillableHoursOk" {% if form_data.checked_non_billable_ok %}checked="checked"{% endif %}></td>
+              <td><label for="nonBillableHoursOk">All ({{ non_billable_hours_count }}) non-billable hours should stay non-billable.</label></td>
+            </tr>
+            {% endif %}
+            {% if billable_incorrect_price_count > 0 %}
+            <tr>
+              <td><input type="checkbox" id="billableIncorrectPriceOk" name="billableIncorrectPriceOk" {% if form_data.checked_bill_rates_ok %}checked="checked"{% endif %}></td>
+              <td><label for="billableIncorrectPrice">All ({{ billable_incorrect_price_count }}) entries with weird hour rates are correct.</label></td>
+            </tr>
+            {% endif %}
+          </table>
+
           <div class="form-group">
             <label for="changesForInvoice">Comments/additions/changes before this will be sent out:</label>
             <textarea class="form-control" id="changesForInvoice" name="changesForInvoice" rows="10">{{ form_data.comments }}</textarea>
@@ -133,6 +142,7 @@
         {% if form_data %}
         <p>Last submitted by {{ form_data.user }} at {{ form_data.timestamp }}</p>
         {% endif %}
+      </div>
       </div>
     </div>
     <div class="row">

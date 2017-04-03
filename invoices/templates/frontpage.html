@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block content %}
 <table class="table">
@@ -8,6 +9,10 @@
     <th>Project</th>
     <th>Approved</th>
     <th>Comments</th>
+    <th class="number-column">Issues</th>
+    <th class="number-column">Hours</th>
+    <th class="number-column">Price</th>
+    <th class="number-column">Hour rate</th>
     </tr>
   </thead>
   <tbody>
@@ -17,6 +22,10 @@
       <td><a href="{% url 'invoice' entry.year entry.month entry.id %}">{{ entry.client }} - {{ entry.project }}</td>
       <td>{{ entry.is_approved }}</td>
       <td>{{ entry.has_comments }}</td>
+      <td class="number-column">{{ entry.total_issues }}</td>
+      <td class="number-column">{{ entry.total_hours|floatformat:2 }}h</td>
+      <td class="number-column">{{ entry.total_money|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ entry.bill_rate_avg|floatformat:2 }}&euro;</td>
     </tr>
     {% endfor %}
   </tbody>

@@ -1,12 +1,12 @@
 
-<table class="table">
+<table class="table incorrect-hours-table">
   <thead>
     <tr>
       <th>Phase</th>
       <th>Name</th>
       <th>Date</th>
-      <th>Hours</th>
-      <th>Bill rate</th>
+      <th class="number-column">Hours</th>
+      <th class="number-column">Bill rate</th>
       <th>Entry</th>
     </tr>
   </thead>
@@ -16,8 +16,8 @@
       <td>{{ entry.phase_name }}</td>
       <td>{{ entry.user_name }}</td>
       <td>{{ entry.date }}</td>
-      <td>{{ entry.incurred_hours }}</td>
-      <td>{{ entry.bill_rate }}</td>
+      <td class="number-column">{{ entry.incurred_hours|floatformat:2 }}</td>
+      <td class="number-column">{{ entry.bill_rate|floatformat:2 }}&euro;</td>
       <td>{{ entry.notes }}</td>
     </tr>
     {% empty %}
