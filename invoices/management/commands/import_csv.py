@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from invoices.models import HourEntry, Invoice
 import datetime
 import django.db.utils
+import sys
 
 
 def parse_date(date):
@@ -18,7 +19,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for csv_file in options['csv_file']:
-            f = open(csv_file)
+            if csv_file == "-":
+                f = sys.stdin
+            else:
+                f = open(csv_file)
             csvreader = csv.reader(f)
             _ = next(csvreader)
             projects = {}
