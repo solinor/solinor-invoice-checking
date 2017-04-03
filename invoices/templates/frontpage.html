@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table class="table">
+  <thead>
+    <tr>
+    <th>Date</th>
+    <th>Project</th>
+    <th>Approved</th>
+    <th>Comments</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in invoices %}
+    <tr>
+      <td>{{ entry.year }}-{{ entry.month }}</td>
+      <td><a href="{% url 'invoice' entry.year entry.month entry.id %}">{{ entry.client }} - {{ entry.project }}</td>
+      <td>-</td>
+      <td>-</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

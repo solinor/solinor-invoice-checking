@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block header %}
+
+    <style>
+    .invoice-box{
+        max-width:800px;
+/*        margin:auto;*/
+        padding:30px;
+        border:1px solid #eee;
+        box-shadow:0 0 10px rgba(0, 0, 0, .15);
+        font-size:16px;
+        line-height:24px;
+        font-family:'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+        color:#555;
+    }
+
+    .invoice-box table{
+        width:100%;
+        line-height:inherit;
+        text-align:left;
+    }
+
+    .invoice-box table td{
+        padding:5px;
+        vertical-align:top;
+    }
+
+    .invoice-box .information td:nth-child(2) {
+      text-align: right;
+    }
+    .invoice-box .top td:nth-child(2) {
+      text-align: right;
+    }
+
+    .invoice-box table tr td:nth-child(3){
+        text-align:right;
+    }
+
+    .invoice-box table tr.top table td{
+        padding-bottom:20px;
+    }
+
+    .invoice-box table tr.top table td.title{
+        font-size:45px;
+        line-height:45px;
+        color:#333;
+    }
+
+    .invoice-box table tr.information table td{
+        padding-bottom:40px;
+    }
+
+    .invoice-box table tr.heading td{
+        background:#eee;
+        border-bottom:1px solid #ddd;
+        font-weight:bold;
+    }
+
+    .invoice-box table tr.details td{
+        padding-bottom:20px;
+    }
+
+    .invoice-box table tr.item td{
+        border-bottom:1px solid #eee;
+    }
+
+    .invoice-box table tr.item.last td{
+        border-bottom:none;
+    }
+
+    .invoice-box table tr.total td:nth-child(1n+3){
+        border-top:2px solid #eee;
+        font-weight:bold;
+    }
+
+    @media only screen and (max-width: 600px) {
+        .invoice-box table tr.top table td{
+            width:100%;
+            display:block;
+            text-align:center;
+        }
+
+        .invoice-box table tr.information table td{
+            width:100%;
+            display:block;
+            text-align:center;
+        }
+    }
+    .container {
+      padding-top: 1em;
+    }
+    </style>
+    {% endblock %}
+
+{% block content %}
+    <div class="row">
+      <div class="col-md-8">
+        {% include "invoice.html" %}
+      </div>
+
+      <div class="col-md-4">
+        <form  method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="invoiceChecked">I have checked this invoice</label>
+            <input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}>
+          </div>
+          {% if non_phase_specific_count > 0 %}
+          <div class="form-group">
+            <label for="nonPhaseSpecificOk">All {{ non_phase_specific_count }} non-phase specific hours should be there</label>
+            <input type="checkbox" id="nonPhaseSpecificOk" name="nonPhaseSpecificOk" {% if form_data.checked_phases_ok %}checked="checked"{% endif %}>
+          </div>
+          {% endif %}
+          {% if non_billable_hours_count > 0 %}
+          <div class="form-group">
+            <label for="nonBillableHoursOk">All {{ non_billable_hours_count }} non-billable hours should stay non-billable.</label>
+            <input type="checkbox" id="nonBillableHoursOk" name="nonBillableHoursOk" {% if form_data.checked_non_billable_ok %}checked="checked"{% endif %}>
+          </div>
+          {% endif %}
+          {% if billable_incorrect_price_count > 0 %}
+          <div class="form-group">
+            <label for="billableIncorrectPrice">All {{ billable_incorrect_price_count }} entries with weird hour rates are correct.</label>
+            <input type="checkbox" id="billableIncorrectPriceOk" name="billableIncorrectPriceOk" {% if form_data.checked_bill_rates_ok %}checked="checked"{% endif %}>
+          </div>
+          {% endif %}
+          <div class="form-group">
+            <label for="changesForInvoice">Comments/additions/changes before this will be sent out:</label>
+            <textarea class="form-control" id="changesForInvoice" name="changesForInvoice" rows="10">{{ form_data.comments }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-default">Save</button>
+        </form>
+        {% if form_data %}
+        <p>Last submitted by {{ form_data.user }} at {{ form_data.timestamp }}</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+      {% include "incorrect_data.html" %}
+    </div>
+  </div>
+{% endblock %}

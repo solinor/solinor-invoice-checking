@@ -1,0 +1,29 @@
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Phase</th>
+      <th>Name</th>
+      <th>Date</th>
+      <th>Hours</th>
+      <th>Bill rate</th>
+      <th>Entry</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in entries %}
+    <tr>
+      <td>{{ entry.phase_name }}</td>
+      <td>{{ entry.user_name }}</td>
+      <td>{{ entry.date }}</td>
+      <td>{{ entry.incurred_hours }}</td>
+      <td>{{ entry.bill_rate }}</td>
+      <td>{{ entry.notes }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6">No entries</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -1,0 +1,95 @@
+{% load humanize %}
+
+    <div class="invoice-box">
+        <table cellpadding="0" cellspacing="0">
+            <tr class="top">
+                <td colspan="4">
+                    <table>
+                        <tr>
+                            <td class="title">
+                                <img src="https://solinor.fi/wp-content/themes/twentyfifteen-child/images/logo-solinor@2x.png" style="width:100%; max-width:300px;">
+                            </td>
+
+                            <td>
+                                Invoice #: 123<br>
+                                Created: {{ today }}<br>
+                                Due: {{ due_date }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <tr class="information">
+                <td colspan="4">
+                    <table>
+                        <tr>
+                            <td>
+                                Solinor Oy<br>
+                                Teollisuuskatu 21<br>
+                                00510 Helsinki
+                            </td>
+
+                            <td>
+                                {{ client }}<br>
+                                {{ project }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <tr class="heading">
+                <td>
+                    Phase
+                </td>
+
+                <td>
+                    Person
+                </td>
+                <td>
+                    Hours
+                </td>
+                <td>
+                    Price
+                </td>
+            </tr>
+
+            {% for phase_name, phase in phases.items %}
+              {% for person_name, details in phase.items %}
+                {% if details.incurred_hours > 0 %}
+
+                <tr class="item">
+                    <td>
+                        {{ phase_name }}
+                    </td>
+
+                    <td>
+                      {{ person_name }}
+                    </td>
+                    <td>
+                      {{ details.incurred_hours }}
+                    </td>
+                    <td>
+                      {{ details.incurred_money|intcomma }}&euro;
+                    </td>
+
+
+                </tr>
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+
+            <tr class="total">
+                <td></td>
+                <td></td>
+                <td>
+                  {{ total_hours }}
+                </td>
+
+                <td>
+                  {{ total_money|intcomma }}&euro;
+                </td>
+            </tr>
+        </table>
+    </div>
