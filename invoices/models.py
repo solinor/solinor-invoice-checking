@@ -26,6 +26,13 @@ class HourEntry(models.Model):
     billable = models.BooleanField(blank=True)
     approved = models.BooleanField(blank=True)
 
+    def is_billable_phase(self):
+        phase_name = self.phase_name.lower()
+
+        if phase_name.startswith("non-billable") or phase_name.startswith("non billable"):
+            return False
+        return True
+
 class Invoice(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     year = models.IntegerField()

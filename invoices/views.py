@@ -48,10 +48,10 @@ def invoice_page(request, year, month, invoice):
         phases[entry.phase_name][entry.user_name]["incurred_hours"] += entry.incurred_hours
         phases[entry.phase_name][entry.user_name]["incurred_money"] += entry.incurred_money
 
-        if entry.bill_rate < 50 or entry.bill_rate > 170 and entry.phase_name != "Non billable-Normal":
+        if entry.bill_rate < 50 or entry.bill_rate > 170 and entry.is_billable_phase():
             billable_incorrect_price.append(entry)
 
-        if not entry.billable:
+        if not entry.is_billable_phase():
             non_billable_hours.append(entry)
         total_money += entry.incurred_money
         total_hours += entry.incurred_hours
