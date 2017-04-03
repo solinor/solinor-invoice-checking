@@ -120,6 +120,7 @@ class Invoice(models.Model):
         return total
 
     def is_approved(self):
+        return False
         try:
             comment = Comments.objects.filter(invoice=self).latest()
             return comment.checked
@@ -127,6 +128,7 @@ class Invoice(models.Model):
             return False
 
     def has_comments(self):
+        return False
         try:
             comment = Comments.objects.filter(invoice=self).latest()
             if comment.comments:
