@@ -15,8 +15,8 @@
     <tr>
       <td>{{ entry.year }}-{{ entry.month }}</td>
       <td><a href="{% url 'invoice' entry.year entry.month entry.id %}">{{ entry.client }} - {{ entry.project }}</td>
-      <td>-</td>
-      <td>-</td>
+      <td>{{ entry.is_approved }}</td>
+      <td>{{ entry.has_comments }}</td>
     </tr>
     {% endfor %}
   </tbody>

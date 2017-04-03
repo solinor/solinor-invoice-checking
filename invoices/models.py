@@ -11,12 +11,12 @@ class HourEntry(models.Model):
 
     user_id = models.IntegerField()
     user_name = models.CharField(max_length=100)
-    client = models.CharField(max_length=100)
-    project = models.CharField(max_length=100)
+    client = models.CharField(max_length=200)
+    project = models.CharField(max_length=200)
     incurred_hours = models.FloatField()
     incurred_money = models.FloatField()
     category = models.CharField(max_length=100)
-    notes = models.CharField(max_length=250)
+    notes = models.CharField(max_length=1000)
     entry_type = models.CharField(max_length=100)
     discipline = models.CharField(max_length=100)
     role = models.CharField(max_length=100)
@@ -32,6 +32,22 @@ class Invoice(models.Model):
     month = models.IntegerField()
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
+
+    def is_approved(self):
+        try:
+            comment = Comments.objects.filter(invoice=self).latest()
+            return comment.checked
+        except Comments.DoesNotExist:
+            return False
+
+    def has_comments(self):
+        try:
+            comment = Comments.objects.filter(invoice=self).latest()
+            if comment.comments:
+                return True
+        except Comments.DoesNotExist:
+            pass
+        return False
 
     class Meta:
         unique_together = ("year", "month", "client", "project")
