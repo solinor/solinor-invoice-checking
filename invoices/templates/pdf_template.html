@@ -1,8 +1,15 @@
 {% load humanize %}
 <html>
 <head>
-  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://localhost:8000/static/css/bootstrap.min.css" rel="stylesheet">
   <style>
+  thead, tfoot { display: table-row-group }
+  .number-column {
+    text-align: right;
+  }
+  .nowrap-column {
+    white-space: nowrap;
+  }
   </style>
 </head>
 
@@ -21,8 +28,8 @@
     <tbody>
     {% for entry in entries %}
       <tr>
-        <td>{{ entry.date }}
-        <td>{{ entry.user_name }}</td>
+        <td class="nowrap-column">{{ entry.date }}
+        <td class="nowrap-column">{{ entry.user_name }}</td>
         <td class="number-column">{{ entry.bill_rate|floatformat:2 }}&euro;</td>
         <td class="number-column">{{ entry.incurred_hours }}h</td>
         <td class="number-column">{{ entry.incurred_money|floatformat:2 }}&euro;</td>

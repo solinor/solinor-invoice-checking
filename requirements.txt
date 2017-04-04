@@ -7,3 +7,5 @@ requests==2.9.1
 pytz==2017.2
 django-googleauth==2.1
 django-filter==1.0.2
+wkhtmltopdf-pack==0.12.3.0
+pdfkit==0.6.0

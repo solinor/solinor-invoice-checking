@@ -8,7 +8,6 @@ import googleauth
 from django.views.generic.base import RedirectView
 
 urlpatterns = [
-    url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)/pdf_html_template/(?P<pdf_type>.+)/(?P<pdf_auth>.+)$', invoices.views.pdf_plain, name="pdf_plain"),
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)/pdf/(?P<pdf_type>.+)$', invoices.views.get_pdf, name="get_pdf"),
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)$', invoices.views.invoice_page, name="invoice"),
     url(r'^admin/', include(admin.site.urls)),

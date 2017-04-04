@@ -11,7 +11,13 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 import os
 import dj_database_url
+import subprocess
+import sys
 
+os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
+WKHTMLTOPDF_CMD = subprocess.Popen(
+    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], # Note we default to 'wkhtmltopdf' as the binary name
+    stdout=subprocess.PIPE).communicate()[0].strip()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -71,6 +77,8 @@ GOOGLEAUTH_IS_STAFF = False
 GOOGLEAUTH_GROUPS = []
 
 PDF_AUTH = os.environ["PDF_AUTH"]
+HYPDF_USER = os.environ["HYPDF_USER"]
+HYPDF_PASSWORD = os.environ["HYPDF_PASSWORD"]
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

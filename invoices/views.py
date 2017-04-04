@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 import datetime
 from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats
@@ -8,21 +9,42 @@ from invoices.filters import InvoiceFilter
 from django.conf import settings
 import requests
 import os
-
-def pdf_plain(request, year, month, invoice, pdf_type, pdf_auth):
-    if pdf_auth != settings.PDF_AUTH:
-        return HttpResponseForbidden("Incorrect authentication token")
-    invoice_data = get_object_or_404(Invoice, id=invoice)
-    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=year, date__month=month).filter(incurred_hours__gt=0)
-    return render(request, "pdf_template.html", {"entries": entries})
+import pdfkit
 
 @login_required
 def get_pdf(request, year, month, invoice, pdf_type):
     invoice_data = get_object_or_404(Invoice, id=invoice)
     title = "%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
-    local_url = request.build_absolute_uri("/").rstrip("/") + reverse("pdf_plain", args=(year, month, invoice, pdf_type, settings.PDF_AUTH))
-    data = requests.get('https://webtopdf.expeditedaddons.com/?api_key=%s&content=%s&html_width=2048&margin=10&title=%s' % (os.environ['WEBTOPDF_API_KEY'], local_url, "Hours for %s" % title))
-    response = HttpResponse(data.content, content_type="application/pdf")
+
+    pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
+    wk_options = {
+        'page-size': 'a4',
+        'orientation': 'landscape',
+        'title': title,
+        # In order to specify command-line options that are simple toggles
+        # using this dict format, we give the option the value None
+        'no-outline': None,
+        'disable-javascript': None,
+        'encoding': 'UTF-8',
+        'margin-left': '0.2cm',
+        'margin-right': '0.2cm',
+        'margin-top': '0.3cm',
+        'margin-bottom': '0.3cm',
+        'lowquality': None,
+    }
+
+    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=year, date__month=month).filter(incurred_hours__gt=0)
+    context = {"entries": entries}
+
+    # We can generate the pdf from a url, file or, as shown here, a string
+    content = render_to_string('pdf_template.html', context=context, request=request)
+    pdf = pdfkit.from_string(content,
+        False,
+        options=wk_options,
+        configuration=pdfkit_config,
+    )
+
+    response = HttpResponse(pdf, content_type="application/pdf")
     response['Content-Disposition'] = 'attachment; filename="Hours for %s.pdf"' % title
     return response
 
