@@ -21,7 +21,7 @@ def get_pdf(request, year, month, invoice, pdf_type):
     invoice_data = get_object_or_404(Invoice, id=invoice)
     title = "%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
     local_url = request.build_absolute_uri("/").rstrip("/") + reverse("pdf_plain", args=(year, month, invoice, pdf_type, settings.PDF_AUTH))
-    data = requests.get('https://webtopdf.expeditedaddons.com/?api_key=%s&content=%s&html_width=1024&margin=10&title=%s' % (os.environ['WEBTOPDF_API_KEY'], local_url, "Hours for %s" % title))
+    data = requests.get('https://webtopdf.expeditedaddons.com/?api_key=%s&content=%s&html_width=2048&margin=10&title=%s' % (os.environ['WEBTOPDF_API_KEY'], local_url, "Hours for %s" % title))
     response = HttpResponse(data.content, content_type="application/pdf")
     response['Content-Disposition'] = 'attachment; filename="Hours for %s.pdf"' % title
     return response
