@@ -75,6 +75,7 @@ def invoice_page(request, year, month, invoice):
                            checked_non_billable_ok=request.POST.get("nonBillableHoursOk"),
                            checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk"),
                            checked_phases_ok=request.POST.get("nonPhaseSpecificOk"),
+                           checked_changes_last_month=request.POST.get("remarkableChangesOk"),
                            user=request.user.email,
                            invoice=invoice_data)
         comment.save()
@@ -106,7 +107,20 @@ def invoice_page(request, year, month, invoice):
         "year": invoice_data.year,
         "month": invoice_data.month,
         "invoice_id": invoice,
+        "invoice": invoice_data,
     }
     context.update(entry_data)
+
+    previous_invoice_month = invoice_data.month - 1
+    previous_invoice_year = invoice_data.year
+    if previous_invoice_month == 0:
+        previous_invoice_month = 12
+        previous_invoice_year -= 1
+    try:
+        last_month_invoice = Invoice.objects.get(project=invoice_data.project, client=invoice_data.client, year=previous_invoice_year, month=previous_invoice_month)
+        context["last_month_invoice"] = last_month_invoice
+        context["diff_last_month"] = last_month_invoice.compare(invoice_data)
+    except Invoice.DoesNotExist:
+        last_month_invoice = None
 
     return render(request, "invoice_page.html", context)

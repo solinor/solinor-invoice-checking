@@ -98,6 +98,7 @@
     <h2>Invoice details for {{ client }} - {{ project }} -- {{ year }}-{{ month }}</h2>
     <p>
       <a class="btn btn-info" href="{% url 'get_pdf' year month invoice_id 'hours' %}" role="button">Download hours</a>
+
     </p>
     <div class="row">
       <div class="col-md-8">
@@ -116,13 +117,13 @@
             {% if non_phase_specific_count > 0 %}
             <tr>
               <td><input type="checkbox" id="nonPhaseSpecificOk" name="nonPhaseSpecificOk" {% if form_data.checked_phases_ok %}checked="checked"{% endif %}></td>
-              <td><label for="nonPhaseSpecificOk">All ({{ non_phase_specific_count }}) non-phase specific hours should be there</label></td>
+              <td><label for="nonPhaseSpecificOk">All ({{ non_phase_specific_count }}) non-phase specific entries should be there</label></td>
             </tr>
             {% endif %}
             {% if non_billable_hours_count > 0 %}
             <tr>
               <td><input type="checkbox" id="nonBillableHoursOk" name="nonBillableHoursOk" {% if form_data.checked_non_billable_ok %}checked="checked"{% endif %}></td>
-              <td><label for="nonBillableHoursOk">All ({{ non_billable_hours_count }}) non-billable hours should stay non-billable.</label></td>
+              <td><label for="nonBillableHoursOk">All ({{ non_billable_hours_count }}) non-billable entries should stay non-billable.</label></td>
             </tr>
             {% endif %}
             {% if billable_incorrect_price_count > 0 %}
@@ -130,6 +131,14 @@
               <td><input type="checkbox" id="billableIncorrectPriceOk" name="billableIncorrectPriceOk" {% if form_data.checked_bill_rates_ok %}checked="checked"{% endif %}></td>
               <td><label for="billableIncorrectPrice">All ({{ billable_incorrect_price_count }}) entries with weird hour rates are correct.</label></td>
             </tr>
+            {% endif %}
+            {% if last_month_invoice %}
+            {% if diff_last_month.remarkable %}
+            <tr>
+              <td><input type="checkbox" id="remarkableChangesOk" name="remarkableChangesOk" {% if form_data.checked_changes_last_month %}checked="checked"{% endif %}></td>
+              <td><label for="remarkableChangesOk">Remarkable changes since last month are ok (I know why, and client understands why).</label></td>
+            </tr>
+            {% endif %}
             {% endif %}
           </table>
 
@@ -142,6 +151,42 @@
         {% if form_data %}
         <p>Last submitted by {{ form_data.user }} at {{ form_data.timestamp }}</p>
         {% endif %}
+
+
+              {% if last_month_invoice %}
+              <table class="table">
+                <tr>
+                  <th></th>
+                  <th class="number-column">Hours</th>
+                  <th class="number-column">Bill rate</th>
+                  <th class="number-column">Money</th>
+                </tr>
+                <tr>
+                  <td>Last month</td>
+                  <td class="number-column">{{ last_month_invoice.total_hours|floatformat:2 }}h</td>
+                  <td class="number-column">{{ last_month_invoice.bill_rate_avg|floatformat:2 }}&euro;</td>
+                  <td class="number-column">{{ last_month_invoice.total_money|floatformat:2 }}&euro;</td>
+                </tr>
+                <tr>
+                  <td>This month</td>
+                  <td class="number-column">{{ invoice.total_hours|floatformat:2 }}h</td>
+                  <td class="number-column">{{ invoice.bill_rate_avg|floatformat:2 }}&euro;</td>
+                  <td class="number-column">{{ invoice.total_money|floatformat:2 }}&euro;</td>
+                </tr>
+                <tr>
+                  <td>Difference</td>
+                  <td class="number-column">{{ diff_last_month.hours.diff|floatformat:2 }}h</td>
+                  <td class="number-column">{{ diff_last_month.bill_rate_avg.diff|floatformat:2 }}&euro;</td>
+                  <td class="number-column">{{ diff_last_month.money.diff|floatformat:2 }}&euro;</td>
+                </tr>
+                <tr>
+                  <td>Diff %</td>
+                  <td class="number-column">{{ diff_last_month.hours.percentage|floatformat:2 }}%</td>
+                  <td class="number-column">{{ diff_last_month.bill_rate_avg.percentage|floatformat:2 }}%</td>
+                  <td class="number-column">{{ diff_last_month.money.percentage|floatformat:2 }}%</td>
+                </tr>
+              </table>
+              {% endif %}
       </div>
       </div>
     </div>

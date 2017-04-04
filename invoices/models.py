@@ -139,6 +139,25 @@ class Invoice(models.Model):
         if self.tags:
             return self.tags.split(",")
 
+    def compare(self, other):
+        def calc_stats(field_name):
+            diff = (getattr(other, field_name) or 0) - (getattr(self, field_name) or 0)
+            percentage = diff / (getattr(self, field_name) or 1) * 100
+            return {"diff": diff, "percentage": percentage}
+
+        data = {
+            "hours": calc_stats("total_hours"),
+            "bill_rate_avg": calc_stats("bill_rate_avg"),
+            "money": calc_stats("total_money"),
+        }
+        if abs(data["hours"]["percentage"]) > 25:
+            data["remarkable"] = True
+        if abs(data["bill_rate_avg"]["diff"]) > 5:
+            data["remarkable"] = True
+        if abs(data["money"]["percentage"]) > 25:
+            data["remarkable"] = True
+        return data
+
     class Meta:
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")
@@ -148,11 +167,12 @@ class Comments(models.Model):
     invoice = models.ForeignKey("Invoice")
     timestamp = models.DateTimeField(auto_now_add=True)
     comments = models.TextField(null=True, blank=True)
-    checked = models.NullBooleanField(blank=True, null=True)
-    checked_non_billable_ok = models.NullBooleanField(blank=True, null=True)
-    checked_bill_rates_ok = models.NullBooleanField(blank=True, null=True)
-    checked_phases_ok = models.NullBooleanField(blank=True, null=True)
-    user = models.TextField(max_length=100, null=True, blank=True)
+    checked = models.NullBooleanField(blank=True, null=True, default=False)
+    checked_non_billable_ok = models.NullBooleanField(blank=True, null=True, default=False)
+    checked_bill_rates_ok = models.NullBooleanField(blank=True, null=True, default=False)
+    checked_phases_ok = models.NullBooleanField(blank=True, null=True, default=False)
+    checked_changes_last_month = models.NullBooleanField(blank=True, null=True, default=False)
+    user = models.TextField(max_length=100)
 
     def has_comments(self):
         if self.comments and len(self.comments) > 0:
