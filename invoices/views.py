@@ -8,9 +8,12 @@ from invoices.filters import InvoiceFilter
 
 @login_required
 def frontpage(request):
+    last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     f = InvoiceFilter(request.GET, queryset=Invoice.objects.all())
+    your_invoices = Invoice.objects.filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month)
     context = {
         "invoices": f,
+        "your_invoices": your_invoices,
     }
     return render(request, "frontpage.html", context)
 

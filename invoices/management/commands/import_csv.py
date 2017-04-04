@@ -59,6 +59,8 @@ class Command(BaseCommand):
                     "phase_name": line[26],
                     "billable": line[37] == "1",
                     "approved": line[42] == "Approved",
+                    "user_email": line[39],
+                    "project_tags": line[35],
                     "last_updated_at": now,
                 }
                 assert data["year"] > 2000
@@ -73,12 +75,7 @@ class Command(BaseCommand):
                 project_key = "%s %s - %s" % (data["date"].strftime("%Y-%m"), data["client"], data["project"])
                 if project_key not in projects:
                     projects[project_key] = True
-                    invoice = Invoice(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"])
-                    try:
-                        invoice.save()
-                        print invoice.id
-                    except django.db.utils.IntegrityError:
-                        pass
+                    Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
 
             # Note: this does not call .save() for entries.
             HourEntry.objects.bulk_create(entries)

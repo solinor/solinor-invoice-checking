@@ -78,6 +78,7 @@ class HourEntry(models.Model):
 
     last_updated_at = models.DateTimeField()
     user_id = models.IntegerField()
+    user_email = models.CharField(max_length=255)
     user_name = models.CharField(max_length=100)
     client = models.CharField(max_length=200)
     project = models.CharField(max_length=200)
@@ -93,6 +94,7 @@ class HourEntry(models.Model):
     phase_name = models.CharField(max_length=100)
     billable = models.BooleanField(blank=True)
     approved = models.BooleanField(blank=True)
+    project_tags = models.CharField(max_length=1024, null=True, blank=True)
 
     def is_billable_phase(self):
         return is_phase_billable(self.phase_name)
@@ -110,6 +112,7 @@ class Invoice(models.Model):
     month = models.IntegerField()
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
+    tags = models.CharField(max_length=1024, null=True, blank=True)
 
     is_approved = models.NullBooleanField(null=True, blank=True, choices=CHOICES)
     has_comments = models.NullBooleanField(null=True, blank=True, choices=CHOICES)
@@ -131,6 +134,10 @@ class Invoice(models.Model):
                 return "?"
             total += d
         return total
+
+    def get_tags(self):
+        if self.tags:
+            return self.tags.split(",")
 
     class Meta:
         unique_together = ("year", "month", "client", "project")
