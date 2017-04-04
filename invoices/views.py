@@ -34,7 +34,12 @@ def get_pdf(request, year, month, invoice, pdf_type):
     }
 
     entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=year, date__month=month).filter(incurred_hours__gt=0)
-    context = {"entries": entries}
+    phases = {}
+    for entry in entries:
+        if entry.phase_name not in phases:
+            phases[entry.phase_name] = []
+        phases[entry.phase_name].append(entry)
+    context = {"phases": phases}
 
     # We can generate the pdf from a url, file or, as shown here, a string
     content = render_to_string('pdf_template.html', context=context, request=request)

@@ -14,6 +14,8 @@
 </head>
 
 <body>
+  {% for phase, entries in phases.items %}
+  <h2>{{ phase }}</h2>
   <table class="table table-striped table-condensed">
     <thead>
       <tr>
@@ -31,12 +33,13 @@
         <td class="nowrap-column">{{ entry.date }}
         <td class="nowrap-column">{{ entry.user_name }}</td>
         <td class="number-column">{{ entry.bill_rate|floatformat:2 }}&euro;</td>
-        <td class="number-column">{{ entry.incurred_hours }}h</td>
+        <td class="number-column">{{ entry.incurred_hours|floatformat:2 }}h</td>
         <td class="number-column">{{ entry.incurred_money|floatformat:2 }}&euro;</td>
         <td>{{ entry.notes }}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
+  {% endfor %}
 </body>
 </html>
