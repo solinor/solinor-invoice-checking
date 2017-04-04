@@ -78,6 +78,7 @@ def invoice_page(request, year, month, invoice):
         "form_data": latest_comments,
         "year": invoice_data.year,
         "month": invoice_data.month,
+        "invoice_id": invoice,
     }
     context.update(entry_data)
 
