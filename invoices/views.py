@@ -4,13 +4,13 @@ import datetime
 from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-
+from invoices.filters import InvoiceFilter
 
 @login_required
 def frontpage(request):
-    invoices = Invoice.objects.all()
+    f = InvoiceFilter(request.GET, queryset=Invoice.objects.all())
     context = {
-        "invoices": invoices
+        "invoices": f,
     }
     return render(request, "frontpage.html", context)
 
@@ -28,6 +28,9 @@ def invoice_page(request, year, month, invoice):
                            user=request.user.email,
                            invoice=invoice_data)
         comment.save()
+        invoice_data.is_approved = comment.checked
+        invoice_data.has_comments = comment.has_comments()
+        invoice_data.save()
         return HttpResponseRedirect(reverse("invoice", args=[year, month, invoice]))
 
     today = datetime.datetime.today()

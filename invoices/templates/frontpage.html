@@ -2,6 +2,19 @@
 {% load humanize %}
 
 {% block content %}
+<form action="" method="get" class="form-inline">
+  {% for field in invoices.form %}
+
+      <div class="form-group">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+      </div>
+  {% endfor %}
+  <button class="btn btn-primary" type="submit">Filter</button>
+</form>
 <table class="table">
   <thead>
     <tr>
@@ -16,13 +29,13 @@
     </tr>
   </thead>
   <tbody>
-    {% for entry in invoices %}
+    {% for entry in invoices.qs %}
     <tr>
       <td>{{ entry.year }}-{{ entry.month }}</td>
       <td><a href="{% url 'invoice' entry.year entry.month entry.id %}">{{ entry.client }} - {{ entry.project }}</td>
       <td>{{ entry.is_approved }}</td>
       <td>{{ entry.has_comments }}</td>
-      <td class="number-column">{{ entry.total_issues }}</td>
+      <td class="number-column">{{ entry.incorrect_entries_count }}</td>
       <td class="number-column">{{ entry.total_hours|floatformat:2 }}h</td>
       <td class="number-column">{{ entry.total_money|floatformat:2 }}&euro;</td>
       <td class="number-column">{{ entry.bill_rate_avg|floatformat:2 }}&euro;</td>

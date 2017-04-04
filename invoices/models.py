@@ -97,8 +97,13 @@ class HourEntry(models.Model):
     def is_billable_phase(self):
         return is_phase_billable(self.phase_name)
 
-
 class Invoice(models.Model):
+    CHOICES = (
+        (None, "Unknown"),
+        (True, "Yes"),
+        (False, "No"),
+    )
+
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     year = models.IntegerField()
@@ -106,6 +111,9 @@ class Invoice(models.Model):
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
 
+    is_approved = models.NullBooleanField(null=True, blank=True, choices=CHOICES)
+    has_comments = models.NullBooleanField(null=True, blank=True, choices=CHOICES)
+    incorrect_entries_count = models.IntegerField(null=True, blank=True)
     billable_incorrect_price_count = models.IntegerField(null=True, blank=True)
     non_billable_hours_count = models.IntegerField(null=True, blank=True)
     non_phase_specific_count = models.IntegerField(null=True, blank=True)
@@ -124,24 +132,6 @@ class Invoice(models.Model):
             total += d
         return total
 
-    def is_approved(self):
-        return False
-        try:
-            comment = Comments.objects.filter(invoice=self).latest()
-            return comment.checked
-        except Comments.DoesNotExist:
-            return False
-
-    def has_comments(self):
-        return False
-        try:
-            comment = Comments.objects.filter(invoice=self).latest()
-            if comment.comments:
-                return True
-        except Comments.DoesNotExist:
-            pass
-        return False
-
     class Meta:
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")
@@ -156,6 +146,11 @@ class Comments(models.Model):
     checked_bill_rates_ok = models.NullBooleanField(blank=True, null=True)
     checked_phases_ok = models.NullBooleanField(blank=True, null=True)
     user = models.TextField(max_length=100, null=True, blank=True)
+
+    def has_comments(self):
+        if self.comments and len(self.comments) > 0:
+            return True
+        return False
 
     class Meta:
         get_latest_by = "timestamp"

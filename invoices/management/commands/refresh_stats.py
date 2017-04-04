@@ -25,4 +25,9 @@ class Command(BaseCommand):
             stats = calculate_entry_stats(entries)
             for field in self.STATS_FIELDS:
                 setattr(invoice, field, stats[field])
+            total_issues = invoice.total_issues()
+            if total_issues != "?":
+                invoice.incorrect_entries_count = total_issues
+            else:
+                invoice.incorrect_entries_count = None
             invoice.save()
