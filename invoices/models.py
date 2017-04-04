@@ -16,20 +16,21 @@ def calculate_entry_stats(entries):
 
     for entry in entries:
         if entry.phase_name not in phases:
-            phases[entry.phase_name] = {}
-        if entry.user_name not in phases[entry.phase_name]:
-            phases[entry.phase_name][entry.user_name] = {}
-        if entry.bill_rate not in phases[entry.phase_name][entry.user_name]:
-            phases[entry.phase_name][entry.user_name][entry.bill_rate] = {"incurred_hours": 0, "incurred_money": 0}
-        phases[entry.phase_name][entry.user_name][entry.bill_rate]["incurred_hours"] += entry.incurred_hours
-        phases[entry.phase_name][entry.user_name][entry.bill_rate]["incurred_money"] += entry.incurred_money
+            phases[entry.phase_name] = {"users": {}, "not_billable": not is_phase_billable(entry.phase_name)}
+        if entry.user_name not in phases[entry.phase_name]["users"]:
+            phases[entry.phase_name]["users"][entry.user_name] = {}
+        if entry.bill_rate not in phases[entry.phase_name]["users"][entry.user_name]:
+            phases[entry.phase_name]["users"][entry.user_name][entry.bill_rate] = {"incurred_hours": 0, "incurred_money": 0}
+        phases[entry.phase_name]["users"][entry.user_name][entry.bill_rate]["incurred_hours"] += entry.incurred_hours
+        phases[entry.phase_name]["users"][entry.user_name][entry.bill_rate]["incurred_money"] += entry.incurred_money
 
         if (entry.bill_rate < 50 or entry.bill_rate > 170) and entry.is_billable_phase():
             billable_incorrect_price.append(entry)
 
         if not entry.is_billable_phase():
             non_billable_hours.append(entry)
-        total_money += entry.incurred_money
+        else:
+            total_money += entry.incurred_money
         total_hours += entry.incurred_hours
         if entry.phase_name == "[Non Phase Specific]":
             non_phase_specific.append(entry)
@@ -59,6 +60,13 @@ def calculate_entry_stats(entries):
         "bill_rate_avg": bill_rate_avg,
     }
 
+def is_phase_billable(phase_name):
+    phase_name = phase_name.lower()
+
+    if phase_name.startswith("non-billable") or phase_name.startswith("non billable"):
+        return False
+    return True
+
 
 class HourEntry(models.Model):
     """ A single hour entry row.
@@ -87,11 +95,8 @@ class HourEntry(models.Model):
     approved = models.BooleanField(blank=True)
 
     def is_billable_phase(self):
-        phase_name = self.phase_name.lower()
+        return is_phase_billable(self.phase_name)
 
-        if phase_name.startswith("non-billable") or phase_name.startswith("non billable"):
-            return False
-        return True
 
 class Invoice(models.Model):
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
