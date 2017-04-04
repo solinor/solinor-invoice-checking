@@ -70,6 +70,8 @@ GOOGLEAUTH_IS_STAFF = False
 # list of default group names to assign to new users
 GOOGLEAUTH_GROUPS = []
 
+PDF_AUTH = os.environ["PDF_AUTH"]
+
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
