@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 update_obj = update_obj[obj_count - 1]
             else:
                 update_obj = DataUpdate()
-            DataUpdate.objects.filter(aborted=False).filter(finished=False).update(aborted=True)
+            DataUpdate.objects.filter(aborted=False).filter(finished_at=None).update(aborted=True)
             update_obj.aborted = False
             update_obj.started_at = timezone.now()
             update_obj.save()
