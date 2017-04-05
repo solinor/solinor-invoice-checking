@@ -21,8 +21,8 @@ REDIS = redis.from_url(os.environ.get("REDIS_URL"))
 @login_required
 def person(request, year, month, user_email):
     now = timezone.now()
-    year = int(request.GET.get("year", now.year))
-    month = int(request.GET.get("month", now.month))
+    year = int(year)
+    month = int(month)
     entries = HourEntry.objects.filter(user_email=user_email).exclude(incurred_hours=0).filter(date__year=year, date__month=month).order_by("date")
     if len(entries) > 0:
         user_name = entries[0].user_name
