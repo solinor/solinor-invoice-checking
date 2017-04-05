@@ -129,9 +129,14 @@ def frontpage(request):
     all_invoices = Invoice.objects.exclude(total_hours=0)
     f = InvoiceFilter(request.GET, queryset=all_invoices)
     your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month)
+    try:
+        last_update_finished_at = DataUpdate.objects.exclude(finished_at=None).latest("finished_at").finished_at
+    except DataUpdate.DoesNotExist:
+        last_update_finished_at = "?"
     context = {
         "invoices": f,
         "your_invoices": your_invoices,
+        "last_update_finished_at": last_update_finished_at,
     }
     return render(request, "frontpage.html", context)
 
