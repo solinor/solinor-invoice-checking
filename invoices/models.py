@@ -181,3 +181,16 @@ class Comments(models.Model):
 
     class Meta:
         get_latest_by = "timestamp"
+
+
+class DataUpdate(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    aborted = models.NullBooleanField(null=True, blank=True, default=False)
+
+    class Meta:
+        get_latest_by = "created_at"
+
+    def __unicode__(self):
+        return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)

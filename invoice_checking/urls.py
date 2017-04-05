@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)/pdf/(?P<pdf_type>.+)$', invoices.views.get_pdf, name="get_pdf"),
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)$', invoices.views.invoice_page, name="invoice"),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^queue_update$', invoices.views.queue_update, name="queue_update"),
     url(r'^accounts/profile/$', RedirectView.as_view(pattern_name='frontpage', permanent=False)),
     url(r'^accounts/', include('googleauth.urls')),
     url(r'^$', invoices.views.frontpage, name="frontpage"),

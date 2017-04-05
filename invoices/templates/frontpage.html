@@ -2,6 +2,19 @@
 {% load humanize %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<span class="text-right">
+<form method="post" action="{% url 'queue_update' %}">
+  {% csrf_token %}
+  <button role="submit" name="Request data update" class="btn btn-default">Request data update</button>
+</form>
+</span>
+
 {% if your_invoices %}
 <h2>Your projects</h2>
 

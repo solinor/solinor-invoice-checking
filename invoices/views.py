@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest
 import datetime
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from invoices.filters import InvoiceFilter
@@ -10,6 +10,38 @@ from django.conf import settings
 import requests
 import os
 import pdfkit
+import redis
+from django.contrib import messages
+from django.utils import timezone
+
+
+REDIS = redis.from_url(os.environ.get("REDIS_URL"))
+
+
+@login_required
+def queue_update(request):
+    if request.method == "POST":
+        try:
+            now = timezone.now()
+            last_update_at = DataUpdate.objects.exclude(aborted=True).exclude(finished_at=None).latest("finished_at")
+            finished = now - last_update_at.finished_at
+            if finished < datetime.timedelta(minutes=1):
+                messages.add_message(request, messages.WARNING, 'Data was just updated. Please try again later.')
+                return HttpResponseRedirect(reverse("frontpage"))
+
+            running = DataUpdate.objects.exclude(aborted=True).filter(finished_at=None).exclude(started_at=None)
+            if running.count() > 0 and now - running.latest().created_at < datetime.timedelta(minutes=10):
+                messages.add_message(request, messages.WARNING, 'Update is currently running. Please try again later.')
+                return HttpResponseRedirect(reverse("frontpage"))
+        except DataUpdate.DoesNotExist:
+            pass
+        REDIS.publish("request-refresh", "True")
+        update_obj = DataUpdate()
+        update_obj.save()
+        messages.add_message(request, messages.INFO, 'Update queued.')
+        return HttpResponseRedirect(reverse("frontpage"))
+    return HttpResponseBadRequest()
+
 
 @login_required
 def get_pdf(request, year, month, invoice, pdf_type):
@@ -58,7 +90,7 @@ def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     all_invoices = Invoice.objects.exclude(total_hours=0)
     f = InvoiceFilter(request.GET, queryset=all_invoices)
-    your_invoices = Invoice.objects.filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month)
+    your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month)
     context = {
         "invoices": f,
         "your_invoices": your_invoices,
