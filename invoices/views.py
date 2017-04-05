@@ -56,7 +56,8 @@ def get_pdf(request, year, month, invoice, pdf_type):
 @login_required
 def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    f = InvoiceFilter(request.GET, queryset=Invoice.objects.all())
+    all_invoices = Invoice.objects.exclude(total_hours=0)
+    f = InvoiceFilter(request.GET, queryset=all_invoices)
     your_invoices = Invoice.objects.filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month)
     context = {
         "invoices": f,
