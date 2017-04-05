@@ -79,7 +79,6 @@ def update_data(start_date, end_date):
         project_key = "%s %s - %s" % (data["date"].strftime("%Y-%m"), data["client"], data["project"])
         if project_key not in projects:
             projects[project_key] = True
-            print "Updating %s" % project_key
             Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
 
     # Note: this does not call .save() for entries.
