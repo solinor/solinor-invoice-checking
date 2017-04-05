@@ -10,6 +10,8 @@ from django.views.generic.base import RedirectView
 urlpatterns = [
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)/pdf/(?P<pdf_type>.+)$', invoices.views.get_pdf, name="get_pdf"),
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>.+)$', invoices.views.invoice_page, name="invoice"),
+    url(r'^people$', invoices.views.people, name='people'),
+    url(r'^person/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<user_email>.*)', invoices.views.person, name='person'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^queue_update$', invoices.views.queue_update, name="queue_update"),
     url(r'^accounts/profile/$', RedirectView.as_view(pattern_name='frontpage', permanent=False)),

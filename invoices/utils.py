@@ -4,7 +4,7 @@ import datetime
 import django.db.utils
 from django.utils import timezone
 import sys
-from invoices.models import HourEntry, Invoice, calculate_entry_stats, DataUpdate
+from invoices.models import HourEntry, Invoice, calculate_entry_stats, DataUpdate, is_phase_billable
 
 TENKFEET_AUTH = os.environ["TENKFEET_AUTH"]
 STATS_FIELDS = [
@@ -67,6 +67,7 @@ def update_data(start_date, end_date):
             "user_email": entry[29],
             "project_tags": entry[34],
             "last_updated_at": now,
+            "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
         }
         assert data["year"] > 2000
         assert data["year"] < 2050

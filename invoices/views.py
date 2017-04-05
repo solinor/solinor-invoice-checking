@@ -19,6 +19,44 @@ REDIS = redis.from_url(os.environ.get("REDIS_URL"))
 
 
 @login_required
+def person(request, year, month, user_email):
+    now = timezone.now()
+    year = int(request.GET.get("year", now.year))
+    month = int(request.GET.get("month", now.month))
+    entries = HourEntry.objects.filter(user_email=user_email).exclude(incurred_hours=0).filter(date__year=year, date__month=month).order_by("date")
+    if len(entries) > 0:
+        user_name = entries[0].user_name
+    else:
+        user_name = user_email
+    return render(request, "person.html", {"hour_entries": entries, "user_name": user_name})
+
+
+@login_required
+def people(request):
+    now = timezone.now()
+    year = int(request.GET.get("year", now.year))
+    month = int(request.GET.get("month", now.month))
+    people = {}
+    for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
+        if entry.user_email not in people:
+            people[entry.user_email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "user_name": entry.user_name, "user_email": entry.user_email}
+        if entry.calculated_is_billable:
+            k = "billable"
+        else:
+            k = "non-billable"
+        people[entry.user_email][k]["incurred_hours"] += entry.incurred_hours
+        people[entry.user_email][k]["incurred_money"] += entry.incurred_money
+    for person in people.keys():
+        total_hours = people[person]["billable"]["incurred_hours"] + people[person]["non-billable"]["incurred_hours"]
+        people[person]["total_hours"] = total_hours
+        if total_hours > 0:
+            people[person]["invoicing_ratio"] = people[person]["billable"]["incurred_hours"] / total_hours * 100
+            people[person]["bill_rate_avg"] = people[person]["billable"]["incurred_money"] / total_hours
+        if people[person]["billable"]["incurred_hours"] > 0:
+            people[person]["bill_rate_avg_billable"] = people[person]["billable"]["incurred_money"] / people[person]["billable"]["incurred_hours"]
+    return render(request, "people.html", {"people": people, "year": year, "month": month})
+
+@login_required
 def queue_update(request):
     if request.method == "POST":
         try:

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<p class="well">This table is excluding all leaves.</p>
+
+<form method="get" action="?">
+  <input type="number" name="month" value="{{ month }}">
+  <input type="number" name="year" value="{{ year }}">
+  <button type="submit" class="btn btn-primary">Choose time</button>
+</form>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="number-column">Billing ratio</th>
+      <th class="number-column">Hours</th>
+      <th class="number-column">Bill rate avg (all)</th>
+      <th class="number-column">Bill rate avg (billable)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user_email, entry in people.items %}
+    <tr>
+      <td><a href="{% url 'person' year month entry.user_email %}">{{ entry.user_name }}</a></td>
+      <td class="number-column">{{ entry.invoicing_ratio|floatformat:0 }}%</td>
+      <td class="number-column">{{ entry.total_hours|floatformat:0 }}h</td>
+      <td class="number-column">{{ entry.bill_rate_avg|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ entry.bill_rate_avg_billable|floatformat:2 }}&euro;</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

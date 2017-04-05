@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ user_name }}</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Project</th>
+      <th>Category</th>
+      <th>Phase</th>
+      <th>Notes</th>
+      <th class="number-column">Hours</th>
+      <th class="number-column">Bill rate</th>
+      <th class="number-column">Money</th>
+      <th>Billable</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in hour_entries %}
+    <tr>
+      <td>{{ entry.client }}</td>
+      <td>{{ entry.project }}</td>
+      <td>{{ entry.category }}</td>
+      <td>{{ entry.phase_name }}</td>
+      <td>{{ entry.notes }}</td>
+      <td class="number-column">{{ entry.incurred_hours }}h</td>
+      <td class="number-column">{{ entry.bill_rate }}&euro;/h</td>
+      <td class="number-column">{{ entry.incurred_money }}&euro;</td>
+      <td>{{ entry.calculated_is_billable }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

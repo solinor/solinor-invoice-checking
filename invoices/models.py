@@ -16,7 +16,7 @@ def calculate_entry_stats(entries):
 
     for entry in entries:
         if entry.phase_name not in phases:
-            phases[entry.phase_name] = {"users": {}, "not_billable": not is_phase_billable(entry.phase_name)}
+            phases[entry.phase_name] = {"users": {}, "not_billable": not is_phase_billable(entry.phase_name, entry.project)}
         if entry.user_name not in phases[entry.phase_name]["users"]:
             phases[entry.phase_name]["users"][entry.user_name] = {}
         if entry.bill_rate not in phases[entry.phase_name]["users"][entry.user_name]:
@@ -60,7 +60,9 @@ def calculate_entry_stats(entries):
         "bill_rate_avg": bill_rate_avg,
     }
 
-def is_phase_billable(phase_name):
+def is_phase_billable(phase_name, project):
+    if project == "[Leave Type]":
+        return False
     phase_name = phase_name.lower()
 
     if phase_name.startswith("non-billable") or phase_name.startswith("non billable"):
@@ -96,8 +98,10 @@ class HourEntry(models.Model):
     approved = models.BooleanField(blank=True)
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
 
+    calculated_is_billable = models.BooleanField(blank=True, default=False)
+
     def is_billable_phase(self):
-        return is_phase_billable(self.phase_name)
+        return is_phase_billable(self.phase_name, self.project)
 
 class Invoice(models.Model):
     CHOICES = (
