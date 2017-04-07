@@ -14,6 +14,38 @@ import dj_database_url
 import subprocess
 import sys
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'verbose',
+            'level': 'DEBUG',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+        'invoices': {
+            'handlers': ['console'],
+            'level': os.getenv('INVOICES_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        }
+    },
+}
+
 os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
 WKHTMLTOPDF_CMD = subprocess.Popen(
     ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], # Note we default to 'wkhtmltopdf' as the binary name

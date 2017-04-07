@@ -6,6 +6,9 @@ from django.utils import timezone
 import sys
 from invoices.models import HourEntry, Invoice, calculate_entry_stats, DataUpdate, is_phase_billable
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 STATS_FIELDS = [
     "billable_incorrect_price_count",
@@ -30,21 +33,23 @@ def parse_float(data):
 
 
 def update_data(start_date, end_date):
+    logger.info("Starting hour entry update: %s - %s", start_date, end_date)
     now = timezone.now()
     today = now.strftime("%Y-%m-%d")
     url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date, end_date, today, settings.TENKFEET_AUTH)
-    data = requests.get(url)
+    tenkfeet_data = requests.get(url)
+    logger.info("10k data downloaded")
     first_entry = datetime.date(2100, 1, 1)
     last_entry = datetime.date(1970, 1, 1)
     entries = []
     projects = {}
     invoices = Invoice.objects.all()
     invoices_data = {}
-    for data in invoices:
-        invoice_key = "%s-%s %s - %s" % (data.year, data.month, data.client, data.project)
-        invoices_data[invoice_key] = data
+    for invoice in invoices:
+        invoice_key = u"%s-%s %s - %s" % (invoice.year, invoice.month, invoice.client, invoice.project)
+        invoices_data[invoice_key] = invoice
 
-    for entry in data.json()["time_entries"]:
+    for entry in tenkfeet_data.json()["time_entries"]:
         date = parse_date(entry[40])
         if date > last_entry:
             last_entry = date
@@ -81,24 +86,30 @@ def update_data(start_date, end_date):
         assert data["incurred_money"] >= 0
         assert data["incurred_hours"] >= 0
 
-        invoice_key = "%s-%s %s - %s" % (data["date"].year, data["date"].month, data["client"], data["project"])
-        if invoice_key in invoices:
-            data["invoice"] = invoices[invoice_key]
-            if invoices[invoice_key].project_tags != data["project_tags"]:
-                invoices[invoice_key].project_tags = data["project_tags"]
-                invoices[invoice_key].save()
+        invoice_key = u"%s-%s %s - %s" % (data["date"].year, data["date"].month, data["client"], data["project"])
+        if invoice_key in invoices_data:
+            logger.info("Project already exists: %s", invoice_key)
+            data["invoice"] = invoices_data[invoice_key]
+            if invoices_data[invoice_key].tags != data["project_tags"]:
+                invoices_data[invoice_key].tags = data["project_tags"]
+                invoices_data[invoice_key].save()
         else:
+            logger.info("Creating a new project: %s", invoice_key)
             invoice, created = Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
-            invoice_data[invoice_key] = invoice
+            invoices_data[invoice_key] = invoice
             data["invoice"] = invoice
 
         entry = HourEntry(**data)
         entries.append(entry)
 
     # Note: this does not call .save() for entries.
+    logger.info("Processed all 10k entries. Inserting to database.")
     HourEntry.objects.bulk_create(entries)
+    logger.info("All 10k entries added.")
+    logger.info("Deleting old 10k entries.")
     HourEntry.objects.filter(date__gte=first_entry, date__lte=last_entry, last_updated_at__lt=now).delete()
     return (first_entry, last_entry)
+    logger.info("All old 10k entries deleted.")
 
 
 def refresh_stats():

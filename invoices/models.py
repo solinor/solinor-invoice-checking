@@ -137,6 +137,8 @@ class Invoice(models.Model):
     bill_rate_avg = models.FloatField(null=True, blank=True)
     total_money = models.FloatField(null=True, blank=True)
 
+    def __unicode__(self):
+        return u"%s %s - %s-%s" % (self.client, self.project, self.year, self.month)
 
     def get_tags(self):
         if self.tags:
