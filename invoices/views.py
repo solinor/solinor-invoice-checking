@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest
@@ -84,7 +86,8 @@ def queue_update(request):
 @login_required
 def get_pdf(request, year, month, invoice, pdf_type):
     invoice_data = get_object_or_404(Invoice, id=invoice)
-    title = "%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
+    title = u"%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
+    title = title.replace(u"\xe4", u"a").replace(u"\xb6", u"o").replace(u"\x84", u"A").replace(u"\x96", u"O")
 
     pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
     wk_options = {
