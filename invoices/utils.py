@@ -5,8 +5,8 @@ import django.db.utils
 from django.utils import timezone
 import sys
 from invoices.models import HourEntry, Invoice, calculate_entry_stats, DataUpdate, is_phase_billable
+from django.conf import settings
 
-TENKFEET_AUTH = os.environ["TENKFEET_AUTH"]
 STATS_FIELDS = [
     "billable_incorrect_price_count",
     "non_billable_hours_count",
@@ -32,12 +32,18 @@ def parse_float(data):
 def update_data(start_date, end_date):
     now = timezone.now()
     today = now.strftime("%Y-%m-%d")
-    url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date, end_date, today, TENKFEET_AUTH)
+    url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date, end_date, today, settings.TENKFEET_AUTH)
     data = requests.get(url)
     first_entry = datetime.date(2100, 1, 1)
     last_entry = datetime.date(1970, 1, 1)
     entries = []
     projects = {}
+    invoices = Invoice.objects.all()
+    invoices_data = {}
+    for data in invoices:
+        invoice_key = "%s-%s %s - %s" % (data.year, data.month, data.client, data.project)
+        invoices_data[invoice_key] = data
+
     for entry in data.json()["time_entries"]:
         date = parse_date(entry[40])
         if date > last_entry:
@@ -74,28 +80,31 @@ def update_data(start_date, end_date):
         assert data["bill_rate"] >= 0
         assert data["incurred_money"] >= 0
         assert data["incurred_hours"] >= 0
+
+        invoice_key = "%s-%s %s - %s" % (data["date"].year, data["date"].month, data["client"], data["project"])
+        if invoice_key in invoices:
+            data["invoice"] = invoices[invoice_key]
+            if invoices[invoice_key].project_tags != data["project_tags"]:
+                invoices[invoice_key].project_tags = data["project_tags"]
+                invoices[invoice_key].save()
+        else:
+            invoice, created = Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
+            invoice_data[invoice_key] = invoice
+            data["invoice"] = invoice
+
         entry = HourEntry(**data)
         entries.append(entry)
-
-        project_key = "%s %s - %s" % (data["date"].strftime("%Y-%m"), data["client"], data["project"])
-        if project_key not in projects:
-            projects[project_key] = True
-            Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
 
     # Note: this does not call .save() for entries.
     HourEntry.objects.bulk_create(entries)
     HourEntry.objects.filter(date__gte=first_entry, date__lte=last_entry, last_updated_at__lt=now).delete()
+    return (first_entry, last_entry)
 
 
 def refresh_stats():
     for invoice in Invoice.objects.all():
-        entries = HourEntry.objects.filter(project=invoice.project, client=invoice.client, date__year__gte=invoice.year, date__month=invoice.month).filter(incurred_hours__gt=0)
+        entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
         stats = calculate_entry_stats(entries)
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
-        total_issues = invoice.total_issues()
-        if total_issues != "?":
-            invoice.incorrect_entries_count = total_issues
-        else:
-            invoice.incorrect_entries_count = None
         invoice.save()

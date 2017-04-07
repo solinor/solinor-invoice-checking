@@ -43,7 +43,7 @@ def calculate_entry_stats(entries):
         bill_rate_avg = total_money / total_hours
     else:
         bill_rate_avg = 0
-    return {
+    stats = {
         "phases": phases,
         "billable_incorrect_price": billable_incorrect_price,
         "non_billable_hours": non_billable_hours,
@@ -59,6 +59,8 @@ def calculate_entry_stats(entries):
         "empty_descriptions_count": len(empty_descriptions),
         "bill_rate_avg": bill_rate_avg,
     }
+    stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"]
+    return stats
 
 def is_phase_billable(phase_name, project):
     if project == "[Leave Type]":
@@ -99,6 +101,8 @@ class HourEntry(models.Model):
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
 
     calculated_is_billable = models.BooleanField(blank=True, default=False)
+    invoice = models.ForeignKey("Invoice", null=True)
+    project_m = models.ForeignKey("Project", null=True)
 
     def is_billable_phase(self):
         return is_phase_billable(self.phase_name, self.project)
@@ -114,6 +118,9 @@ class Invoice(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     year = models.IntegerField()
     month = models.IntegerField()
+
+    project_m = models.ForeignKey("Project", null=True)
+
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
     tags = models.CharField(max_length=1024, null=True, blank=True)
@@ -130,14 +137,6 @@ class Invoice(models.Model):
     bill_rate_avg = models.FloatField(null=True, blank=True)
     total_money = models.FloatField(null=True, blank=True)
 
-    def total_issues(self):
-        total = 0
-        for field in self.ISSUE_FIELDS:
-            d = getattr(self, field)
-            if d is None:
-                return "?"
-            total += d
-        return total
 
     def get_tags(self):
         if self.tags:
@@ -165,6 +164,22 @@ class Invoice(models.Model):
     class Meta:
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")
+
+
+class Project(models.Model):
+    guid = models.UUIDField(primary_key=True, editable=False)
+    project_id = models.IntegerField(null=True, blank=True)
+    project_state = models.CharField(max_length=100)
+    parent_id = models.IntegerField(null=True, blank=True)
+    phase_name = models.CharField(max_length=1000, null=True, blank=True)
+    name = models.CharField(max_length=1000)
+    client = models.CharField(max_length=1000)
+    archived = models.BooleanField(blank=True, default=False)
+    created_at = models.DateTimeField()
+    archived_at = models.DateTimeField(null=True, blank=True)
+    description = models.TextField()
+    starts_at = models.DateField(null=True, blank=True)
+    ends_at = models.DateField(null=True, blank=True)
 
 
 class Comments(models.Model):

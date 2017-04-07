@@ -5,18 +5,19 @@ from invoices.models import HourEntry, Invoice, DataUpdate
 import datetime
 import django.db.utils
 from django.utils import timezone
+from django.conf import settings
 import sys
 import redis
 
 from invoices.utils import update_data, refresh_stats
 
-REDIS = redis.from_url(os.environ.get("REDIS_URL"))
 
 class Command(BaseCommand):
     help = 'Import data from 10k feet API'
 
     def handle(self, *args, **options):
-        pubsub = REDIS.pubsub()
+        redis_instance = redis.from_url(settings.REDIS)
+        pubsub = redis_instance.pubsub()
         pubsub.subscribe("request-refresh")
         for item in pubsub.listen():
             now = timezone.now()

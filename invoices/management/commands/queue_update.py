@@ -1,11 +1,12 @@
 from django.core.management.base import BaseCommand, CommandError
 import redis
 import os
+from django.conf import settings
 
-REDIS = redis.from_url(os.environ.get("REDIS_URL"))
 
 class Command(BaseCommand):
     help = 'Queue new data refresh'
 
     def handle(self, *args, **options):
-        REDIS.publish("request-refresh", "True")
+        redis_instance = redis.from_url(settings.REDIS_URL)
+        redis_instance.publish("request-refresh", "True")
