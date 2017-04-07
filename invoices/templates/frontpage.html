@@ -5,7 +5,7 @@
 <span class="text-right">
 <form method="post" action="{% url 'queue_update' %}">
   {% csrf_token %}
-  <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished at {{ last_update_finished_at }} (UTC))</button>
+  <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>
 </form>
 </span>
 
