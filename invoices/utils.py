@@ -6,7 +6,7 @@ from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.conf import settings
 
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project
+from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project, FeetUser
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name
@@ -23,8 +23,9 @@ STATS_FIELDS = [
 
 
 def parse_date(date):
-    date = date.split("-")
-    return datetime.datetime(int(date[0]), int(date[1]), int(date[2])).date()
+    if date:
+        date = date.split("-")
+        return datetime.datetime(int(date[0]), int(date[1]), int(date[2])).date()
 
 def parse_float(data):
     try:
@@ -36,6 +37,37 @@ def parse_datetime(date):
     if date is None:
         return None
     return django_parse_datetime(date)
+
+
+def update_users():
+    logger.info("Updating users")
+    tenkfeet_users = tenkfeet_api.fetch_users()
+    users_by_email = {}
+    total_updated = 0
+    for user in tenkfeet_users:
+        user_email = user["email"]
+        user_fields = {
+            "user_id": user["id"],
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
+            "archived": user["archived"],
+            "display_name": user["display_name"],
+            "email": user_email,
+            "billable": user["billable"],
+            "hire_date": parse_date(user["hire_date"]),
+            "termination_date": parse_date(user["termination_date"]),
+            "mobile_phone": user["mobile_phone"],
+            "invitation_pending": user["invitation_pending"],
+            "billability_target": user["billability_target"],
+            "created_at": parse_datetime(user["created_at"]),
+            "archived_at": user["archived_at"],
+            "thumbnail": user["thumbnail"],
+        }
+        user_obj, _ = FeetUser.objects.update_or_create(guid=user["guid"], defaults=user_fields)
+        updated_objects = HourEntry.objects.filter(user_email=user_email).filter(user_m=None).update(user_m=user_obj)
+        logger.debug("Updated %s to %s entries", user_email, updated_objects)
+        total_updated += updated_objects
+    logger.info("Updated %s hour entries and %s users", total_updated, len(tenkfeet_users))
 
 
 def update_projects():
@@ -84,11 +116,19 @@ def get_invoices():
     return invoices_data
 
 
+def get_users():
+    users = {}
+    for user in FeetUser.objects.all():
+        users[user.email] = user
+    return user
+
+
 class HourEntryUpdate(object):
     def __init__(self, start_date, end_date):
         self.logger = logging.getLogger(__name__)
         self.invoices_data = get_invoices()
         self.projects_data = get_projects()
+        self.user_data = get_users()
         self.start_date = start_date
         self.end_date = end_date
         self.first_entry = datetime.date(2100, 1, 1)
@@ -115,6 +155,9 @@ class HourEntryUpdate(object):
             invoice, _ = Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
             self.invoices_data[invoice_key] = invoice
             return invoice
+
+    def match_user(self, email):
+        return self.user_data.get(email)
 
     def update(self):
         self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
@@ -166,6 +209,7 @@ class HourEntryUpdate(object):
             assert data["incurred_hours"] >= 0
 
             data["invoice"] = self.match_invoice(data)
+            data["user_m"] = self.match_user(data["user_email"])
             entries.append(HourEntry(**data))
 
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))

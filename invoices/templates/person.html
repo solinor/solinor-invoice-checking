@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>{{ user_name }}</h2>
+<h2>{{ person.display_name }}</h2>
+
+<a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
 
 <table class="table table-striped">
   <thead>

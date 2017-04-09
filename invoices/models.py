@@ -80,6 +80,7 @@ class HourEntry(models.Model):
     date = models.DateField()
 
     last_updated_at = models.DateTimeField()
+    user_m = models.ForeignKey("FeetUser", null=True)
     user_id = models.IntegerField()
     user_email = models.CharField(max_length=255)
     user_name = models.CharField(max_length=100)
@@ -132,7 +133,6 @@ class Invoice(models.Model):
     month = models.IntegerField()
 
     project_m = models.ForeignKey("Project", null=True)
-    user = models.ForeignKey("FeetUser", null=True)
 
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)

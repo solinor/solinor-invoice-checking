@@ -24,7 +24,7 @@
   <tbody>
     {% for user_email, entry in people.items %}
     <tr>
-      <td><a href="{% url 'person' year month entry.user_email %}">{{ entry.user_name }}</a></td>
+      <td><a href="{% url 'person' entry.person.guid year month %}">{{ entry.person.display_name }}</a></td>
       <td class="number-column">{{ entry.invoicing_ratio|floatformat:0 }}%</td>
       <td class="number-column">{{ entry.total_hours|floatformat:0 }}h</td>
       <td class="number-column">{{ entry.bill_rate_avg|floatformat:2 }}&euro;</td>

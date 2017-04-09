@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser
 from invoices.filters import InvoiceFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 
@@ -19,15 +19,16 @@ REDIS = redis.from_url(settings.REDIS)
 
 
 @login_required
-def person_details(request, year, month, user_email):
+def person_details(request, year, month, user_guid):
     year = int(year)
     month = int(month)
-    entries = HourEntry.objects.filter(user_email=user_email).exclude(incurred_hours=0).filter(date__year=year, date__month=month).order_by("date")
+    person = get_object_or_404(FeetUser, guid=user_guid)
+    entries = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).filter(date__year=year, date__month=month).order_by("date")
     if len(entries) > 0:
         user_name = entries[0].user_name
     else:
         user_name = user_email
-    return render(request, "person.html", {"hour_entries": entries, "user_name": user_name})
+    return render(request, "person.html", {"person": person, "hour_entries": entries})
 
 
 @login_required
@@ -36,9 +37,11 @@ def people_list(request):
     year = int(request.GET.get("year", now.year))
     month = int(request.GET.get("month", now.month))
     people_data = {}
+    for person in FeetUser.objects.filter(archived=False):
+        people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0},  "person": person}
     for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
         if entry.user_email not in people_data:
-            people_data[entry.user_email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "user_name": entry.user_name, "user_email": entry.user_email}
+            continue  # TODO: logging
         if entry.calculated_is_billable:
             k = "billable"
         else:
