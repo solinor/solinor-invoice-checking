@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from invoices.models import DataUpdate
-from invoices.utils import update_data, refresh_stats
+from invoices.utils import HourEntryUpdate, refresh_stats
 
 
 class Command(BaseCommand):
@@ -42,7 +42,8 @@ class Command(BaseCommand):
             end_date = now
             print "Updating data."
             update_obj.started_at = timezone.now()
-            update_data(start_date, end_date)
+            hour_entry_update = HourEntryUpdate(start_date, end_date)
+            hour_entry_update.update()
             print "Data update done."
             print "Update statistics."
             refresh_stats(start_date, end_date)

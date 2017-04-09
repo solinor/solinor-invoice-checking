@@ -2,10 +2,8 @@
 
 import datetime
 import redis
-import pdfkit
 
 from django.shortcuts import render, get_object_or_404
-from django.template.loader import render_to_string
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,7 +13,7 @@ from django.utils import timezone
 
 from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate
 from invoices.filters import InvoiceFilter
-
+from invoices.pdf_utils import generate_hours_pdf_for_invoice
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -82,49 +80,15 @@ def queue_update(request):
     return HttpResponseBadRequest()
 
 
-def generate_pdf(title, content):
-    pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
-    wk_options = {
-        'page-size': 'a4',
-        'orientation': 'landscape',
-        'title': title,
-        # In order to specify command-line options that are simple toggles
-        # using this dict format, we give the option the value None
-        'no-outline': None,
-        'disable-javascript': None,
-        'encoding': 'UTF-8',
-        'margin-left': '0.2cm',
-        'margin-right': '0.2cm',
-        'margin-top': '0.3cm',
-        'margin-bottom': '0.3cm',
-        'lowquality': None,
-    }
-    return pdfkit.from_string(content,
-                              False,
-                              options=wk_options,
-                              configuration=pdfkit_config,
-                             )
-
-
 @login_required
-def get_pdf(request, year, month, invoice, pdf_type):
-    invoice_data = get_object_or_404(Invoice, id=invoice)
-    title = u"%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
-    title = title.replace(u"\xe4", u"a").replace(u"\xb6", u"o").replace(u"\x84", u"A").replace(u"\x96", u"O")
+def get_pdf(request, invoice, pdf_type):
+    if pdf_type == "hours":
+        pdf, title = generate_hours_pdf_for_invoice(request, invoice)
+    else:
+        return HttpResponseBadRequest("Invalid PDF type")
 
-    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=year, date__month=month).filter(incurred_hours__gt=0)
-    phases = {}
-    for entry in entries:
-        if entry.phase_name not in phases:
-            phases[entry.phase_name] = []
-        phases[entry.phase_name].append(entry)
-    context = {"phases": phases}
-
-    # We can generate the pdf from a url, file or, as shown here, a string
-    content = render_to_string('pdf_template.html', context=context, request=request)
-    pdf = generate_pdf(title, content)
     response = HttpResponse(pdf, content_type="application/pdf")
-    response['Content-Disposition'] = 'attachment; filename="Hours for %s.pdf"' % title
+    response['Content-Disposition'] = u'attachment; filename="Hours for %s.pdf"' % title
     return response
 
 @login_required
@@ -146,7 +110,7 @@ def frontpage(request):
 
 @login_required
 def invoice_page(request, year, month, invoice):
-    invoice_data = get_object_or_404(Invoice, id=invoice)
+    invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
 
     if request.method == "POST":
         comment = Comments(comments=request.POST.get("changesForInvoice"),
@@ -165,7 +129,7 @@ def invoice_page(request, year, month, invoice):
         invoice_data.update_state(comment)
         invoice_data.save()
         messages.add_message(request, messages.INFO, 'Saved.')
-        return HttpResponseRedirect(reverse("invoice", args=[year, month, invoice]))
+        return HttpResponseRedirect(reverse("invoice", args=[invoice_data.year, invoice_data.month, invoice]))
 
     today = datetime.datetime.today()
     due_date = today + datetime.timedelta(days=14)

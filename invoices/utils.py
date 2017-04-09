@@ -1,12 +1,15 @@
 import datetime
 import logging
-import requests
-from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project
+
 from django.utils import timezone
-from django.conf import settings
 from django.utils.dateparse import parse_datetime as django_parse_datetime
+from django.conf import settings
+
+from invoices.tenkfeet_api import TenkFeetApi
+from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name
 
 STATS_FIELDS = [
     "billable_incorrect_price_count",
@@ -34,34 +37,30 @@ def parse_datetime(date):
         return None
     return django_parse_datetime(date)
 
+
 def update_projects():
     logger.info("Updating projects")
-    next_page = "/api/v1/projects?per_page=250&page=1"
+    tenkfeet_projects = tenkfeet_api.fetch_projects()
     projects = []
-    while next_page:
-        logger.debug("Processing page %s", next_page)
-        url = "https://api.10000ft.com%s&auth=%s" % (next_page, settings.TENKFEET_AUTH)
-        tenkfeet_data = requests.get(url).json()
-        for project in tenkfeet_data["data"]:
-            project_fields = {
-                "project_id": project["id"],
-                "project_state": project["project_state"],
-                "client": project["client"],
-                "name": project["name"],
-                "parent_id": project["parent_id"],
-                "phase_name": project["phase_name"],
-                "archived": project["archived"],
-                "created_at": parse_datetime(project["created_at"]),
-                "archived_at": parse_datetime(project["archived_at"]),
-                "description": project["description"],
-                "starts_at": parse_date(project["starts_at"]),
-                "ends_at": parse_date(project["ends_at"]),
-            }
-            project_obj, _ = Project.objects.update_or_create(guid=project["guid"],
-                                                              defaults=project_fields)
-            projects.append(project_obj)
-        next_page = tenkfeet_data["paging"]["next"]
-    logger.info("Finished updating projects")
+    for project in tenkfeet_projects:
+        project_fields = {
+            "project_id": project["id"],
+            "project_state": project["project_state"],
+            "client": project["client"],
+            "name": project["name"],
+            "parent_id": project["parent_id"],
+            "phase_name": project["phase_name"],
+            "archived": project["archived"],
+            "created_at": parse_datetime(project["created_at"]),
+            "archived_at": parse_datetime(project["archived_at"]),
+            "description": project["description"],
+            "starts_at": parse_date(project["starts_at"]),
+            "ends_at": parse_date(project["ends_at"]),
+        }
+        project_obj, _ = Project.objects.update_or_create(guid=project["guid"],
+                                                          defaults=project_fields)
+        projects.append(project_obj)
+    logger.info("Finished updating projects (n=%s)", len(projects))
     for invoice in Invoice.objects.filter(project_m=None):
         for project in projects:
             if project.name == invoice.project and project.client == invoice.client:
@@ -85,88 +84,94 @@ def get_invoices():
     return invoices_data
 
 
-def update_data(start_date, end_date):
-    logger.info("Starting hour entry update: %s - %s", start_date, end_date)
-    now = timezone.now()
-    url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"), settings.TENKFEET_AUTH)
-    tenkfeet_data = requests.get(url).json()
-    logger.info("10k data downloaded")
-    first_entry = datetime.date(2100, 1, 1)
-    last_entry = datetime.date(1970, 1, 1)
-    entries = []
+class HourEntryUpdate(object):
+    def __init__(self, start_date, end_date):
+        self.logger = logging.getLogger(__name__)
+        self.invoices_data = get_invoices()
+        self.projects_data = get_projects()
+        self.start_date = start_date
+        self.end_date = end_date
+        self.first_entry = datetime.date(2100, 1, 1)
+        self.last_entry = datetime.date(1970, 1, 1)
 
-    invoices_data = get_invoices()
-    projects_data = get_projects()
+    def update_range(self, date):
+        self.last_entry = max(self.last_entry, date)
+        self.first_entry = min(self.first_entry, date)
 
-    for entry in tenkfeet_data["time_entries"]:
-        date = parse_date(entry[40])
-        last_entry = max(last_entry, date)
-        first_entry = min(first_entry, date)
-        data = {
-            "date": date,
-            "year": date.year,
-            "month": date.month,
-            "user_id": int(entry[0]),
-            "user_name": entry[1],
-            "client": entry[6],
-            "project": entry[3],
-            "incurred_hours": parse_float(entry[8]),
-            "incurred_money": parse_float(entry[11]),
-            "category": entry[14],
-            "notes": entry[15],
-            "entry_type": entry[17],
-            "discipline": entry[18],
-            "role": entry[19],
-            "bill_rate": parse_float(entry[28]),
-            "leave_type": entry[16],
-            "phase_name": entry[31],
-            "billable": entry[21] in ("1", 1),
-            "approved": entry[52] == "Approved",
-            "user_email": entry[29],
-            "project_tags": entry[34],
-            "last_updated_at": now,
-            "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
-        }
+    def match_project(self, project_id):
+        return self.projects_data.get(project_id, None)
 
-        try:
-            project_id = int(entry[32])
-            if project_id in projects_data:
-                logger.debug("Matched project %s", projects_data[project_id])
-                data["project_m"] = projects_data[project_id]
-            else:
-                logger.debug("No match for project ID %s", project_id)
-        except (ValueError, TypeError):
-            pass
-
-        assert data["year"] > 2000
-        assert data["year"] < 2050
-        assert data["bill_rate"] >= 0
-        assert data["incurred_money"] >= 0
-        assert data["incurred_hours"] >= 0
-
+    def match_invoice(self, data):
         invoice_key = u"%s-%s %s - %s" % (data["date"].year, data["date"].month, data["client"], data["project"])
-        if invoice_key in invoices_data:
+        invoice = self.invoices_data.get(invoice_key)
+        if invoice:
             logger.debug("Invoice already exists: %s", invoice_key)
-            data["invoice"] = invoices_data[invoice_key]
-            if invoices_data[invoice_key].tags != data["project_tags"]:
-                invoices_data[invoice_key].tags = data["project_tags"]
-                invoices_data[invoice_key].save()
+            if invoice.tags != data["project_tags"]:
+                invoice.tags = data["project_tags"]
+                invoice.save()
+            return invoice
         else:
             logger.info("Creating a new invoice: %s", invoice_key)
             invoice, _ = Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
-            invoices_data[invoice_key] = invoice
-            data["invoice"] = invoice
+            self.invoices_data[invoice_key] = invoice
+            return invoice
 
-        entries.append(HourEntry(**data))
+    def update(self):
+        self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
+        now = timezone.now()
+        tenkfeet_entries = tenkfeet_api.fetch_hour_entries(now, self.start_date, self.end_date)
+        entries = []
 
-    logger.info("Processed all 10k entries. Inserting to database.")
-    # Note: this does not call .save() for entries.
-    HourEntry.objects.bulk_create(entries)
-    logger.info("All 10k entries added.")
-    logger.info("Deleting old 10k entries.")
-    HourEntry.objects.filter(date__gte=first_entry, date__lte=last_entry, last_updated_at__lt=now).delete()
-    logger.info("All old 10k entries deleted.")
-    return (first_entry, last_entry)
+        for entry in tenkfeet_entries:
+            date = parse_date(entry[40])
+            self.update_range(date)
+            data = {
+                "date": date,
+                "user_id": int(entry[0]),
+                "user_name": entry[1],
+                "client": entry[6],
+                "project": entry[3],
+                "incurred_hours": parse_float(entry[8]),
+                "incurred_money": parse_float(entry[11]),
+                "category": entry[14],
+                "notes": entry[15],
+                "entry_type": entry[17],
+                "discipline": entry[18],
+                "role": entry[19],
+                "bill_rate": parse_float(entry[28]),
+                "leave_type": entry[16],
+                "phase_name": entry[31],
+                "billable": entry[21] in ("1", 1),
+                "approved": entry[52] == "Approved",
+                "user_email": entry[29],
+                "project_tags": entry[34],
+                "last_updated_at": now,
+                "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
+            }
+
+            try:
+                project_id = int(entry[32])
+                data["project_m"] = self.match_project(project_id)
+            except (ValueError, TypeError):
+                pass
+
+            assert data["date"].year > 2000
+            assert data["date"].year < 2050
+            assert data["bill_rate"] >= 0
+            assert data["incurred_money"] >= 0
+            assert data["incurred_hours"] >= 0
+
+            data["invoice"] = self.match_invoice(data)
+            entries.append(HourEntry(**data))
+
+        logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
+        # Note: this does not call .save() for entries.
+        HourEntry.objects.bulk_create(entries)
+        logger.info("All 10k entries added.")
+        logger.info("Deleting old 10k entries.")
+        HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, last_updated_at__lt=now).delete()
+        logger.info("All old 10k entries deleted.")
+        return (self.first_entry, self.last_entry)
 
 
 def refresh_stats(start_date, end_date):

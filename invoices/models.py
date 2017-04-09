@@ -77,8 +77,6 @@ class HourEntry(models.Model):
 
     Note that import_csv command uses bulk_create, which does not call .save. """
     date = models.DateField()
-    year = models.IntegerField()
-    month = models.IntegerField()
 
     last_updated_at = models.DateTimeField()
     user_id = models.IntegerField()
@@ -125,7 +123,7 @@ class Invoice(models.Model):
     )
 
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    invoice_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     year = models.IntegerField()
     month = models.IntegerField()
 

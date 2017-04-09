@@ -97,7 +97,7 @@
 {% block content %}
     <h2>Invoice details for {{ client }} - {{ project }} -- {{ year }}-{{ month }}</h2>
     <p>
-      <a class="btn btn-info" href="{% url 'get_pdf' year month invoice_id 'hours' %}" role="button">Download hours</a>
+      <a class="btn btn-info" href="{% url 'get_pdf' invoice_id 'hours' %}" role="button">Download hours</a>
 
     </p>
     <div class="row">

@@ -16,7 +16,7 @@
     {% for entry in invoices %}
     <tr>
       <td class="nowrap-column">{{ entry.year }}-{{ entry.month }}</td>
-      <td><a href="{% url 'invoice' entry.year entry.month entry.id %}">{{ entry.client }} - {{ entry.project }}</td>
+      <td><a href="{% url 'invoice' entry.year entry.month entry.invoice_id %}">{{ entry.client }} - {{ entry.project }}</td>
       <td>{% for tag in entry.get_tags %}<span class="label label-default">{{ tag }}</span>{% endfor %}</td>
       <td>{{ entry.get_invoice_state_display }}</td>
       <td>{{ entry.has_comments }}</td>
