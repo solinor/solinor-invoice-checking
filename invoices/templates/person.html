@@ -26,8 +26,8 @@
       <td>{{ entry.phase_name }}</td>
       <td>{{ entry.notes }}</td>
       <td class="number-column">{{ entry.incurred_hours }}h</td>
-      <td class="number-column">{{ entry.bill_rate }}&euro;/h</td>
-      <td class="number-column">{{ entry.incurred_money }}&euro;</td>
+      <td class="number-column {% if not entry.calculated_is_billable and entry.bill_rate > 0 %}strikethrough{% endif %}">{{ entry.bill_rate }}&euro;/h</td>
+      <td class="number-column {% if not entry.calculated_is_billable and entry.incurred_money > 0 %}strikethrough{% endif %}">{{ entry.incurred_money }}&euro;</td>
       <td>{{ entry.calculated_is_billable }}</td>
     </tr>
     {% endfor %}
