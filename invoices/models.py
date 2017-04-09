@@ -165,20 +165,25 @@ class Invoice(models.Model):
 
     def compare(self, other):
         def calc_stats(field_name):
-            diff = (getattr(other, field_name) or 0) - (getattr(self, field_name) or 0)
-            percentage = diff / (getattr(self, field_name) or 1) * 100
-            return {"diff": diff, "percentage": percentage}
+            field_value = getattr(self, field_name)
+            other_field_value = getattr(other, field_name)
+            diff = (other_field_value or 0) - (field_value or 0)
+            if not field_value:
+                percentage = None
+            else:
+                percentage = diff / field_value * 100
+            return {"diff": diff, "percentage": percentage, "this_value": field_value, "other_value": other_field_value}
 
         data = {
             "hours": calc_stats("total_hours"),
             "bill_rate_avg": calc_stats("bill_rate_avg"),
             "money": calc_stats("total_money"),
         }
-        if abs(data["hours"]["percentage"]) > 25:
+        if abs(data["hours"]["diff"]) > 10 and (not data["hours"]["percentage"] or abs(data["hours"]["percentage"]) > 25):
             data["remarkable"] = True
-        if abs(data["bill_rate_avg"]["diff"]) > 5:
+        if abs(data["bill_rate_avg"]["diff"]) > 5 and data["bill_rate_avg"]["this_value"] > 0 and data["bill_rate_avg"]["other_value"] > 0:
             data["remarkable"] = True
-        if abs(data["money"]["percentage"]) > 25:
+        if abs(data["money"]["diff"]) > 2000 and (not data["money"]["percentage"] or abs(data["money"]["percentage"]) > 25):
             data["remarkable"] = True
         return data
 
