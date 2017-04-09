@@ -197,9 +197,12 @@ class Project(models.Model):
     archived = models.BooleanField(blank=True, default=False)
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(null=True, blank=True)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     starts_at = models.DateField(null=True, blank=True)
     ends_at = models.DateField(null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.client, self.name)
 
 
 class Comments(models.Model):
