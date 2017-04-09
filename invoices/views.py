@@ -109,7 +109,7 @@ def frontpage(request):
     return render(request, "frontpage.html", context)
 
 @login_required
-def invoice_page(request, year, month, invoice):
+def invoice_page(request, invoice, **_):
     invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
 
     if request.method == "POST":
@@ -134,7 +134,7 @@ def invoice_page(request, year, month, invoice):
     today = datetime.datetime.today()
     due_date = today + datetime.timedelta(days=14)
 
-    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=year, date__month=month).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=invoice_data.year, date__month=invoice_data.month).filter(incurred_hours__gt=0)
 
     entry_data = calculate_entry_stats(entries)
 
