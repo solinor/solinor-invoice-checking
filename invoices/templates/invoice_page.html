@@ -99,11 +99,13 @@
     <div class="row" style="padding-bottom: 1em">
       <div class="col-md-12">
         <a class="btn btn-info" href="{% url 'get_pdf' invoice_id 'hours' %}" role="button">Download hours</a>
+        {% if recent_invoice %}
         <form method="post" action="{% url 'queue_update' %}" class="form-inline" style="display: inline-block">
           {% csrf_token %}
           <input type="hidden" name="back" value="{{ request.get_full_path }}">
           <button role="submit" class="btn btn-info">Update data from 10000ft</button>
         </form>
+        {% endif %}
       </div>
     </div>
     <div class="row">

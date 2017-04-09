@@ -132,7 +132,7 @@ def invoice_page(request, invoice, **_):
         messages.add_message(request, messages.INFO, 'Saved.')
         return HttpResponseRedirect(reverse("invoice", args=[invoice_data.year, invoice_data.month, invoice]))
 
-    today = datetime.datetime.today()
+    today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
     entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=invoice_data.year, date__month=invoice_data.month).filter(incurred_hours__gt=0)
@@ -156,6 +156,7 @@ def invoice_page(request, invoice, **_):
         "month": invoice_data.month,
         "invoice_id": invoice,
         "invoice": invoice_data,
+        "recent_invoice": abs((datetime.date.today() - datetime.date(invoice_data.year, invoice_data.month, 1)).days) < 60,
     }
     context.update(entry_data)
 
