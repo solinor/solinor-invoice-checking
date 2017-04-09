@@ -94,8 +94,7 @@ def update_data(start_date, end_date):
     projects = Project.objects.all()
     projects_data = {}
     for project in projects:
-        project_key = u"%s" % (project.project_id)
-        projects_data[project_key] = project
+        projects_data[project.project_id] = project
 
     for entry in tenkfeet_data.json()["time_entries"]:
         date = parse_date(entry[40])
@@ -129,8 +128,15 @@ def update_data(start_date, end_date):
             "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
         }
 
-        if entry[22] in projects_data:
-            data["project_m"] = projects_data[entry[22]]
+        try:
+            project_id = int(entry[32])
+            if project_id in projects_data:
+                logger.debug("Matched project %s", projects_data[project_id])
+                data["project_m"] = projects_data[project_id]
+            else:
+                logger.debug("No match for project ID %s", project_id)
+        except (ValueError, TypeError):
+            pass
 
         assert data["year"] > 2000
         assert data["year"] < 2050
