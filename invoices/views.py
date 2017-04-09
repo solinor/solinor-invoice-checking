@@ -58,25 +58,26 @@ def people_list(request):
 @login_required
 def queue_update(request):
     if request.method == "POST":
+        return_url = request.POST.get("back") or reverse("frontpage")
         try:
             now = timezone.now()
             last_update_at = DataUpdate.objects.exclude(aborted=True).exclude(finished_at=None).latest("finished_at")
             finished = now - last_update_at.finished_at
             if finished < datetime.timedelta(minutes=1):
                 messages.add_message(request, messages.WARNING, 'Data was just updated. Please try again later.')
-                return HttpResponseRedirect(reverse("frontpage"))
+                return HttpResponseRedirect(return_url)
 
             running = DataUpdate.objects.exclude(aborted=True).filter(finished_at=None).exclude(started_at=None)
             if running.count() > 0 and now - running.latest().created_at < datetime.timedelta(minutes=10):
                 messages.add_message(request, messages.WARNING, 'Update is currently running. Please try again later.')
-                return HttpResponseRedirect(reverse("frontpage"))
+                return HttpResponseRedirect(return_url)
         except DataUpdate.DoesNotExist:
             pass
         REDIS.publish("request-refresh", "True")
         update_obj = DataUpdate()
         update_obj.save()
-        messages.add_message(request, messages.INFO, 'Update queued.')
-        return HttpResponseRedirect(reverse("frontpage"))
+        messages.add_message(request, messages.INFO, 'Update queued. This is normally finished within 10 seconds. Refresh the page to see new data.')
+        return HttpResponseRedirect(return_url)
     return HttpResponseBadRequest()
 
 
