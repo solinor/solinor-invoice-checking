@@ -132,6 +132,7 @@ class Invoice(models.Model):
     month = models.IntegerField()
 
     project_m = models.ForeignKey("Project", null=True)
+    user = models.ForeignKey("FeetUser", null=True)
 
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
@@ -194,6 +195,25 @@ class Invoice(models.Model):
     class Meta:
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")
+
+
+class FeetUser(models.Model):
+    guid = models.UUIDField(primary_key=True, editable=False)
+    user_id = models.IntegerField(editable=False)
+    first_name = models.CharField(max_length=100, null=True, blank=True)
+    last_name = models.CharField(max_length=100, null=True, blank=True)
+    archived = models.BooleanField(blank=True, default=False)
+    display_name = models.CharField(max_length=100, null=True, blank=True)
+    email = models.CharField(max_length=100, null=True, blank=True)
+    billable = models.BooleanField(blank=True, default=False)
+    hire_date = models.DateField(blank=True, null=True)
+    termination_date = models.DateField(blank=True, null=True)
+    mobile_phone = models.CharField(max_length=100, null=True, blank=True)
+    invitation_pending = models.BooleanField(blank=True, default=False)
+    billability_target = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField()
+    archived_at = models.DateTimeField(null=True, blank=True)
+    thumbnail = models.CharField(max_length=1000, null=True, blank=True)
 
 
 class Project(models.Model):

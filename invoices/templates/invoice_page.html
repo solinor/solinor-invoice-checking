@@ -106,6 +106,10 @@
           <button role="submit" class="btn btn-info">Update data from 10000ft</button>
         </form>
         {% endif %}
+        {% if invoice.project_m %}
+        <a class="btn btn-info" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>
+        <a class="btn btn-info" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
+        {% endif %}
       </div>
     </div>
     <div class="row">
