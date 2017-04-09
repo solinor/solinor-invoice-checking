@@ -10,4 +10,4 @@ django-filter==1.0.2
 wkhtmltopdf-pack==0.12.3.0
 pdfkit==0.6.0
 redis==2.10.5
-
+django-sslify==0.2.7

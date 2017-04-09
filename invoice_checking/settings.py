@@ -112,6 +112,9 @@ GOOGLEAUTH_IS_STAFF = False
 # list of default group names to assign to new users
 GOOGLEAUTH_GROUPS = []
 
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
