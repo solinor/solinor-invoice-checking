@@ -45,14 +45,14 @@ def people_list(request):
             k = "non-billable"
         people_data[entry.user_email][k]["incurred_hours"] += entry.incurred_hours
         people_data[entry.user_email][k]["incurred_money"] += entry.incurred_money
-    for person in people_data:
-        total_hours = people_data[person]["billable"]["incurred_hours"] + people_data[person]["non-billable"]["incurred_hours"]
-        people_data[person]["total_hours"] = total_hours
+    for person in people_data.values():
+        total_hours = person["billable"]["incurred_hours"] + person["non-billable"]["incurred_hours"]
+        person["total_hours"] = total_hours
         if total_hours > 0:
-            people_data[person]["invoicing_ratio"] = people_data[person]["billable"]["incurred_hours"] / total_hours * 100
-            people_data[person]["bill_rate_avg"] = people_data[person]["billable"]["incurred_money"] / total_hours
-        if people_data[person]["billable"]["incurred_hours"] > 0:
-            people_data[person]["bill_rate_avg_billable"] = people_data[person]["billable"]["incurred_money"] / people_data[person]["billable"]["incurred_hours"]
+            person["invoicing_ratio"] = person["billable"]["incurred_hours"] / total_hours * 100
+            person["bill_rate_avg"] = person["billable"]["incurred_money"] / total_hours
+        if person["billable"]["incurred_hours"] > 0:
+            person["bill_rate_avg_billable"] = person["billable"]["incurred_money"] / person["billable"]["incurred_hours"]
     return render(request, "people.html", {"people": people_data, "year": year, "month": month})
 
 @login_required
