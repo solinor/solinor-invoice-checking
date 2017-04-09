@@ -109,6 +109,9 @@ class HourEntry(models.Model):
     def __unicode__(self):
         return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
 
+    class Meta:
+        ordering = ("date", "user_id")
+
 class Invoice(models.Model):
     CHOICES = (
         (None, "Unknown"),
