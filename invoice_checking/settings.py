@@ -10,9 +10,10 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 import os
-import dj_database_url
 import subprocess
 import sys
+
+import dj_database_url
 
 LOGGING = {
     'version': 1,
@@ -185,8 +186,7 @@ DATE_FORMAT = "Y-m-d"
 DATETIME_FORMAT = "Y-m-d H:i"
 
 # Update database configuration with $DATABASE_URL.
-db_from_env = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(db_from_env)
+DATABASES['default'].update(dj_database_url.config(conn_max_age=500))
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

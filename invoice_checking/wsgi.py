@@ -13,5 +13,5 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "invoice_checking.settings")
 from django.core.wsgi import get_wsgi_application
 from whitenoise.django import DjangoWhiteNoise
 
-application = get_wsgi_application()
-application = DjangoWhiteNoise(application)
+application = get_wsgi_application()  # pylint: disable=invalid-name
+application = DjangoWhiteNoise(application)  # pylint: disable=redefined-variable-type,invalid-name

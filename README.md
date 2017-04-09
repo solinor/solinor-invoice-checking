@@ -8,6 +8,11 @@ To contribute to this project, fork on GitHub, commit your appropriately documen
 
 This service is tightly integrated with 10000ft hour reporting service. Pull requests for making this more generic will be rejected.
 
+### Pylint
+
+Install pylint and pylint-django
+
+Run pylint with `pylint --load-plugins pylint_django invoice_checking invoices --disable line-too-long --disable missing-docstring`. Do not add any new warnings or errors.
 
 ## Setting up the environment
 

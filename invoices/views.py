@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+import redis
+import pdfkit
+
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest
-import datetime
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
-from invoices.filters import InvoiceFilter
-from django.conf import settings
-import requests
-import os
-import pdfkit
-import redis
 from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.conf import settings
 from django.utils import timezone
 
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate
+from invoices.filters import InvoiceFilter
 
-REDIS = redis.from_url(os.environ.get("REDIS_URL"))
+
+REDIS = redis.from_url(settings.REDIS)
 
 
 @login_required
-def person(request, year, month, user_email):
-    now = timezone.now()
+def person_details(request, year, month, user_email):
     year = int(year)
     month = int(month)
     entries = HourEntry.objects.filter(user_email=user_email).exclude(incurred_hours=0).filter(date__year=year, date__month=month).order_by("date")
@@ -34,29 +33,29 @@ def person(request, year, month, user_email):
 
 
 @login_required
-def people(request):
+def people_list(request):
     now = timezone.now()
     year = int(request.GET.get("year", now.year))
     month = int(request.GET.get("month", now.month))
-    people = {}
+    people_data = {}
     for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
-        if entry.user_email not in people:
-            people[entry.user_email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "user_name": entry.user_name, "user_email": entry.user_email}
+        if entry.user_email not in people_data:
+            people_data[entry.user_email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "user_name": entry.user_name, "user_email": entry.user_email}
         if entry.calculated_is_billable:
             k = "billable"
         else:
             k = "non-billable"
-        people[entry.user_email][k]["incurred_hours"] += entry.incurred_hours
-        people[entry.user_email][k]["incurred_money"] += entry.incurred_money
-    for person in people.keys():
-        total_hours = people[person]["billable"]["incurred_hours"] + people[person]["non-billable"]["incurred_hours"]
-        people[person]["total_hours"] = total_hours
+        people_data[entry.user_email][k]["incurred_hours"] += entry.incurred_hours
+        people_data[entry.user_email][k]["incurred_money"] += entry.incurred_money
+    for person in people_data:
+        total_hours = people_data[person]["billable"]["incurred_hours"] + people_data[person]["non-billable"]["incurred_hours"]
+        people_data[person]["total_hours"] = total_hours
         if total_hours > 0:
-            people[person]["invoicing_ratio"] = people[person]["billable"]["incurred_hours"] / total_hours * 100
-            people[person]["bill_rate_avg"] = people[person]["billable"]["incurred_money"] / total_hours
-        if people[person]["billable"]["incurred_hours"] > 0:
-            people[person]["bill_rate_avg_billable"] = people[person]["billable"]["incurred_money"] / people[person]["billable"]["incurred_hours"]
-    return render(request, "people.html", {"people": people, "year": year, "month": month})
+            people_data[person]["invoicing_ratio"] = people_data[person]["billable"]["incurred_hours"] / total_hours * 100
+            people_data[person]["bill_rate_avg"] = people_data[person]["billable"]["incurred_money"] / total_hours
+        if people_data[person]["billable"]["incurred_hours"] > 0:
+            people_data[person]["bill_rate_avg_billable"] = people_data[person]["billable"]["incurred_money"] / people_data[person]["billable"]["incurred_hours"]
+    return render(request, "people.html", {"people": people_data, "year": year, "month": month})
 
 @login_required
 def queue_update(request):
@@ -83,12 +82,7 @@ def queue_update(request):
     return HttpResponseBadRequest()
 
 
-@login_required
-def get_pdf(request, year, month, invoice, pdf_type):
-    invoice_data = get_object_or_404(Invoice, id=invoice)
-    title = u"%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
-    title = title.replace(u"\xe4", u"a").replace(u"\xb6", u"o").replace(u"\x84", u"A").replace(u"\x96", u"O")
-
+def generate_pdf(title, content):
     pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
     wk_options = {
         'page-size': 'a4',
@@ -105,6 +99,18 @@ def get_pdf(request, year, month, invoice, pdf_type):
         'margin-bottom': '0.3cm',
         'lowquality': None,
     }
+    return pdfkit.from_string(content,
+                              False,
+                              options=wk_options,
+                              configuration=pdfkit_config,
+                             )
+
+
+@login_required
+def get_pdf(request, year, month, invoice, pdf_type):
+    invoice_data = get_object_or_404(Invoice, id=invoice)
+    title = u"%s - %s - %s-%s" % (invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
+    title = title.replace(u"\xe4", u"a").replace(u"\xb6", u"o").replace(u"\x84", u"A").replace(u"\x96", u"O")
 
     entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=year, date__month=month).filter(incurred_hours__gt=0)
     phases = {}
@@ -116,12 +122,7 @@ def get_pdf(request, year, month, invoice, pdf_type):
 
     # We can generate the pdf from a url, file or, as shown here, a string
     content = render_to_string('pdf_template.html', context=context, request=request)
-    pdf = pdfkit.from_string(content,
-        False,
-        options=wk_options,
-        configuration=pdfkit_config,
-    )
-
+    pdf = generate_pdf(title, content)
     response = HttpResponse(pdf, content_type="application/pdf")
     response['Content-Disposition'] = 'attachment; filename="Hours for %s.pdf"' % title
     return response
@@ -129,15 +130,15 @@ def get_pdf(request, year, month, invoice, pdf_type):
 @login_required
 def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    all_invoices = Invoice.objects.exclude(total_hours=0).exclude(client__in=["Solinor","[none]"])
-    f = InvoiceFilter(request.GET, queryset=all_invoices)
-    your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor","[none]"])
+    all_invoices = Invoice.objects.exclude(total_hours=0).exclude(client__in=["Solinor", "[none]"])
+    filters = InvoiceFilter(request.GET, queryset=all_invoices)
+    your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
     try:
         last_update_finished_at = DataUpdate.objects.exclude(finished_at=None).latest("finished_at").finished_at
     except DataUpdate.DoesNotExist:
         last_update_finished_at = "?"
     context = {
-        "invoices": f,
+        "invoices": filters,
         "your_invoices": your_invoices,
         "last_update_finished_at": last_update_finished_at,
     }
@@ -148,14 +149,13 @@ def invoice_page(request, year, month, invoice):
     invoice_data = get_object_or_404(Invoice, id=invoice)
 
     if request.method == "POST":
-        invoice_number = request.POST.get("invoiceNumber") or None
         comment = Comments(comments=request.POST.get("changesForInvoice"),
                            checked=request.POST.get("invoiceChecked", False),
                            checked_non_billable_ok=request.POST.get("nonBillableHoursOk", False),
                            checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk", False),
                            checked_phases_ok=request.POST.get("nonPhaseSpecificOk", False),
                            checked_changes_last_month=request.POST.get("remarkableChangesOk", False),
-                           invoice_number=invoice_number,
+                           invoice_number=request.POST.get("invoiceNumber") or None,
                            invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False),
                            user=request.user.email,
                            invoice=invoice_data)
@@ -204,6 +204,6 @@ def invoice_page(request, year, month, invoice):
         context["last_month_invoice"] = last_month_invoice
         context["diff_last_month"] = last_month_invoice.compare(invoice_data)
     except Invoice.DoesNotExist:
-        last_month_invoice = None
+        pass
 
     return render(request, "invoice_page.html", context)

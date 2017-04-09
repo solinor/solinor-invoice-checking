@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import uuid
 from django.db import models
-from django.contrib.auth.models import User
+
 
 def calculate_entry_stats(entries):
     phases = {}
@@ -106,6 +106,9 @@ class HourEntry(models.Model):
 
     def is_billable_phase(self):
         return is_phase_billable(self.phase_name, self.project)
+
+    def __unicode__(self):
+        return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
 
 class Invoice(models.Model):
     CHOICES = (
@@ -226,6 +229,9 @@ class Comments(models.Model):
 
     class Meta:
         get_latest_by = "timestamp"
+
+    def __unicode__(self):
+        return u"%s - %s - %s" % (self.invoice, self.timestamp, self.user)
 
 
 class DataUpdate(models.Model):

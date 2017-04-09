@@ -1,14 +1,11 @@
-import os
-import requests
-from django.core.management.base import BaseCommand, CommandError
-from invoices.models import HourEntry, Invoice, DataUpdate
 import datetime
-import django.db.utils
-from django.utils import timezone
-from django.conf import settings
-import sys
 import redis
 
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from django.conf import settings
+
+from invoices.models import DataUpdate
 from invoices.utils import update_data, refresh_stats
 
 
@@ -19,7 +16,7 @@ class Command(BaseCommand):
         redis_instance = redis.from_url(settings.REDIS)
         pubsub = redis_instance.pubsub()
         pubsub.subscribe("request-refresh")
-        for item in pubsub.listen():
+        for _ in pubsub.listen():
             now = timezone.now()
             try:
                 latest_run = DataUpdate.objects.exclude(finished_at=None).latest("finished_at")

@@ -1,10 +1,8 @@
-import os
-import requests
-from django.core.management.base import BaseCommand, CommandError
 import datetime
-import django.db.utils
+
+from django.core.management.base import BaseCommand
 from django.utils import timezone
-import sys
+
 from invoices.utils import update_data
 
 class Command(BaseCommand):
