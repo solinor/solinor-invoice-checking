@@ -129,9 +129,9 @@ def get_pdf(request, year, month, invoice, pdf_type):
 @login_required
 def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    all_invoices = Invoice.objects.exclude(total_hours=0)
+    all_invoices = Invoice.objects.exclude(total_hours=0).exclude(client__in=["Solinor","[none]"])
     f = InvoiceFilter(request.GET, queryset=all_invoices)
-    your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month)
+    your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor","[none]"])
     try:
         last_update_finished_at = DataUpdate.objects.exclude(finished_at=None).latest("finished_at").finished_at
     except DataUpdate.DoesNotExist:
