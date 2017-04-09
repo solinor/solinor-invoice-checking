@@ -41,14 +41,15 @@ class Command(BaseCommand):
             update_obj.aborted = False
             update_obj.started_at = timezone.now()
             update_obj.save()
-            start_date = (now - datetime.timedelta(days=45)).strftime("%Y-%m-%d")
-            end_date = now.strftime("%Y-%m-%d")
+            start_date = (now - datetime.timedelta(days=45))
+            end_date = now
             print "Updating data."
             update_obj.started_at = timezone.now()
             update_data(start_date, end_date)
             print "Data update done."
             print "Update statistics."
-            refresh_stats()
+            refresh_stats(start_date, end_date)
             update_obj.finished_at = timezone.now()
+            update_obj.aborted = False
             update_obj.save()
             print "Statistics updated."

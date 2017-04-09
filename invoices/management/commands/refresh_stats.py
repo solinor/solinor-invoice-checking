@@ -11,4 +11,4 @@ class Command(BaseCommand):
     help = 'Refresh statistics for each invoice'
 
     def handle(self, *args, **options):
-        refresh_stats()
+        refresh_stats(None, None)

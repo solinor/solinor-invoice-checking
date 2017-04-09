@@ -36,7 +36,7 @@ def update_data(start_date, end_date):
     logger.info("Starting hour entry update: %s - %s", start_date, end_date)
     now = timezone.now()
     today = now.strftime("%Y-%m-%d")
-    url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date, end_date, today, settings.TENKFEET_AUTH)
+    url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), today, settings.TENKFEET_AUTH)
     tenkfeet_data = requests.get(url)
     logger.info("10k data downloaded")
     first_entry = datetime.date(2100, 1, 1)
@@ -88,7 +88,7 @@ def update_data(start_date, end_date):
 
         invoice_key = u"%s-%s %s - %s" % (data["date"].year, data["date"].month, data["client"], data["project"])
         if invoice_key in invoices_data:
-            logger.info("Project already exists: %s", invoice_key)
+            logger.debug("Project already exists: %s", invoice_key)
             data["invoice"] = invoices_data[invoice_key]
             if invoices_data[invoice_key].tags != data["project_tags"]:
                 invoices_data[invoice_key].tags = data["project_tags"]
@@ -112,10 +112,17 @@ def update_data(start_date, end_date):
     logger.info("All old 10k entries deleted.")
 
 
-def refresh_stats():
-    for invoice in Invoice.objects.all():
+def refresh_stats(start_date, end_date):
+    if start_date and end_date:
+        logger.info("Updating statistics for invoices between %s and %s", start_date, end_date)
+        invoices = Invoice.objects.filter(year__gte=start_date.year, year__lte=end_date.year, month__gte=start_date.month, month__lte=end_date.month)
+    else:
+        logger.info("Updating statistics for all invoices")
+        invoices = Invoice.objects.all()
+    for invoice in invoices:
         entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
         stats = calculate_entry_stats(entries)
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
         invoice.save()
+        logger.debug("Updated statistics for %s", invoice)
