@@ -148,18 +148,21 @@ def invoice_page(request, year, month, invoice):
     invoice_data = get_object_or_404(Invoice, id=invoice)
 
     if request.method == "POST":
-
+        invoice_number = request.POST.get("invoiceNumber") or None
         comment = Comments(comments=request.POST.get("changesForInvoice"),
                            checked=request.POST.get("invoiceChecked", False),
                            checked_non_billable_ok=request.POST.get("nonBillableHoursOk", False),
                            checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk", False),
                            checked_phases_ok=request.POST.get("nonPhaseSpecificOk", False),
                            checked_changes_last_month=request.POST.get("remarkableChangesOk", False),
+                           invoice_number=invoice_number,
+                           invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False),
                            user=request.user.email,
                            invoice=invoice_data)
         comment.save()
         invoice_data.is_approved = comment.checked
         invoice_data.has_comments = comment.has_comments()
+        invoice_data.update_state(comment)
         invoice_data.save()
         messages.add_message(request, messages.INFO, 'Saved.')
         return HttpResponseRedirect(reverse("invoice", args=[year, month, invoice]))

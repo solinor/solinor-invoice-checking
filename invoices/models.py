@@ -114,6 +114,13 @@ class Invoice(models.Model):
         (False, "No"),
     )
 
+    INVOICE_STATE_CHOICES = (
+        ("C", "Created"),
+        ("A", "Approved"),
+        ("P", "Preview"),
+        ("S", "Sent"),
+    )
+
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     year = models.IntegerField()
@@ -136,9 +143,20 @@ class Invoice(models.Model):
     total_hours = models.FloatField(null=True, blank=True)
     bill_rate_avg = models.FloatField(null=True, blank=True)
     total_money = models.FloatField(null=True, blank=True)
+    invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
 
     def __unicode__(self):
         return u"%s %s - %s-%s" % (self.client, self.project, self.year, self.month)
+
+    def update_state(self, comment):
+        self.invoice_state = "C"
+        if comment.checked:
+            self.invoice_state = "A"
+        if comment.invoice_number:
+            self.invoice_state = "P"
+        if comment.invoice_sent_to_customer:
+            self.invoice_state = "S"
+        return self.invoice_state
 
     def get_tags(self):
         if self.tags:
@@ -194,6 +212,9 @@ class Comments(models.Model):
     checked_phases_ok = models.NullBooleanField(blank=True, null=True, default=False)
     checked_changes_last_month = models.NullBooleanField(blank=True, null=True, default=False)
     user = models.TextField(max_length=100)
+
+    invoice_number = models.CharField(max_length=100, null=True, blank=True)
+    invoice_sent_to_customer = models.BooleanField(blank=True, default=False)
 
     def has_comments(self):
         if self.comments and len(self.comments) > 0:
