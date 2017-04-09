@@ -6,6 +6,7 @@
 <table class="table table-striped">
   <thead>
     <tr>
+      <th>Date</th>
       <th>Client</th>
       <th>Project</th>
       <th>Category</th>
@@ -20,6 +21,7 @@
   <tbody>
     {% for entry in hour_entries %}
     <tr>
+      <td>{{ entry.date }}</td>
       <td>{{ entry.client }}</td>
       <td>{{ entry.project }}</td>
       <td>{{ entry.category }}</td>
