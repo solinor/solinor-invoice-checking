@@ -124,7 +124,6 @@ class HourEntryUpdate(object):
 
         for entry in tenkfeet_entries:
             date = parse_date(entry[40])
-            self.update_range(date)
             data = {
                 "date": date,
                 "user_id": int(entry[0]),
@@ -148,6 +147,11 @@ class HourEntryUpdate(object):
                 "last_updated_at": now,
                 "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
             }
+            if data["incurred_hours"] = 0 or data["incurred_hours"] is None:
+                logger.debug("Skipping hour entry with 0 incurred hours: %s" % data)
+                continue
+
+            self.update_range(date)
 
             try:
                 project_id = int(entry[32])
