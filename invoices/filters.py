@@ -1,5 +1,5 @@
 import django_filters
-from invoices.models import Invoice
+from invoices.models import Invoice, Project
 
 
 class InvoiceFilter(django_filters.FilterSet):
@@ -26,4 +26,22 @@ class InvoiceFilter(django_filters.FilterSet):
             "month": ["exact"],
             "invoice_state": ["exact"],
         }
-#        ["year", "month", "client", "project", "total_hours", "total_money", "incorrect_entries_count"] # , "is_approved", "has_comments"]
+
+
+class ProjectsFilter(django_filters.FilterSet):
+    ordering = django_filters.OrderingFilter(
+        fields=(
+            ("incurred_money", "incurred_money"),
+            ("incurred_hours", "incurred_hours"),
+        ),
+        field_labels={
+            "incurred_money": "Incurred money",
+            "incurred_hours": "Incurred hours",
+        }
+    )
+
+    class Meta:
+        model = Project
+        fields = {
+            "client": ["icontains"]
+        }

@@ -8,6 +8,20 @@
 </ol>
 <h2>Projects</h2>
 
+<form action="" method="get" class="form-inline">
+  {% for field in projects.form %}
+
+      <div class="form-group">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+      </div>
+  {% endfor %}
+  <button class="btn btn-primary" type="submit">Filter</button>
+</form>
+
 <table class="table table-striped">
   <thead>
     <tr>
@@ -16,17 +30,19 @@
       <th>Start date</th>
       <th>End date</th>
       <th class="number-column">Hours</th>
+      <th class="number-column">Bill rate</th>
       <th class="number-column">Price</th>
     </tr>
   </thead>
   <tbody>
-    {% for project in projects %}
+    {% for project in projects.qs %}
     <tr>
       <td>{{ project.client }}</td>
       <td>{{ project.name }}</td>
       <td>{{ project.starts_at }}</td>
       <td>{{ project.ends_at }}</td>
       <td class="number-column">{{ project.incurred_hours|floatformat:0|intcomma }}h</td>
+      <td class="number-column">{{ project.bill_rate_avg|floatformat:0|intcomma }}&euro;/h</td>
       <td class="number-column">{{ project.incurred_money|floatformat:0|intcomma }}&euro;</td>
       <td><a href="{% url 'project' project.guid %}">Details</a></td>
     </tr>

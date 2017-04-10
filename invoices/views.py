@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 
 from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project
-from invoices.filters import InvoiceFilter
+from invoices.filters import InvoiceFilter, ProjectsFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 
 REDIS = redis.from_url(settings.REDIS)
@@ -128,8 +128,16 @@ def invoice_hours(request, invoice):
 @login_required
 def projects_list(request):
     projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")).order_by("client", "name")
+    projects_processed = []
+    for i, project in enumerate(projects):
+        if project.incurred_hours and project.incurred_hours > 0 and project.incurred_money:
+            project.bill_rate_avg = project.incurred_money / project.incurred_hours
+    filters = ProjectsFilter(request.GET, queryset=projects)
+    for i, project in enumerate(filters.qs):
+        if project.incurred_hours and project.incurred_hours > 0 and project.incurred_money:
+            project.bill_rate_avg = project.incurred_money / project.incurred_hours
     context = {
-        "projects": projects,
+        "projects": filters,
     }
     return render(request, "projects.html", context)
 
