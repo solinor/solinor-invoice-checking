@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name
 
 STATS_FIELDS = [
+    "incorrect_entries_count",
     "billable_incorrect_price_count",
     "non_billable_hours_count",
     "non_phase_specific_count",
