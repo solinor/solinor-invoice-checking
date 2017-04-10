@@ -133,7 +133,7 @@ def invoice_page(request, invoice, **_):
         invoice_data.update_state(comment)
         invoice_data.save()
         messages.add_message(request, messages.INFO, 'Saved.')
-        return HttpResponseRedirect(reverse("invoice", args=[invoice_data.year, invoice_data.month, invoice]))
+        return HttpResponseRedirect(reverse("invoice", args=[invoice]))
 
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
