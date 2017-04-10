@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import urllib
+
 import django_tables2 as tables
 from invoices.models import Project, Invoice
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -36,13 +38,16 @@ class FrontpageInvoices(tables.Table):
         return u"%s€" % intcomma(floatformat(value, 0))
 
 class ProjectsTable(tables.Table):
-    guid = tables.Column(orderable=False, verbose_name="")
-
     class Meta:
         model = Project
         attrs = {"class": "table table-striped table-hover projects-table"}
-        sequence = ("client", "name", "starts_at", "ends_at", "incurred_hours", "incurred_money", "guid")
-        fields = ("client", "name", "starts_at", "ends_at", "incurred_hours", "incurred_money", "guid")
+        fields = ("client", "name", "starts_at", "ends_at", "incurred_hours", "incurred_money")
+
+    def render_name(self, value, record):
+        return format_html(u"<a href='%s'>%s</a>" % (reverse('project', args=[record.guid]), value))
+
+    def render_client(self, value):
+        return format_html(u"<a href='?client__icontains=%s'>%s</a>" % (urllib.quote(value.encode("utf8")), value))
 
     def render_incurred_hours(self, value):
         return u"%sh" % intcomma(floatformat(value, 0))
