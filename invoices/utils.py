@@ -120,7 +120,7 @@ def get_users():
     users = {}
     for user in FeetUser.objects.all():
         users[user.email] = user
-    return user
+    return users
 
 
 class HourEntryUpdate(object):
