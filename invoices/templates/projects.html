@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li class="active"><a href="{% url 'projects_list' %}">Projects</a></li>
+</ol>
+<h2>Projects</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Project</th>
+      <th>Start date</th>
+      <th>End date</th>
+      <th class="number-column">Hours</th>
+      <th class="number-column">Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for project in projects %}
+    <tr>
+      <td>{{ project.client }}</td>
+      <td>{{ project.name }}</td>
+      <td>{{ project.starts_at }}</td>
+      <td>{{ project.ends_at }}</td>
+      <td class="number-column">{{ project.incurred_hours|floatformat:0|intcomma }}h</td>
+      <td class="number-column">{{ project.incurred_money|floatformat:0|intcomma }}&euro;</td>
+      <td><a href="{% url 'project' project.guid %}">Details</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

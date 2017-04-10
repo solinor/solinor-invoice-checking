@@ -16,7 +16,7 @@ def calculate_entry_stats(entries):
 
     for entry in entries:
         if entry.phase_name not in phases:
-            phases[entry.phase_name] = {"users": {}, "not_billable": not is_phase_billable(entry.phase_name, entry.project)}
+            phases[entry.phase_name] = {"users": {}, "billable": entry.calculated_is_billable}
         phase_details = phases[entry.phase_name]
         if entry.user_name not in phase_details["users"]:
             phase_details["users"][entry.user_name] = {}
@@ -25,10 +25,10 @@ def calculate_entry_stats(entries):
         phase_details["users"][entry.user_name][entry.bill_rate]["incurred_hours"] += entry.incurred_hours
         phase_details["users"][entry.user_name][entry.bill_rate]["incurred_money"] += entry.incurred_money
 
-        if (entry.bill_rate < 50 or entry.bill_rate > 170) and entry.is_billable_phase():
+        if (entry.bill_rate < 50 or entry.bill_rate > 170) and entry.calculated_is_billable:
             billable_incorrect_price.append(entry)
 
-        if not entry.is_billable_phase():
+        if not entry.calculated_is_billable:
             non_billable_hours.append(entry)
         else:
             total_money += entry.incurred_money

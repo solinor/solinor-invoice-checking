@@ -10,8 +10,9 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Count, Sum
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project
 from invoices.filters import InvoiceFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 
@@ -112,6 +113,37 @@ def frontpage(request):
     }
     return render(request, "frontpage.html", context)
 
+
+@login_required
+def invoice_hours(request, invoice):
+    invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
+    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
+    context = {
+        "invoice": invoice_data,
+        "entries": entries,
+    }
+    return render(request, "invoice_hours.html", context)
+
+
+@login_required
+def projects_list(request):
+    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")).order_by("client", "name")
+    context = {
+        "projects": projects,
+    }
+    return render(request, "projects.html", context)
+
+@login_required
+def project_details(request, project_id):
+    project = get_object_or_404(Project, guid=project_id)
+    invoices = Invoice.objects.filter(project_m=project)
+    context = {
+        "project": project,
+        "invoices": invoices
+    }
+    return render(request, "project_details.html", context)
+
+
 @login_required
 def invoice_page(request, invoice, **_):
     invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
@@ -141,7 +173,7 @@ def invoice_page(request, invoice, **_):
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
-    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=invoice_data.year, date__month=invoice_data.month).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
 
     entry_data = calculate_entry_stats(entries)
 

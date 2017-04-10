@@ -72,9 +72,9 @@
                           {{ details.incurred_hours|floatformat:2 }}h
                         </td>
                         <td>
-                          {% if phase.not_billable %}<s>{% endif %}
+                          {% if not phase.billable %}<s>{% endif %}
                           {{ details.incurred_money|floatformat:2|intcomma }}&euro;
-                          {% if phase.not_billable %}</s>{% endif %}
+                          {% if not phase.billable %}</s>{% endif %}
                         </td>
                     </tr>
                   {% endif %}

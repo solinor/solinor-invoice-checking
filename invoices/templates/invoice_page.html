@@ -90,25 +90,28 @@
     </style>
     {% endblock %}
 
-{% block navbar_items %}
-<li class="active"><a href="#">Invoice details</a></li>
-{% endblock %}
-
 {% block content %}
+    <ol class="breadcrumb">
+      <li><a href="{% url 'frontpage' %}">Home</a></li>
+      <li><a href="{% url 'projects_list' %}">Projects</a></li>
+      <li><a href="{% url 'project' invoice.project_m.guid %}">Project</a></li>
+      <li class="active"><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
+    </ol>
     <h2>Invoice details for {{ client }} - {{ project }} -- {{ year }}-{{ month }}</h2>
     <div class="row" style="padding-bottom: 1em">
       <div class="col-md-12">
         <a class="btn btn-info" href="{% url 'get_pdf' invoice_id 'hours' %}" role="button">Download hours</a>
+        <a class="btn btn-info" href="{% url 'invoice_hours' invoice_id %}" role="button">View hours</a>
+        {% if invoice.project_m %}
+        <a class="btn btn-info" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>
+        <a class="btn btn-info" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
+        {% endif %}
         {% if recent_invoice %}
         <form method="post" action="{% url 'queue_update' %}" class="form-inline" style="display: inline-block">
           {% csrf_token %}
           <input type="hidden" name="back" value="{{ request.get_full_path }}">
           <button role="submit" class="btn btn-info">Update data from 10000ft</button>
         </form>
-        {% endif %}
-        {% if invoice.project_m %}
-        <a class="btn btn-info" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>
-        <a class="btn btn-info" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
         {% endif %}
       </div>
     </div>
