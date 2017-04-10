@@ -223,7 +223,7 @@ class Project(models.Model):
     parent_id = models.IntegerField(null=True, blank=True)
     phase_name = models.CharField(max_length=1000, null=True, blank=True)
     name = models.CharField(max_length=1000)
-    client = models.CharField(max_length=1000)
+    client = models.CharField(max_length=1000, null=True)
     archived = models.BooleanField(blank=True, default=False)
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(null=True, blank=True)

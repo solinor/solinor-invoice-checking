@@ -22,7 +22,7 @@ class TenkFeetApi(object):
 
     def fetch_projects(self):
         self.logger.info("Fetching projects")
-        next_page = "/api/v1/projects?per_page=250&page=1"
+        next_page = "/api/v1/projects?per_page=250&page=1&with_archived=true"
         return self.fetch_endpoint(next_page)
 
     def fetch_hour_entries(self, now, start_date, end_date):
