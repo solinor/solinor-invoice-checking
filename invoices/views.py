@@ -135,7 +135,7 @@ def invoice_hours(request, invoice):
 
 @login_required
 def projects_list(request):
-    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")) # .order_by("client", "name")
+    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")).exclude(incurred_hours=0)
     filters = ProjectsFilter(request.GET, queryset=projects)
     table = ProjectsTable(filters.qs)
     RequestConfig(request, paginate={
@@ -162,7 +162,7 @@ def projects_list(request):
 @login_required
 def project_details(request, project_id):
     project = get_object_or_404(Project, guid=project_id)
-    invoices = Invoice.objects.filter(project_m=project)
+    invoices = Invoice.objects.filter(project_m=project).exclude(total_hours=0)
     filters = ProjectsFilter(request.GET, queryset=invoices)
     table = ProjectDetailsTable(filters.qs)
     RequestConfig(request, paginate={
