@@ -17,7 +17,7 @@ def calculate_entry_stats(entries):
     for entry in entries:
         if entry.phase_name not in phases:
             phases[entry.phase_name] = {"users": {}, "not_billable": not is_phase_billable(entry.phase_name, entry.project)}
-            phase_details = phases[entry.phase_name]
+        phase_details = phases[entry.phase_name]
         if entry.user_name not in phase_details["users"]:
             phase_details["users"][entry.user_name] = {}
         if entry.bill_rate not in phase_details["users"][entry.user_name]:
