@@ -117,13 +117,16 @@ def invoice_page(request, invoice, **_):
     invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
 
     if request.method == "POST":
+        invoice_number = request.POST.get("invoiceNumber") or None
+        if invoice_number:
+            invoice_number = invoice_number.strip()
         comment = Comments(comments=request.POST.get("changesForInvoice"),
                            checked=request.POST.get("invoiceChecked", False),
                            checked_non_billable_ok=request.POST.get("nonBillableHoursOk", False),
                            checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk", False),
                            checked_phases_ok=request.POST.get("nonPhaseSpecificOk", False),
                            checked_changes_last_month=request.POST.get("remarkableChangesOk", False),
-                           invoice_number=request.POST.get("invoiceNumber") or None,
+                           invoice_number=invoice_number,
                            invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False),
                            user=request.user.email,
                            invoice=invoice_data)
