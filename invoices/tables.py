@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+
+import django_tables2 as tables
+from invoices.models import Project, Invoice
+from django.contrib.humanize.templatetags.humanize import intcomma
+from django.template.defaultfilters import floatformat
+from django.utils.html import format_html
+from django.core.urlresolvers import reverse
+
+
+class ProjectsTable(tables.Table):
+    guid = tables.Column(orderable=False, verbose_name="")
+
+    class Meta:
+        model = Project
+        attrs = {"class": "table table-striped table-hover projects-table"}
+        sequence = ("client", "name", "starts_at", "ends_at", "incurred_hours", "incurred_money", "guid")
+        fields = ("client", "name", "starts_at", "ends_at", "incurred_hours", "incurred_money", "guid")
+
+    def render_incurred_hours(self, value):
+        return u"%sh" % intcomma(floatformat(value, 0))
+
+    def render_incurred_money(self, value):
+        return u"%s€" % intcomma(floatformat(value, 0))
+
+    def render_guid(self, value):
+        return format_html(u"<a href='%s'>Details</a>" % reverse("project", args=[value]))
+
+
+class ProjectDetailsTable(tables.Table):
+    invoice_id = tables.Column(orderable=False, verbose_name="")
+    class Meta:
+        model = Invoice
+        attrs = {"class": "table table-striped table-hover invoice-table"}
+        fields = ("invoice_id", "year", "month", "invoice_state", "is_approved", "has_comments", "incorrect_entries_count", "total_hours", "bill_rate_avg", "total_money")
+        sequence = ("year", "month", "invoice_state", "is_approved", "has_comments", "incorrect_entries_count", "total_hours", "bill_rate_avg", "total_money", "invoice_id")
+
+
+    def render_invoice_id(self, value):
+        return format_html('<a href="%s">Invoice</a>, <a href="%s">hours</a>' % (reverse("invoice", args=[value]), reverse("invoice_hours", args=[value])))
+
+    def render_bill_rate_avg(self, value):
+        return u"%s€/h" % intcomma(floatformat(value, 2))
+
+    def render_total_hours(self, value):
+        return u"%sh" % intcomma(floatformat(value, 0))
+
+    def render_total_money(self, value):
+        return u"%s€" % intcomma(floatformat(value, 0))

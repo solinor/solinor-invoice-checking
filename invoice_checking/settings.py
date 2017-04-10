@@ -81,6 +81,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'googleauth',
+    'django_tables2',
     'invoices',
 )
 
@@ -186,7 +187,9 @@ USE_L10N = False
 USE_TZ = True
 
 DATE_FORMAT = "Y-m-d"
+SHORT_DATE_FORMAT = "Y-m-d"
 DATETIME_FORMAT = "Y-m-d H:i"
+SHORT_DATETIME_FORMAT = "Y-m-d H:i"
 
 # Update database configuration with $DATABASE_URL.
 DATABASES['default'].update(dj_database_url.config(conn_max_age=500))

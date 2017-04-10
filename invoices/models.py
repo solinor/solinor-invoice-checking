@@ -104,9 +104,6 @@ class HourEntry(models.Model):
     invoice = models.ForeignKey("Invoice", null=True)
     project_m = models.ForeignKey("Project", null=True)
 
-    def is_billable_phase(self):
-        return is_phase_billable(self.phase_name, self.project)
-
     def __unicode__(self):
         return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
 

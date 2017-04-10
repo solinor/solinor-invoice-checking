@@ -12,9 +12,12 @@ from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count, Sum
 
+from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
+
 from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project
 from invoices.filters import InvoiceFilter, ProjectsFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
+from invoices.tables import *
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -127,12 +130,22 @@ def invoice_hours(request, invoice):
 
 @login_required
 def projects_list(request):
-    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")).order_by("client", "name")
+    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")) # .order_by("client", "name")
+    filters = ProjectsFilter(request.GET, queryset=projects)
+    table = ProjectsTable(filters.qs)
+    RequestConfig(request, paginate={
+        'per_page': 250
+    }).configure(table)
+    context = {
+        "projects": table,
+        "filters": filters,
+    }
+    return render(request, "projects.html", context)
+
     projects_processed = []
     for i, project in enumerate(projects):
         if project.incurred_hours and project.incurred_hours > 0 and project.incurred_money:
             project.bill_rate_avg = project.incurred_money / project.incurred_hours
-    filters = ProjectsFilter(request.GET, queryset=projects)
     for i, project in enumerate(filters.qs):
         if project.incurred_hours and project.incurred_hours > 0 and project.incurred_money:
             project.bill_rate_avg = project.incurred_money / project.incurred_hours
@@ -145,9 +158,15 @@ def projects_list(request):
 def project_details(request, project_id):
     project = get_object_or_404(Project, guid=project_id)
     invoices = Invoice.objects.filter(project_m=project)
+    filters = ProjectsFilter(request.GET, queryset=invoices)
+    table = ProjectDetailsTable(filters.qs)
+    RequestConfig(request, paginate={
+        'per_page': 250
+    }).configure(table)
     context = {
+        "invoices": table,
+        "filters": filters,
         "project": project,
-        "invoices": invoices
     }
     return render(request, "project_details.html", context)
 

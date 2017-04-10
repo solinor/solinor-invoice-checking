@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load django_tables2 %}
+{% block header %}
+<style>
 
+.invoice-table .total_hours, .invoice-table .total_money, .invoice-table .bill_rate_avg, .invoice-table .incorrect_entries_count {
+  text-align: right;
+}
+</style>{% endblock %}
 {% block content %}
 
 <ol class="breadcrumb">
@@ -18,36 +25,10 @@
   </div>
 </div>
 
+
 <div class="row">
   <div class="col-md-12">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>State</th>
-          <th>Comments</th>
-          <th class="number-column">Issues</th>
-          <th class="number-column">Hours</th>
-          <th class="number-column">Avg rate</th>
-          <th class="number-column">Price</th>
-          <th></th>
-        </thead>
-        <tbody>
-          {% for invoice in invoices %}
-          <tr>
-            <td>{{ invoice.year }}-{{ invoice.month }}</td>
-            <td>{{ invoice.get_invoice_state_display }}</td>
-            <td>{{ invoice.has_comments }}</td>
-            <td class="number-column">{{ invoice.incorrect_entries_count }}</td>
-
-            <td class="number-column">{{ invoice.total_hours|floatformat:0|intcomma }}h</td>
-            <td class="number-column">{{ invoice.bill_rate_avg|floatformat:1 }}&euro;/h</td>
-            <td class="number-column">{{ invoice.total_money|floatformat:0|intcomma }}&euro;</td>
-            <td><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a>, <a href="{% url 'invoice_hours' invoice.invoice_id %}">hours</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    {% render_table invoices %}
   </div>
+</div>
 {% endblock %}

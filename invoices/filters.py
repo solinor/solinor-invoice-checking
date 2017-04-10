@@ -29,16 +29,6 @@ class InvoiceFilter(django_filters.FilterSet):
 
 
 class ProjectsFilter(django_filters.FilterSet):
-    ordering = django_filters.OrderingFilter(
-        fields=(
-            ("incurred_money", "incurred_money"),
-            ("incurred_hours", "incurred_hours"),
-        ),
-        field_labels={
-            "incurred_money": "Incurred money",
-            "incurred_hours": "Incurred hours",
-        }
-    )
 
     class Meta:
         model = Project
