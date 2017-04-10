@@ -15,15 +15,15 @@
   <tbody>
     {% for entry in invoices %}
     <tr>
-      <td class="nowrap-column">{{ entry.year }}-{{ entry.month }}</td>
+      <td class="nowrap-column">{{ entry.date }}</td>
       <td><a href="{% url 'invoice' entry.invoice_id %}">{{ entry.client }} - {{ entry.project }}</td>
       <td>{% for tag in entry.get_tags %}<span class="label label-default">{{ tag }}</span>{% endfor %}</td>
       <td>{{ entry.get_invoice_state_display }}</td>
       <td>{{ entry.has_comments }}</td>
       <td class="number-column">{{ entry.incorrect_entries_count }}</td>
-      <td class="number-column">{{ entry.total_hours|floatformat:2 }}h</td>
-      <td class="number-column">{{ entry.total_money|floatformat:2 }}&euro;</td>
-      <td class="number-column">{{ entry.bill_rate_avg|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ entry.total_hours|floatformat:0 }}h</td>
+      <td class="number-column">{{ entry.total_money|floatformat:0 }}&euro;</td>
+      <td class="number-column">{{ entry.bill_rate_avg|floatformat:0 }}&euro;</td>
     </tr>
     {% endfor %}
   </tbody>

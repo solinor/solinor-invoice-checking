@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% load humanize %}
-
+{% load django_tables2 %}
+{% block header %}
+<style>
+.invoices-table .total_hours, .invoices-table .total_money, .invoices-table .bill_rate_avg, .invoices-table .incorrect_entries_count {
+  text-align: right;
+}
+</style>
+{% endblock %}
 {% block content %}
 <ol class="breadcrumb">
   <li class="active"><a href="{% url 'frontpage' %}">Home</a></li>
@@ -23,7 +30,7 @@
 {% endif %}
 
 <form action="" method="get" class="form-inline">
-  {% for field in invoices.form %}
+  {% for field in filters.form %}
 
       <div class="form-group">
           {{ field.errors }}
@@ -35,6 +42,7 @@
   {% endfor %}
   <button class="btn btn-primary" type="submit">Filter</button>
 </form>
-{% include "frontpage_table.html" with invoices=invoices.qs %}
+
+{% render_table invoices %}
 
 {% endblock %}

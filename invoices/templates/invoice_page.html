@@ -8,10 +8,10 @@
     <ol class="breadcrumb">
       <li><a href="{% url 'frontpage' %}">Home</a></li>
       <li><a href="{% url 'projects_list' %}">Projects</a></li>
-      <li><a href="{% url 'project' invoice.project_m.guid %}">Project</a></li>
+      <li>{% if invoice.project_m %}<a href="{% url 'project' invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
       <li class="active"><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
     </ol>
-    <h2>Invoice details for {{ client }} - {{ project }} -- {{ year }}-{{ month }}</h2>
+    <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
     <div class="row" style="padding-bottom: 1em">
       <div class="col-md-12">
         <a class="btn btn-info" href="{% url 'get_pdf' invoice_id 'hours' %}" role="button">Download hours</a>

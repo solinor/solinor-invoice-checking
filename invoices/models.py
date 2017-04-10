@@ -143,10 +143,24 @@ class Invoice(models.Model):
     non_phase_specific_count = models.IntegerField(default=0)
     not_approved_hours_count = models.IntegerField(default=0)
     empty_descriptions_count = models.IntegerField(default=0)
-    total_hours = models.FloatField(default=0)
+    total_hours = models.FloatField(default=0, verbose_name="Incurred hours")
     bill_rate_avg = models.FloatField(default=0)
-    total_money = models.FloatField(default=0)
+    total_money = models.FloatField(default=0, verbose_name="Incurred money")
     invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
+
+    @property
+    def processed_tags(self):
+        if self.tags:
+            return self.tags.split(",")
+        return []
+
+    @property
+    def date(self):
+        return "%s-%02d" % (self.year, self.month)
+
+    @property
+    def full_name(self):
+        return "%s - %s" % (self.client, self.project)
 
     def __unicode__(self):
         return u"%s %s - %s-%s" % (self.client, self.project, self.year, self.month)
