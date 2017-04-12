@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<ol class="breadcrumb">
+  <li class="active">Home</li>
+</ol>
+
+<h2>{{ project }}</h2>
+
+<p>This data is generated from hour markings system. <b>These are not official invoices - official invoices may differ from these.</b></p>
+
+
+<h4>Invoice drafts</h4>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th></th>
+      <th></th>
+      <th class="number-column">Incurred hours</th>
+      <th class="number-column">Invoice value</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for invoice in invoices %}
+    <tr>
+      <td>{{ invoice.date }}</td>
+      <td><a href="{% url 'customer_invoice' auth_token invoice.year invoice.month %}">View invoice draft</a></td>
+      <td><a href="{% url 'customer_hours' auth_token invoice.year invoice.month %}">View hours report</a></td>
+      <td class="number-column">{{ invoice.total_hours|floatformat:0|intcomma }}h</td>
+      <td class="number-column">{{ invoice.total_money|floatformat:0|intcomma }}&euro;</td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="5">No invoice drafts available.</td>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -3,11 +3,27 @@
 import urllib
 
 import django_tables2 as tables
-from invoices.models import Project, Invoice
+from invoices.models import Project, Invoice, HourEntry
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.template.defaultfilters import floatformat
 from django.utils.html import format_html
 from django.core.urlresolvers import reverse
+
+
+class CustomerHoursTable(tables.Table):
+    class Meta:
+        model = HourEntry
+        fields = ("date", "user_name","category", "phase_name", "notes", "incurred_hours", "bill_rate", "incurred_money")
+        attrs = {"class": "table table-striped table-hover hours-table"}
+
+    def render_incurred_hours(self, value):
+        return u"%sh" % intcomma(floatformat(value, 2))
+
+    def render_incurred_money(self, value):
+        return u"%s€" % intcomma(floatformat(value, 2))
+
+    def render_bill_rate(self, value):
+        return u"%s€/h" % intcomma(floatformat(value, 2))
 
 
 class FrontpageInvoices(tables.Table):

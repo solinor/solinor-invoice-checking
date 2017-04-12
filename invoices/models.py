@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import uuid
+import time
 from django.db import models
 
 
@@ -86,7 +87,7 @@ class HourEntry(models.Model):
     user_m = models.ForeignKey("FeetUser", null=True)
     user_id = models.IntegerField()
     user_email = models.CharField(max_length=255)
-    user_name = models.CharField(max_length=100)
+    user_name = models.CharField(max_length=100, verbose_name="Name")
     client = models.CharField(max_length=200)
     project = models.CharField(max_length=200)
     incurred_hours = models.FloatField()
@@ -301,3 +302,15 @@ class DataUpdate(models.Model):
 
     def __unicode__(self):
         return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)
+
+def gen_auth_token():
+    return "%s-%s-%s" % (time.time(), str(uuid.uuid4()), str(uuid.uuid4()))
+
+
+class AuthToken(models.Model):
+    token = models.CharField(max_length=100, primary_key=True, editable=False, default=gen_auth_token)
+    valid_until = models.DateTimeField(null=True, blank=True)
+    project = models.ForeignKey("Project")
+
+    def __unicode__(self):
+        return self.token

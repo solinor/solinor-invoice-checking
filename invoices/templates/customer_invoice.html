@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block header %}
+<link href="/static/css/invoice_page.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'customer' auth_token %}">Home</a></li>
+  <li class="active">Invoice</li>
+</ol>
+
+<h2>Invoice draft for {{ project }} - {{ year }}-{{ month }}</h2>
+
+{% if current_month %}
+<div class="alert alert-warning" role="alert">Do note that this information is not official and locked. This is subject to change. If you need official report or invoice, please ask those separately.</div>
+{% else %}
+<div class="alert alert-info" role="alert">Please remember this is preliminary information, and subject to change.</div>
+{% endif %}
+
+<div class="row" style="padding-bottom: 1em">
+  <div class="col-md-12">
+    <a class="btn btn-info" href="{% url 'customer_hours' auth_token year month %}" role="button">View hours</a>
+  </div>
+</div>
+
+{% include "invoice.html" %}
+{% endblock %}

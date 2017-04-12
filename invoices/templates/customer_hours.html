@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load django_tables2 %}
+
+{% block header %}
+<style>
+.hours-table .incurred_hours, .hours-table .incurred_money, .hours-table .bill_rate {
+  text-align: right;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'customer' auth_token %}">Home</a></li>
+  <li><a href="{% url 'customer_invoice' auth_token year month %}">Invoice</a></li>
+  <li class="active">Hours</li>
+</ol>
+
+<h2>Hours for {{ project }} - {{ year }}-{{ month }}</h2>
+
+{% if current_month %}
+<div class="alert alert-warning" role="alert">Do note that this information is not official and locked. This is subject to change. If you need official report or invoice, please ask those separately.</div>
+{% else %}
+<div class="alert alert-info" role="alert">Please remember this is preliminary information, and subject to change.</div>
+{% endif %}
+
+<form action="" method="get" class="form-inline">
+  {% for field in filters.form %}
+      <div class="form-group">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+      </div>
+  {% endfor %}
+  <button class="btn btn-primary" type="submit">Filter</button>
+</form>
+
+{% render_table table %}
+
+
+{% endblock %}

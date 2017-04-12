@@ -27,13 +27,15 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/">Solinor invoices</a>
+        <a class="navbar-brand" href="{% if request.user.is_authenticated %}/{% else %}#{% endif %}">Solinor Financials</a>
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
+          {% if request.user.is_authenticated %}
           <li><a href="{% url "frontpage" %}">Home</a></li>
           <li><a href="{% url "projects_list" %}">Projects</a></li>
           <li><a href="{% url "people" %}">People</a></li>
+          {% endif %}
           {% block navbar_items %}{% endblock %}
         </ul>
       </div><!--/.nav-collapse -->

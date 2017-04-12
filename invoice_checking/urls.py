@@ -3,9 +3,14 @@ from django.contrib import admin
 from django.views.generic.base import RedirectView
 import invoices.views
 
+
 admin.autodiscover()
 
 urlpatterns = [
+    url(r'^customer/(?P<auth_token>[0-9A-Fa-f-\.]+)$', invoices.views.customer_view, name='customer'),
+    url(r'^customer/(?P<auth_token>[0-9A-Fa-f-\.]+)/hours/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})$', invoices.views.customer_view_hours, name='customer_hours'),
+    url(r'^customer/(?P<auth_token>[0-9A-Fa-f-\.]+)/invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})$', invoices.views.customer_view_invoice, name='customer_invoice'),
+
     url(r'^projects$', invoices.views.projects_list, name='projects_list'),
     url(r'^project/(?P<project_id>[0-9A-Fa-f-]+)$', invoices.views.project_details, name='project'),
     url(r'^invoice/(?P<invoice>[0-9A-Fa-f-]+)/hours$', invoices.views.invoice_hours, name='invoice_hours'),
@@ -19,4 +24,5 @@ urlpatterns = [
     url(r'^accounts/profile/$', RedirectView.as_view(pattern_name='frontpage', permanent=False)),
     url(r'^accounts/', include('googleauth.urls')),
     url(r'^$', invoices.views.frontpage, name="frontpage"),
+    url(r'^admin/', admin.site.urls),
 ]

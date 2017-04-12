@@ -4,7 +4,7 @@ import datetime
 import redis
 
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -14,12 +14,80 @@ from django.db.models import Count, Sum
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project
-from invoices.filters import InvoiceFilter, ProjectsFilter
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken
+from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
 
 REDIS = redis.from_url(settings.REDIS)
+
+
+def validate_auth_token(auth_token):
+    token = get_object_or_404(AuthToken, token=auth_token)
+    if token.valid_until:
+        if token.valid_until > timezone.now():
+            raise Http404()
+    return token
+
+
+def customer_view(request, auth_token):
+    token = validate_auth_token(auth_token)
+    invoices = Invoice.objects.filter(project_m=token.project).filter(total_hours__gt=0)
+    context = {
+        "project": token.project,
+        "invoices": invoices,
+        "auth_token": auth_token,
+    }
+    return render(request, "customer_main.html", context)
+
+def customer_view_invoice(request, auth_token, year, month):
+    token = validate_auth_token(auth_token)
+    year = int(year)
+    month = int(month)
+    invoice = get_object_or_404(Invoice, year=year, month=month, project_m=token.project)
+    hours = HourEntry.objects.filter(project_m=token.project).filter(incurred_hours__gt=0).filter(date__year=year, date__month=month).order_by("date")
+    invoice_data = calculate_entry_stats(hours)
+
+    today = datetime.date.today()
+
+    context = {
+        "project": token.project,
+        "invoice": invoice,
+        "auth_token": auth_token,
+        "month": month,
+        "year": year,
+        "due_date": "Invoice preview",
+        "today": "Invoice preview",
+        "customer_preview": True,
+        "current_month": year == today.year and month == today.month,
+    }
+    context.update(invoice_data)
+    return render(request, "customer_invoice.html", context)
+
+
+def customer_view_hours(request, auth_token, year, month):
+    token = validate_auth_token(auth_token)
+    year = int(year)
+    month = int(month)
+    hours = HourEntry.objects.filter(project_m=token.project).filter(incurred_hours__gt=0).filter(date__year=year, date__month=month).order_by("date")
+    filters = CustomerHoursFilter(request.GET, queryset=hours)
+    table = CustomerHoursTable(filters.qs)
+    RequestConfig(request, paginate={
+        'per_page': 250
+    }).configure(table)
+
+    today = datetime.date.today()
+
+    context = {
+        "project": token.project,
+        "auth_token": auth_token,
+        "year": year,
+        "month": month,
+        "table": table,
+        "filters": filters,
+        "current_month": year == today.year and month == today.month,
+    }
+    return render(request, "customer_hours.html", context)
 
 
 @login_required
