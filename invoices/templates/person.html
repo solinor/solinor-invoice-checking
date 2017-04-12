@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url 'people' %}">People</a></li>
+  <li class="active">Person: {{ person.first_name }}</li>
+</ol>
+
 <h2>{{ person.display_name }}</h2>
 
 <a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
@@ -25,7 +31,7 @@
     <tr>
       <td>{{ entry.date }}</td>
       <td>{{ entry.client }}</td>
-      <td>{{ entry.project }}</td>
+      <td>{% if entry.project_m %}<a href="{% url 'project' entry.project_m.guid %}">{{ entry.project }}</a>{% endif %}</td>
       <td>{{ entry.category }}</td>
       <td>{{ entry.phase_name }}</td>
       <td>{{ entry.notes }}</td>

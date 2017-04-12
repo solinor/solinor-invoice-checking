@@ -3,6 +3,11 @@
 
 {% block content %}
 
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li class="active">People</li>
+</ol>
+
 <p class="well">This table is excluding all leaves.</p>
 
 <form method="get" action="?">
