@@ -24,6 +24,7 @@
       <th class="number-column">Hours</th>
       <th class="number-column">Bill rate avg (all)</th>
       <th class="number-column">Bill rate avg (billable)</th>
+      <th class="number-column">Issues</th>
     </tr>
   </thead>
   <tbody>
@@ -34,6 +35,7 @@
       <td class="number-column">{{ entry.total_hours|floatformat:0 }}h</td>
       <td class="number-column">{{ entry.bill_rate_avg|floatformat:2 }}&euro;</td>
       <td class="number-column">{{ entry.bill_rate_avg_billable|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ entry.issues }}</td>
     </tr>
     {% endfor %}
   </tbody>

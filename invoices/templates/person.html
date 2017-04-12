@@ -1,5 +1,12 @@
 {% extends "base.html" %}
-
+{% block header %}
+<script>
+$('#person-hours a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+});
+</script>
+{% endblock %}
 {% block content %}
 <ol class="breadcrumb">
   <li><a href="{% url 'frontpage' %}">Home</a></li>
@@ -9,38 +16,45 @@
 
 <h2>{{ person.display_name }}</h2>
 
-<a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-md-12">
+    <a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
+  </div>
+</div>
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Client</th>
-      <th>Project</th>
-      <th>Category</th>
-      <th>Phase</th>
-      <th>Notes</th>
-      <th class="number-column">Hours</th>
-      <th class="number-column">Bill rate</th>
-      <th class="number-column">Money</th>
-      <th>Billable</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for entry in hour_entries %}
-    <tr>
-      <td>{{ entry.date }}</td>
-      <td>{{ entry.client }}</td>
-      <td>{% if entry.project_m %}<a href="{% url 'project' entry.project_m.guid %}">{{ entry.project }}</a>{% endif %}</td>
-      <td>{{ entry.category }}</td>
-      <td>{{ entry.phase_name }}</td>
-      <td>{{ entry.notes }}</td>
-      <td class="number-column">{{ entry.incurred_hours }}h</td>
-      <td class="number-column {% if not entry.calculated_is_billable and entry.bill_rate > 0 %}strikethrough{% endif %}">{{ entry.bill_rate }}&euro;/h</td>
-      <td class="number-column {% if not entry.calculated_is_billable and entry.incurred_money > 0 %}strikethrough{% endif %}">{{ entry.incurred_money }}&euro;</td>
-      <td>{{ entry.calculated_is_billable }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="row">
+  <div class="col-md-12">
+    <div id="person-hours">
+
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#all_entries" role="tab" data-toggle="tab">All hours <span class="badge">{{ stats.total_entries }}</span></a></li>
+        <li role="presentation"><a href="#non_phase_specific" role="tab" data-toggle="tab">Non-phase specific hours <span class="badge">{{ stats.non_phase_specific_count }}</span></a></li>
+        <li role="presentation"><a href="#empty_descriptions" role="tab" data-toggle="tab">Empty descriptions <span class="badge">{{ stats.empty_descriptions_count }}</span></a></li>
+        <li role="presentation"><a href="#billable_incorrect_price" role="tab" data-toggle="tab">Incorrect prices <span class="badge">{{ stats.billable_incorrect_price_count }}</span></a></li>
+        <li role="presentation"><a href="#not_approved_hours" role="tab" data-toggle="tab">Not approved  <span class="badge">{{ stats.not_approved_hours_count }}</span></a></li>
+      </ul>
+
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="all_entries">
+          {% include "person_hour_table.html" with entries=hour_entries %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="non_phase_specific">
+          {% include "person_hour_table.html" with entries=stats.non_phase_specific %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="empty_descriptions">
+          {% include "person_hour_table.html" with entries=stats.empty_descriptions %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="billable_incorrect_price">
+          {% include "person_hour_table.html" with entries=stats.billable_incorrect_price %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="not_approved_hours">
+          {% include "person_hour_table.html" with entries=stats.not_approved_hours %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock %}

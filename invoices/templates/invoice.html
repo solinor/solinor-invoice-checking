@@ -57,12 +57,13 @@
                     Price
                 </td>
             </tr>
-              {% for person_name, person_details in phase.users.items %}
-                {% for bill_rate, details in person_details.items %}
+              {% for person_email, person_details in phase.users.items %}
+                {% for bill_rate, details in person_details.entries.items %}
                   {% if details.incurred_hours > 0 %}
                     <tr class="item">
                         <td>
-                          {{ person_name }}
+                          {% if person_details.user_m %}<a href="{% url 'person' person_details.user_m.guid invoice.year invoice.month %}">{{ person_details.user_name }}</a>
+                          {% else %}{{ person_details.user_name }}{% endif %}
                         </td>
 
                         <td>

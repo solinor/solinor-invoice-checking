@@ -32,7 +32,7 @@ def person_details(request, year, month, user_guid):
         user_name = entries[0].user_name
     else:
         user_name = user_email
-    return render(request, "person.html", {"person": person, "hour_entries": entries})
+    return render(request, "person.html", {"person": person, "hour_entries": entries, "stats": calculate_entry_stats(entries)})
 
 
 @login_required
@@ -42,7 +42,7 @@ def people_list(request):
     month = int(request.GET.get("month", now.month))
     people_data = {}
     for person in FeetUser.objects.filter(archived=False):
-        people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0},  "person": person}
+        people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0},  "person": person, "issues": 0}
     for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
         if entry.user_email not in people_data:
             continue  # TODO: logging
@@ -52,6 +52,8 @@ def people_list(request):
             k = "non-billable"
         people_data[entry.user_email][k]["incurred_hours"] += entry.incurred_hours
         people_data[entry.user_email][k]["incurred_money"] += entry.incurred_money
+        if not entry.calculated_has_notes or not entry.calculated_has_phase:
+            people_data[entry.user_email]["issues"] += 1
     for person in people_data.values():
         total_hours = person["billable"]["incurred_hours"] + person["non-billable"]["incurred_hours"]
         person["total_hours"] = total_hours

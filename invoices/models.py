@@ -13,31 +13,33 @@ def calculate_entry_stats(entries):
     empty_descriptions = []
     total_hours = 0
     total_money = 0
+    total_entries = 0
 
     for entry in entries:
+        total_entries += 1
         if entry.phase_name not in phases:
             phases[entry.phase_name] = {"users": {}, "billable": entry.calculated_is_billable}
         phase_details = phases[entry.phase_name]
-        if entry.user_name not in phase_details["users"]:
-            phase_details["users"][entry.user_name] = {}
-        if entry.bill_rate not in phase_details["users"][entry.user_name]:
-            phase_details["users"][entry.user_name][entry.bill_rate] = {"incurred_hours": 0, "incurred_money": 0}
-        phase_details["users"][entry.user_name][entry.bill_rate]["incurred_hours"] += entry.incurred_hours
-        phase_details["users"][entry.user_name][entry.bill_rate]["incurred_money"] += entry.incurred_money
+        if entry.user_email not in phase_details["users"]:
+            phase_details["users"][entry.user_email] = {"user_email": entry.user_email, "user_name": entry.user_name, "user_m": entry.user_m, "entries": {}}
+        if entry.bill_rate not in phase_details["users"][entry.user_email]["entries"]:
+            phase_details["users"][entry.user_email]["entries"][entry.bill_rate] = {"incurred_hours": 0, "incurred_money": 0}
+        phase_details["users"][entry.user_email]["entries"][entry.bill_rate]["incurred_hours"] += entry.incurred_hours
+        phase_details["users"][entry.user_email]["entries"][entry.bill_rate]["incurred_money"] += entry.incurred_money
 
-        if (entry.bill_rate < 50 or entry.bill_rate > 170) and entry.calculated_is_billable:
+        if not entry.calculated_has_proper_price and entry.calculated_is_billable:
             billable_incorrect_price.append(entry)
 
-        if not entry.calculated_is_billable:
-            non_billable_hours.append(entry)
-        else:
+        if entry.calculated_is_billable:
             total_money += entry.incurred_money
+        else:
+            non_billable_hours.append(entry)
         total_hours += entry.incurred_hours
-        if entry.phase_name == "[Non Phase Specific]":
+        if not entry.calculated_has_phase:
             non_phase_specific.append(entry)
-        if not entry.approved:
+        if not entry.calculated_is_approved:
             not_approved_hours.append(entry)
-        if entry.notes is None or len(entry.notes) < 3:
+        if not entry.calculated_has_notes:
             empty_descriptions.append(entry)
 
     if total_hours > 0:
@@ -59,6 +61,7 @@ def calculate_entry_stats(entries):
         "empty_descriptions": empty_descriptions,
         "empty_descriptions_count": len(empty_descriptions),
         "bill_rate_avg": bill_rate_avg,
+        "total_entries": total_entries,
     }
     stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"]
     return stats
