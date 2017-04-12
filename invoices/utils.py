@@ -211,7 +211,9 @@ class HourEntryUpdate(object):
 
             data["invoice"] = self.match_invoice(data)
             data["user_m"] = self.match_user(data["user_email"])
-            entries.append(HourEntry(**data))
+            entry = HourEntry(**data)
+            entry.update_calculated_fields()
+            entries.append(entry)
 
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
         # Note: this does not call .save() for entries.
