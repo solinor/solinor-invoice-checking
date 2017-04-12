@@ -101,8 +101,23 @@ class HourEntry(models.Model):
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
 
     calculated_is_billable = models.BooleanField(blank=True, default=False)
+    calculated_has_notes = models.BooleanField(blank=True, default=True)
+    calculated_has_phase = models.BooleanField(blank=True, default=True)
+    calculated_is_approved = models.BooleanField(blank=True, default=True)
+    calculated_has_proper_price = models.BooleanField(blank=True, default=True)
+
     invoice = models.ForeignKey("Invoice", null=True)
     project_m = models.ForeignKey("Project", null=True)
+
+    def update_calculated_fields(self):
+        self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
+        if self.notes:
+            self.calculated_has_notes = len(self.notes) > 0
+        else:
+            self.calculated_has_notes = False
+        self.calculated_has_phase = self.phase_name != "[Non Phase Specific]"
+        self.calculated_is_approved = self.approved
+        self.calculated_has_proper_price = self.bill_rate > 50 and self.bill_rate < 170
 
     def __unicode__(self):
         return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
