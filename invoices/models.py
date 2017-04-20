@@ -5,7 +5,7 @@ import time
 from django.db import models
 
 
-def calculate_entry_stats(entries):
+def calculate_entry_stats(entries, fixed_invoice_rows):
     phases = {}
     billable_incorrect_price = []
     non_billable_hours = []
@@ -47,6 +47,12 @@ def calculate_entry_stats(entries):
         bill_rate_avg = total_money / total_hours
     else:
         bill_rate_avg = 0
+    if len(fixed_invoice_rows) > 0:
+        phases["Fixed"] = {"entries": {}, "billable": True}
+        for item in fixed_invoice_rows:
+            phases["Fixed"]["entries"][item.description] = item.price
+            total_money += item.price
+
     stats = {
         "phases": phases,
         "billable_incorrect_price": billable_incorrect_price,
@@ -130,12 +136,6 @@ class HourEntry(models.Model):
         ordering = ("date", "user_id")
 
 class Invoice(models.Model):
-    CHOICES = (
-        (None, "Unknown"),
-        (True, "Yes"),
-        (False, "No"),
-    )
-
     INVOICE_STATE_CHOICES = (
         ("C", "Created"),
         ("A", "Approved"),
@@ -289,6 +289,30 @@ class Comments(models.Model):
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.invoice, self.timestamp, self.user)
+
+
+class InvoiceFixedEntry(models.Model):
+    invoice = models.ForeignKey("Invoice")
+    price = models.FloatField()
+    description = models.CharField(max_length=300)
+
+    class Meta:
+        unique_together = ("invoice", "description")
+
+    def __unicode__(self):
+        return u"%s - %s - %s" % (self.invoice, self.description, self.price)
+
+
+class ProjectFixedEntry(models.Model):
+    project = models.ForeignKey("Project")
+    price = models.FloatField()
+    description = models.CharField(max_length=300)
+
+    class Meta:
+        unique_together = ("project", "description")
+
+    def __unicode__(self):
+        return u"%s - %s - %s" % (self.project, self.description, self.price)
 
 
 class DataUpdate(models.Model):

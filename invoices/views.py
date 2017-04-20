@@ -16,7 +16,7 @@ from django.db.models import Count, Sum
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
@@ -48,7 +48,10 @@ def customer_view_invoice(request, auth_token, year, month):
     month = int(month)
     invoice = get_object_or_404(Invoice, year=year, month=month, project_m=token.project)
     hours = HourEntry.objects.filter(project_m=token.project).filter(incurred_hours__gt=0).filter(date__year=year, date__month=month).order_by("date")
-    invoice_data = calculate_entry_stats(hours)
+    fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=invoice))
+    if invoice.invoice_state not in ("P", "S"):
+        fixed_invoice_rows.append(list(ProjectFixedEntry.objects.filter(project=token.project)))
+    invoice_data = calculate_entry_stats(hours, fixed_invoice_rows)
 
     today = datetime.date.today()
 
@@ -274,9 +277,16 @@ def invoice_page(request, invoice, **_):
         comment.save()
         invoice_data.is_approved = comment.checked
         invoice_data.has_comments = comment.has_comments()
+        invoice_sent_earlier = invoice_data.invoice_state in ("P", "S")
         invoice_data.update_state(comment)
         invoice_data.save()
         messages.add_message(request, messages.INFO, 'Saved.')
+        if not invoice_sent_earlier and invoice_data.invoice_state in ("P", "S") and invoice_data.project_m:
+            for project_fixed_entry in ProjectFixedEntry.objects.filter(project=invoice_data.project_m):
+                if InvoiceFixedEntry.objects.filter(invoice=invoice_data, price=project_fixed_entry.price, description=project_fixed_entry.description).count() == 0:
+                    InvoiceFixedEntry(invoice=invoice_data, price=project_fixed_entry.price, description=project_fixed_entry.description).save()
+        if invoice_sent_earlier and invoice_data.invoice_state not in ("P", "S"):
+            InvoiceFixedEntry.objects.filter(invoice=invoice_data).delete()
         return HttpResponseRedirect(reverse("invoice", args=[invoice]))
 
     today = datetime.date.today()
@@ -284,8 +294,10 @@ def invoice_page(request, invoice, **_):
 
     entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
 
-    entry_data = calculate_entry_stats(entries)
-
+    fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=invoice_data))
+    if invoice_data.invoice_state not in ("P", "S") and invoice_data.project_m:
+        fixed_invoice_rows.extend(list(ProjectFixedEntry.objects.filter(project=invoice_data.project_m)))
+    entry_data = calculate_entry_stats(entries, fixed_invoice_rows)
 
     try:
         latest_comments = Comments.objects.filter(invoice=invoice_data).latest()
