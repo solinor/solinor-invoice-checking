@@ -292,8 +292,8 @@ def invoice_page(request, invoice, **_):
     except Comments.DoesNotExist:
         latest_comments = None
 
-    month_first_date = datetime.date(invoice_data.year, invoice_data.month, 1)
-    month_last_date = month_first_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
+    month_start_date = datetime.date(invoice_data.year, invoice_data.month, 1)
+    month_end_date = month_start_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
 
     context = {
         "today": today,
@@ -304,8 +304,8 @@ def invoice_page(request, invoice, **_):
         "form_data": latest_comments,
         "year": invoice_data.year,
         "month": invoice_data.month,
-        "month_first_date": month_first_date,
-        "month_last_date": month_last_date,
+        "month_start_date": month_start_date,
+        "month_end_date": month_end_date,
         "invoice_id": invoice,
         "invoice": invoice_data,
         "recent_invoice": abs((datetime.date.today() - datetime.date(invoice_data.year, invoice_data.month, 1)).days) < 60,
