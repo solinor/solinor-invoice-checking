@@ -67,7 +67,7 @@ TENKFEET_AUTH = os.environ["TENKFEET_AUTH"]
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", False) in ("true", "True", True)
 
 
 # Application definition
