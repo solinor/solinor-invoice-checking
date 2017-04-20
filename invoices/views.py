@@ -2,6 +2,8 @@
 
 import datetime
 import redis
+import json
+import calendar
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
@@ -132,15 +134,20 @@ def people_list(request):
             person["bill_rate_avg_billable"] = person["billable"]["incurred_money"] / person["billable"]["incurred_hours"]
     return render(request, "people.html", {"people": people_data, "year": year, "month": month})
 
+def parse_date(date_string):
+    return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
+
 @login_required
 def queue_update(request):
     if request.method == "POST":
         return_url = request.POST.get("back") or reverse("frontpage")
+        start_date = parse_date(request.POST.get("start_date", datetime.datetime.now().strftime("%Y-%m-%d")))
+        end_date = parse_date(request.POST.get("end_date", (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d")))
         try:
             now = timezone.now()
             last_update_at = DataUpdate.objects.exclude(aborted=True).exclude(finished_at=None).latest("finished_at")
             finished = now - last_update_at.finished_at
-            if finished < datetime.timedelta(minutes=1):
+            if finished < datetime.timedelta(seconds=15):
                 messages.add_message(request, messages.WARNING, 'Data was just updated. Please try again later.')
                 return HttpResponseRedirect(return_url)
 
@@ -150,7 +157,7 @@ def queue_update(request):
                 return HttpResponseRedirect(return_url)
         except DataUpdate.DoesNotExist:
             pass
-        REDIS.publish("request-refresh", "True")
+        REDIS.publish("request-refresh", json.dumps({"start_date": start_date.strftime("%Y-%m-%d"), "end_date": end_date.strftime("%Y-%m-%d")}))
         update_obj = DataUpdate()
         update_obj.save()
         messages.add_message(request, messages.INFO, 'Update queued. This is normally finished within 10 seconds. Refresh the page to see new data.')
@@ -285,6 +292,9 @@ def invoice_page(request, invoice, **_):
     except Comments.DoesNotExist:
         latest_comments = None
 
+    month_first_date = datetime.date(invoice_data.year, invoice_data.month, 1)
+    month_last_date = month_first_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
+
     context = {
         "today": today,
         "due_date": due_date,
@@ -294,6 +304,8 @@ def invoice_page(request, invoice, **_):
         "form_data": latest_comments,
         "year": invoice_data.year,
         "month": invoice_data.month,
+        "month_first_date": month_first_date,
+        "month_last_date": month_last_date,
         "invoice_id": invoice,
         "invoice": invoice_data,
         "recent_invoice": abs((datetime.date.today() - datetime.date(invoice_data.year, invoice_data.month, 1)).days) < 60,

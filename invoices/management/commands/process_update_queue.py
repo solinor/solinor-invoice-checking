@@ -1,5 +1,6 @@
 import datetime
 import redis
+import json
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -14,13 +15,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         redis_instance = redis.from_url(settings.REDIS)
-        pubsub = redis_instance.pubsub()
+        pubsub = redis_instance.pubsub(ignore_subscribe_messages=True)
         pubsub.subscribe("request-refresh")
-        for _ in pubsub.listen():
+        for entry in pubsub.listen():
+            print entry
             now = timezone.now()
             try:
                 latest_run = DataUpdate.objects.exclude(finished_at=None).latest("finished_at")
-                if now - latest_run.finished_at < datetime.timedelta(minutes=1):
+                if now - latest_run.finished_at < datetime.timedelta(seconds=10):
                     print "Latest run was finished recently. Skip."
                     latest_run.aborted = True
                     latest_run.save()
@@ -38,8 +40,9 @@ class Command(BaseCommand):
             update_obj.aborted = False
             update_obj.started_at = timezone.now()
             update_obj.save()
-            start_date = (now - datetime.timedelta(days=45))
-            end_date = now
+            data = json.loads(entry["data"])
+            start_date = datetime.datetime.strptime(data["start_date"], "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(data["end_date"], "%Y-%m-%d").date()
             print "Updating data."
             update_obj.started_at = timezone.now()
             hour_entry_update = HourEntryUpdate(start_date, end_date)

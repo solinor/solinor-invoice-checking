@@ -24,6 +24,8 @@
         <form method="post" action="{% url 'queue_update' %}" class="form-inline" style="display: inline-block">
           {% csrf_token %}
           <input type="hidden" name="back" value="{{ request.get_full_path }}">
+          <input type="hidden" name="first_date" value="{{ month_first_date }}">
+          <input type="hidden" name="last_date" value="{{ month_last_date }}">
           <button role="submit" class="btn btn-info">Update data from 10000ft</button>
         </form>
         {% endif %}
