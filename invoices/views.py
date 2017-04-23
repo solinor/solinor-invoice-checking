@@ -51,7 +51,7 @@ def customer_view_invoice(request, auth_token, year, month):
     fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=invoice))
     if invoice.invoice_state not in ("P", "S"):
         fixed_invoice_rows.append(list(ProjectFixedEntry.objects.filter(project=token.project)))
-    invoice_data = calculate_entry_stats(hours, fixed_invoice_rows)
+    invoice_data = calculate_entry_stats(hours, invoice.get_fixed_invoice_rows())
 
     today = datetime.date.today()
 
@@ -105,7 +105,7 @@ def person_details(request, year, month, user_guid):
         user_name = entries[0].user_name
     else:
         user_name = user_email
-    return render(request, "person.html", {"person": person, "hour_entries": entries, "stats": calculate_entry_stats(entries)})
+    return render(request, "person.html", {"person": person, "hour_entries": entries, "stats": calculate_entry_stats(entries, [])})
 
 
 @login_required
@@ -294,10 +294,7 @@ def invoice_page(request, invoice, **_):
 
     entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
 
-    fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=invoice_data))
-    if invoice_data.invoice_state not in ("P", "S") and invoice_data.project_m:
-        fixed_invoice_rows.extend(list(ProjectFixedEntry.objects.filter(project=invoice_data.project_m)))
-    entry_data = calculate_entry_stats(entries, fixed_invoice_rows)
+    entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows())
 
     try:
         latest_comments = Comments.objects.filter(invoice=invoice_data).latest()

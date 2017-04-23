@@ -222,6 +222,12 @@ class Invoice(models.Model):
             data["remarkable"] = True
         return data
 
+    def get_fixed_invoice_rows(self):
+        fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=self))
+        if self.invoice_state not in ("P", "S") and self.project_m:
+            fixed_invoice_rows.extend(list(ProjectFixedEntry.objects.filter(project=self.project_m)))
+        return fixed_invoice_rows
+
     class Meta:
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")

@@ -234,7 +234,7 @@ def refresh_stats(start_date, end_date):
         invoices = Invoice.objects.all()
     for invoice in invoices:
         entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
-        stats = calculate_entry_stats(entries)
+        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows())
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
         invoice.save()
