@@ -144,8 +144,8 @@ def parse_date(date_string):
 def queue_update(request):
     if request.method == "POST":
         return_url = request.POST.get("back") or reverse("frontpage")
-        start_date = parse_date(request.POST.get("start_date", datetime.datetime.now().strftime("%Y-%m-%d")))
-        end_date = parse_date(request.POST.get("end_date", (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d")))
+        end_date = parse_date(request.POST.get("end_date", datetime.datetime.now().strftime("%Y-%m-%d")))
+        start_date = parse_date(request.POST.get("start_date", (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d")))
         try:
             now = timezone.now()
             last_update_at = DataUpdate.objects.exclude(aborted=True).exclude(finished_at=None).latest("finished_at")
