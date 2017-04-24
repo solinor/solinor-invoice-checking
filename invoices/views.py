@@ -122,7 +122,7 @@ def person_details(request, year, month, user_guid):
     year = int(year)
     month = int(month)
     person = get_object_or_404(FeetUser, guid=user_guid)
-    entries = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m").order_by("date")
+    entries = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
     if len(entries) > 0:
         user_name = entries[0].user_name
@@ -228,7 +228,7 @@ def frontpage(request):
 @login_required
 def invoice_hours(request, invoice):
     invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
-    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0).select_related("user_m")
     context = {
         "invoice": invoice_data,
         "entries": entries,
