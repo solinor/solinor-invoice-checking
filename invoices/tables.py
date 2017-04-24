@@ -10,10 +10,38 @@ from django.utils.html import format_html
 from django.core.urlresolvers import reverse
 
 
+class HourListTable(tables.Table):
+    class Meta:
+        model = HourEntry
+        attrs = {"class": "table table-striped table-hover hours-table"}
+        fields = ("date", "user_name", "client", "project", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_billable", "calculated_has_notes", "calculated_has_phase", "calculated_is_approved", "calculated_has_proper_price", "calculated_has_category")
+
+    def render_user_name(self, value, record):
+        if record.user_m:
+            return format_html('<a href="%s">%s</a>' % (reverse("person", args=[record.user_m.guid, record.date.year, record.date.month]), value))
+        else:
+            return value
+
+    def render_project(self, value, record):
+        if record.project_m:
+            return format_html('<a href="%s">%s</a>' % (reverse("project", args=[record.project_m.guid]), value))
+        else:
+            return value
+
+    def render_incurred_hours(self, value):
+        return u"%sh" % intcomma(floatformat(value, 2))
+
+    def render_incurred_money(self, value):
+        return u"%s€" % intcomma(floatformat(value, 2))
+
+    def render_bill_rate(self, value):
+        return u"%s€/h" % intcomma(floatformat(value, 2))
+
+
 class CustomerHoursTable(tables.Table):
     class Meta:
         model = HourEntry
-        fields = ("date", "user_name","category", "phase_name", "notes", "incurred_hours", "bill_rate", "incurred_money")
+        fields = ("date", "user_name", "category", "phase_name", "notes", "incurred_hours", "bill_rate", "incurred_money")
         attrs = {"class": "table table-striped table-hover hours-table"}
 
     def render_incurred_hours(self, value):

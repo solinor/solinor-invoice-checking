@@ -1,6 +1,21 @@
 import django_filters
 from invoices.models import Invoice, Project, HourEntry
 
+class HourListFilter(django_filters.FilterSet):
+    class Meta:
+        model = HourEntry
+        fields = {
+            "user_name": ["icontains"],
+            "calculated_has_phase": ["exact"],
+            "calculated_has_notes": ["exact"],
+            "calculated_is_billable": ["exact"],
+            "calculated_is_approved": ["exact"],
+            "calculated_has_category": ["exact"],
+            "calculated_has_proper_price": ["exact"],
+            "date": ["gte", "lte"],
+        }
+
+
 class CustomerHoursFilter(django_filters.FilterSet):
     class Meta:
         model = HourEntry

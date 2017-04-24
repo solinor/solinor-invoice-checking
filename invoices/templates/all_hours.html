@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load django_tables2 %}
+
+{% block header %}
+<style>
+.hours-table .incurred_hours, .hours-table .incurred_money, .hours-table .bill_rate {
+  text-align: right;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li class="active">Hours</li>
+</ol>
+
+<h2>Hours</h2>
+
+<form action="" method="get" class="form-inline">
+  {% for field in filters.form %}
+      <div class="form-group">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+      </div>
+  {% endfor %}
+  <button class="btn btn-primary" type="submit">Filter</button>
+</form>
+
+{% render_table table %}
+
+
+{% endblock %}

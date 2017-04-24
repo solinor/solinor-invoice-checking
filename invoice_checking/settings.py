@@ -85,6 +85,9 @@ INSTALLED_APPS = (
     'invoices',
 )
 
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar',)
+
 AUTHENTICATION_BACKENDS = (
     'googleauth.backends.GoogleAuthBackend',
 )
@@ -126,6 +129,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+if DEBUG:
+    MIDDLEWARE_CLASSES += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
+    INTERNAL_IPS = ("127.0.0.1",)
 
 ROOT_URLCONF = 'invoice_checking.urls'
 

@@ -115,12 +115,12 @@ class HourEntry(models.Model):
     approved = models.BooleanField(blank=True)
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
 
-    calculated_is_billable = models.BooleanField(blank=True, default=False)
-    calculated_has_notes = models.BooleanField(blank=True, default=True)
-    calculated_has_phase = models.BooleanField(blank=True, default=True)
-    calculated_is_approved = models.BooleanField(blank=True, default=True)
-    calculated_has_proper_price = models.BooleanField(blank=True, default=True)
-    calculated_has_category = models.BooleanField(blank=True, default=True)
+    calculated_is_billable = models.BooleanField(blank=True, default=False, verbose_name="Billable")
+    calculated_has_notes = models.BooleanField(blank=True, default=True, verbose_name="Has notes")
+    calculated_has_phase = models.BooleanField(blank=True, default=True, verbose_name="Has phase")
+    calculated_is_approved = models.BooleanField(blank=True, default=True, verbose_name="Is approved")
+    calculated_has_proper_price = models.BooleanField(blank=True, default=True, verbose_name="Has proper price")
+    calculated_has_category = models.BooleanField(blank=True, default=True, verbose_name="Has category")
 
     invoice = models.ForeignKey("Invoice", null=True)
     project_m = models.ForeignKey("Project", null=True)

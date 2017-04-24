@@ -17,7 +17,7 @@ from django.db.models import Count, Sum
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
 from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry
-from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter
+from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
 
@@ -30,6 +30,28 @@ def validate_auth_token(auth_token):
         if token.valid_until > timezone.now():
             raise Http404()
     return token
+
+
+@login_required
+def hours_list(request):
+    if len(request.GET) == 0:
+        today = datetime.date.today()
+        month_start_date = datetime.date(today.year, today.month, 1)
+        month_end_date = month_start_date.replace(day=calendar.monthrange(today.year, today.month)[1])
+        return HttpResponseRedirect("%s?date__gte=%s&date__lte=%s" % (reverse("hours_list"), month_start_date, month_end_date))
+    hours = HourEntry.objects.filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
+    filters = HourListFilter(request.GET, queryset=hours)
+    table = HourListTable(filters.qs)
+    RequestConfig(request, paginate={
+        'per_page': 250
+    }).configure(table)
+
+    context = {
+        "table": table,
+        "filters": filters,
+    }
+
+    return render(request, "all_hours.html", context=context)
 
 
 def customer_view(request, auth_token):
