@@ -11,9 +11,23 @@
       <li>{% if invoice.project_m %}<a href="{% url 'project' invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
       <li class="active"><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
     </ol>
+
     <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
     <div class="row" style="padding-bottom: 1em">
       <div class="col-md-12">
+        {% if previous_invoices %}
+        <div class="dropdown" style="display: inline-block">
+          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Open another invoice
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+            {% for previous_invoice in previous_invoices %}
+            <li><a href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
         <a class="btn btn-info" href="{% url 'get_pdf' invoice_id 'hours' %}" role="button">Download hours</a>
         <a class="btn btn-info" href="{% url 'invoice_hours' invoice_id %}" role="button">View hours</a>
         {% if invoice.project_m %}

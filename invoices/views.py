@@ -328,6 +328,10 @@ def invoice_page(request, invoice, **_):
     month_start_date = datetime.date(invoice_data.year, invoice_data.month, 1)
     month_end_date = month_start_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
 
+    previous_invoices = []
+    if invoice_data.project_m:
+        previous_invoices = Invoice.objects.filter(project_m=invoice_data.project_m)
+
     context = {
         "today": today,
         "due_date": due_date,
@@ -341,6 +345,7 @@ def invoice_page(request, invoice, **_):
         "month_end_date": month_end_date,
         "invoice_id": invoice,
         "invoice": invoice_data,
+        "previous_invoices": previous_invoices,
         "recent_invoice": abs((datetime.date.today() - datetime.date(invoice_data.year, invoice_data.month, 1)).days) < 60,
     }
     context.update(entry_data)
