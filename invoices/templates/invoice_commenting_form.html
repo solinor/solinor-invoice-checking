@@ -24,6 +24,12 @@
       <td><label for="billableIncorrectPrice">All ({{ billable_incorrect_price_count }}) entries with weird hour rates are correct.</label></td>
     </tr>
     {% endif %}
+    {% if no_category_count > 0 %}
+    <tr>
+      <td><input type="checkbox" id="noCategoryOk" name="noCategoryOk" {% if form_data.checked_no_category_ok %}checked="checked"{% endif %}></td>
+      <td><label for="noCategoryOk">All ({{ no_category_count }}) entries with no categories should be there.</label></td>
+    </tr>
+    {% endif %}
     {% if last_month_invoice %}
     {% if diff_last_month.remarkable %}
     <tr>

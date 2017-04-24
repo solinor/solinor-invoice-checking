@@ -125,7 +125,7 @@ def people_list(request):
             k = "non-billable"
         people_data[entry.user_email][k]["incurred_hours"] += entry.incurred_hours
         people_data[entry.user_email][k]["incurred_money"] += entry.incurred_money
-        if not entry.calculated_has_notes or not entry.calculated_has_phase:
+        if not entry.calculated_has_notes or not entry.calculated_has_phase or not entry.calculated_has_category:
             people_data[entry.user_email]["issues"] += 1
     for person in people_data.values():
         total_hours = person["billable"]["incurred_hours"] + person["non-billable"]["incurred_hours"]
@@ -269,6 +269,7 @@ def invoice_page(request, invoice, **_):
                            checked_non_billable_ok=request.POST.get("nonBillableHoursOk", False),
                            checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk", False),
                            checked_phases_ok=request.POST.get("nonPhaseSpecificOk", False),
+                           checked_no_category_ok=request.POST.get("noCategoryOk", False),
                            checked_changes_last_month=request.POST.get("remarkableChangesOk", False),
                            invoice_number=invoice_number,
                            invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False),

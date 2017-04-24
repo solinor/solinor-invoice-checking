@@ -3,6 +3,7 @@
   <thead>
     <tr>
       <th>Phase</th>
+      <th>Category</th>
       <th>Name</th>
       <th>Date</th>
       <th class="number-column">Hours</th>
@@ -14,6 +15,7 @@
     {% for entry in entries %}
     <tr>
       <td>{{ entry.phase_name }}</td>
+      <td>{{ entry.category }}</td>
       <td>{{ entry.user_name }}</td>
       <td>{{ entry.date }}</td>
       <td class="number-column">{{ entry.incurred_hours|floatformat:2 }}</td>

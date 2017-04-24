@@ -10,6 +10,7 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
     billable_incorrect_price = []
     non_billable_hours = []
     non_phase_specific = []
+    no_category = []
     not_approved_hours = []
     empty_descriptions = []
     total_hours = 0
@@ -42,6 +43,8 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
             not_approved_hours.append(entry)
         if not entry.calculated_has_notes:
             empty_descriptions.append(entry)
+        if not entry.calculated_has_category:
+            no_category.append(entry)
 
     if total_hours > 0:
         bill_rate_avg = total_money / total_hours
@@ -67,10 +70,12 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
         "not_approved_hours_count": len(not_approved_hours),
         "empty_descriptions": empty_descriptions,
         "empty_descriptions_count": len(empty_descriptions),
+        "no_category": no_category,
+        "no_category_count": len(no_category),
         "bill_rate_avg": bill_rate_avg,
         "total_entries": total_entries,
     }
-    stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"]
+    stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"] + stats["no_category_count"]
     return stats
 
 def is_phase_billable(phase_name, project):
@@ -115,6 +120,7 @@ class HourEntry(models.Model):
     calculated_has_phase = models.BooleanField(blank=True, default=True)
     calculated_is_approved = models.BooleanField(blank=True, default=True)
     calculated_has_proper_price = models.BooleanField(blank=True, default=True)
+    calculated_has_category = models.BooleanField(blank=True, default=True)
 
     invoice = models.ForeignKey("Invoice", null=True)
     project_m = models.ForeignKey("Project", null=True)
@@ -128,6 +134,7 @@ class HourEntry(models.Model):
         self.calculated_has_phase = self.phase_name != "[Non Phase Specific]"
         self.calculated_is_approved = self.approved
         self.calculated_has_proper_price = self.bill_rate > 50 and self.bill_rate < 170
+        self.calculated_has_category = self.category != "No category" and self.category != "[none]"
 
     def __unicode__(self):
         return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
@@ -161,6 +168,7 @@ class Invoice(models.Model):
     non_billable_hours_count = models.IntegerField(default=0)
     non_phase_specific_count = models.IntegerField(default=0)
     not_approved_hours_count = models.IntegerField(default=0)
+    no_category_count = models.IntegerField(default=0)
     empty_descriptions_count = models.IntegerField(default=0)
     total_hours = models.FloatField(default=0, verbose_name="Incurred hours")
     bill_rate_avg = models.FloatField(default=0)
@@ -279,6 +287,7 @@ class Comments(models.Model):
     checked_non_billable_ok = models.BooleanField(blank=True, default=False)
     checked_bill_rates_ok = models.BooleanField(blank=True, default=False)
     checked_phases_ok = models.BooleanField(blank=True, default=False)
+    checked_no_category_ok = models.BooleanField(blank=True, default=False)
     checked_changes_last_month = models.BooleanField(blank=True, default=False)
     user = models.TextField(max_length=100)
 
