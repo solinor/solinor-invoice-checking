@@ -141,6 +141,7 @@ class HourEntry(models.Model):
 
     class Meta:
         ordering = ("date", "user_id")
+        verbose_name_plural = "Hour entries"
 
 class Invoice(models.Model):
     INVOICE_STATE_CHOICES = (
@@ -313,6 +314,8 @@ class InvoiceFixedEntry(models.Model):
 
     class Meta:
         unique_together = ("invoice", "description")
+        verbose_name_plural = "Fixed invoice entries"
+        verbose_name = "Fixed invoice entry"
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.invoice, self.description, self.price)
@@ -325,6 +328,8 @@ class ProjectFixedEntry(models.Model):
 
     class Meta:
         unique_together = ("project", "description")
+        verbose_name_plural = "Fixed project entries"
+        verbose_name = "Fixed project entry"
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.project, self.description, self.price)
