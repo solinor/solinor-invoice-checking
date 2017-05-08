@@ -58,19 +58,19 @@
                 </td>
             </tr>
               {% if phase.entries %}
-              {% for entry_name, price in phase.entries.items %}
-              <tr class="item">
-                  <td>{{ entry_name }}
-                  </td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>
-                    {% if not phase.billable %}<s>{% endif %}
-                    {{ price|floatformat:2|intcomma }}&euro;
-                    {% if not phase.billable %}</s>{% endif %}
-                  </td>
-              </tr>
-              {% endfor %}
+                {% for entry_name, price in phase.entries.items %}
+                <tr class="item">
+                    <td>{{ entry_name }}
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>
+                      {% if not phase.billable %}<s>{% endif %}
+                      {{ price|floatformat:2|intcomma }}&euro;
+                      {% if not phase.billable %}</s>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
               {% else %}
               {% for person_email, person_details in phase.users.items %}
                 {% for bill_rate, details in person_details.entries.items %}
@@ -96,6 +96,12 @@
                   {% endif %}
                 {% endfor %}
               {% endfor %}
+              <tr class="total">
+                <td></td>
+                <td></td>
+                <td>{{ phase.incurred_hours }}h</td>
+                <td>{{ phase.incurred_money|floatformat:2|intcomma }}&euro;</td>
+              </tr>
               {% endif %}
             {% endfor %}
 

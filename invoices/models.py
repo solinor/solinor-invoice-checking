@@ -19,9 +19,10 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
 
     for entry in entries:
         total_entries += 1
-        if entry.phase_name not in phases:
-            phases[entry.phase_name] = {"users": {}, "billable": entry.calculated_is_billable}
-        phase_details = phases[entry.phase_name]
+        phase_name = "%s - %s" % (entry.phase_name, entry.bill_rate)
+        if phase_name not in phases:
+            phases[phase_name] = {"users": {}, "billable": entry.calculated_is_billable, "incurred_hours": 0, "incurred_money": 0}
+        phase_details = phases[phase_name]
         if entry.user_email not in phase_details["users"]:
             phase_details["users"][entry.user_email] = {"user_email": entry.user_email, "user_name": entry.user_name, "user_m": entry.user_m, "entries": {}}
         if entry.bill_rate not in phase_details["users"][entry.user_email]["entries"]:
@@ -34,9 +35,11 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
 
         if entry.calculated_is_billable:
             total_money += entry.incurred_money
+            phase_details["incurred_money"] += entry.incurred_money
         else:
             non_billable_hours.append(entry)
         total_hours += entry.incurred_hours
+        phase_details["incurred_hours"] += entry.incurred_hours
         if not entry.calculated_has_phase:
             non_phase_specific.append(entry)
         if not entry.calculated_is_approved:
