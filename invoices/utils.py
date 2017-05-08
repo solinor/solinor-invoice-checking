@@ -7,6 +7,7 @@ from django.conf import settings
 
 from invoices.tenkfeet_api import TenkFeetApi
 from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project, FeetUser
+from invoices.slack import send_slack_notification
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name
@@ -90,9 +91,11 @@ def update_projects():
             "starts_at": parse_date(project["starts_at"]),
             "ends_at": parse_date(project["ends_at"]),
         }
-        project_obj, _ = Project.objects.update_or_create(guid=project["guid"],
+        project_obj, created = Project.objects.update_or_create(guid=project["guid"],
                                                           defaults=project_fields)
         projects.append(project_obj)
+        if created:
+            send_slack_notification(project_obj)
     logger.info("Finished updating projects (n=%s)", len(projects))
     for invoice in Invoice.objects.filter(project_m=None):
         for project in projects:

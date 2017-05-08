@@ -245,6 +245,15 @@ class Invoice(models.Model):
         ordering = ("-year", "-month", "client", "project")
 
 
+class SlackChannel(models.Model):
+    channel_id = models.CharField(max_length=50, primary_key=True, editable=False)
+    name = models.CharField(max_length=1000)
+    new_project_notification = models.BooleanField(blank=True, default=False)
+
+    def __unicode__(self):
+        return self.name
+
+
 class FeetUser(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
     user_id = models.IntegerField(editable=False)
@@ -262,6 +271,7 @@ class FeetUser(models.Model):
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(null=True, blank=True)
     thumbnail = models.CharField(max_length=1000, null=True, blank=True)
+    slack_id = models.CharField(max_length=50, null=True, blank=True)
 
 
 class Project(models.Model):
