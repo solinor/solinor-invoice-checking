@@ -253,6 +253,9 @@ class SlackChannel(models.Model):
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        ordering = ("name",)
+
 
 class FeetUser(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
@@ -288,9 +291,13 @@ class Project(models.Model):
     description = models.TextField(null=True, blank=True)
     starts_at = models.DateField(null=True, blank=True)
     ends_at = models.DateField(null=True, blank=True)
+    slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True)
 
     def __unicode__(self):
         return u"%s - %s" % (self.client, self.name)
+
+    class Meta:
+        ordering = ("client", "name")
 
 
 class Comments(models.Model):
