@@ -92,9 +92,9 @@ class HourEntry(models.Model):
     """ A single hour entry row.
 
     Note that import_csv command uses bulk_create, which does not call .save. """
-    date = models.DateField()
+    date = models.DateField(db_index=True)
 
-    last_updated_at = models.DateTimeField()
+    last_updated_at = models.DateTimeField(db_index=True)
     user_m = models.ForeignKey("FeetUser", null=True)
     user_id = models.IntegerField()
     user_email = models.CharField(max_length=255)
