@@ -28,6 +28,6 @@ def refresh_slack_channels():
         })
 
 def send_slack_notification(project):
-    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id=%s|%s - %s>.""" % (project.project_id, project.client, project.name)
+    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id=%s|%s - %s> (created at %s)""" % (project.project_id, project.client, project.name, project.created_at)
     for channel in SlackChannel.objects.filter(new_project_notification=True):
         slack.chat.post_message(channel.channel_id, message)
