@@ -6,7 +6,7 @@ from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.conf import settings
 
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project, FeetUser
+from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project, FeetUser, AmazonInvoiceRow
 from invoices.slack import send_slack_notification
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -19,10 +19,7 @@ STATS_FIELDS = [
     "non_phase_specific_count",
     "not_approved_hours_count",
     "empty_descriptions_count",
-    "total_hours",
-    "bill_rate_avg",
-    "total_money"]
-
+]
 
 def parse_date(date):
     if date:
@@ -237,8 +234,20 @@ def refresh_stats(start_date, end_date):
         invoices = Invoice.objects.all()
     for invoice in invoices:
         entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
-        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows())
+        aws_entries = {}
+        if invoice.project_m:
+            for aws_account in invoice.project_m.amazon_account.all():
+                rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=invoice.month_start_date).filter(billing_period_end__date=invoice.month_end_date)
+                aws_entries[aws_account] = rows
+        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows(), aws_entries)
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
+
+        invoice.total_money = sum([row["incurred_money"] for row in stats["total_rows"] if "incurred_money" in row])
+        invoice.total_hours = sum([row["incurred_hours"] for row in stats["total_rows"] if "incurred_hours" in row])
+        if stats["total_rows"]["hours"]["incurred_hours"] > 0:
+            invoice.bill_rate_avg = stats["total_rows"]["hours"]["incurred_money"] / stats["total_rows"]["hours"]["incurred_hours"]
+        else:
+            invoice.bill_rate_avg = 0
         invoice.save()
         logger.debug("Updated statistics for %s", invoice)

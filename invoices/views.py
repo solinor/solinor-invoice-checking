@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
@@ -205,7 +205,7 @@ def get_pdf(request, invoice, pdf_type):
 @login_required
 def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    all_invoices = Invoice.objects.exclude(total_hours=0).exclude(client__in=["Solinor", "[none]"])
+    all_invoices = Invoice.objects.exclude(Q(total_hours=0) & Q(total_money=0)).exclude(client__in=["Solinor", "[none]"])
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={

@@ -1,6 +1,6 @@
 import csv
 import datetime
-from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow
+from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow, Project, Invoice
 import pytz
 
 def parse_aws_invoice(f):
@@ -19,23 +19,15 @@ def import_aws_invoice(f):
     linked_accounts = {}
     for record in parse_aws_invoice(f):
         linked_account_id = record["LinkedAccountId"]
-        if linked_account_id in linked_accounts:
-            linked_account = linked_accounts[linked_account_id]
-        else:
-            linked_account, _ = AmazonLinkedAccount.objects.update_or_create(linked_account_id=record["LinkedAccountId"], defaults={
-                "name": record["LinkedAccountName"],
-            })
-            linked_accounts[linked_account_id] = linked_account
         if len(record["UsageQuantity"]):
             usage_quantity = float(record["UsageQuantity"])
         else:
             usage_quantity = None
-        AmazonInvoiceRow.objects.update_or_create(record_id=record["RecordID"], defaults={
+        record_data = {
             "record_type": record["RecordType"],
             "billing_period_start": parse_date_record(record["BillingPeriodStartDate"]),
             "billing_period_end": parse_date_record(record["BillingPeriodEndDate"]),
             "invoice_date": parse_date_record(record["InvoiceDate"]),
-            "linked_account": linked_account,
             "product_code": record["ProductCode"],
             "usage_type": record["UsageType"],
             "item_description": record["ItemDescription"],
@@ -44,4 +36,17 @@ def import_aws_invoice(f):
             "usage_quantity": usage_quantity,
             "total_cost": float(record["TotalCost"]),
             "currency": record["CurrencyCode"],
-        })
+        }
+        if linked_account_id in linked_accounts:
+            linked_account = linked_accounts[linked_account_id]
+        else:
+            linked_account, _ = AmazonLinkedAccount.objects.update_or_create(linked_account_id=record["LinkedAccountId"], defaults={
+                "name": record["LinkedAccountName"],
+            })
+            linked_accounts[linked_account_id] = linked_account
+            for project in linked_account.project_set.all():
+                year = record_data["billing_period_start"].year
+                month = record_data["billing_period_start"].month
+                Invoice.objects.get_or_create(year=year, month=month, client=project.client, project=project.name, project_m=project)
+        record_data["linked_account"] = linked_account
+        AmazonInvoiceRow.objects.update_or_create(record_id=record["RecordID"], defaults=record_data)

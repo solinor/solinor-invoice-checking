@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import calendar
+import datetime
 import uuid
 import time
 from django.db import models
@@ -14,8 +16,6 @@ def calculate_entry_stats(entries, fixed_invoice_rows, aws_entries=None):
     not_approved_hours = []
     empty_descriptions = []
     total_rows = {"hours": {"description": "Hour markings", "incurred_hours": 0, "incurred_money": 0, "bill_rate_avg": None, "currency": "EUR" }}
-    total_hours = 0
-    total_money = 0
     total_entries = 0
 
     for entry in entries:
@@ -64,7 +64,6 @@ def calculate_entry_stats(entries, fixed_invoice_rows, aws_entries=None):
             account_key = "AWS: %s" % aws_account
             phases[account_key] = {"entries": {}, "billable": True}
             for aws_entry in aws_entries:
-                print aws_entry
                 if aws_entry.record_type == "AccountTotal":
                     total_key = "aws_%s" % aws_entry.currency
                     if total_key not in total_rows:
@@ -193,6 +192,15 @@ class Invoice(models.Model):
     bill_rate_avg = models.FloatField(default=0)
     total_money = models.FloatField(default=0, verbose_name="Incurred money")
     invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
+
+    @property
+    def month_start_date(self):
+        return datetime.date(self.year, self.month, 1)
+
+    @property
+    def month_end_date(self):
+        return self.month_start_date.replace(day=calendar.monthrange(self.year, self.month)[1])
+
 
     @property
     def processed_tags(self):
