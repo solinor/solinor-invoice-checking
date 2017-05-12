@@ -16,10 +16,11 @@ from django.db.models import Count, Sum, Q
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
+from invoices.invoice_utils import generate_amazon_invoice_data
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -30,6 +31,20 @@ def validate_auth_token(auth_token):
         if token.valid_until > timezone.now():
             raise Http404()
     return token
+
+
+@login_required
+def amazon_invoice(request, linked_account_id, year, month):
+    year = int(year)
+    month = int(month)
+    linked_account = get_object_or_404(AmazonLinkedAccount, linked_account_id=linked_account_id)
+    invoice_rows = AmazonInvoiceRow.objects.filter(linked_account=linked_account).filter(billing_period_start__year=year, billing_period_start__month=month)
+    invoice_data = generate_amazon_invoice_data(linked_account, invoice_rows, year, month)
+    months = AmazonInvoiceRow.objects.filter(linked_account=linked_account).dates("invoice_month", "month", order="DESC")
+    context = {"year": year, "month": month, "months": months}
+    context.update(invoice_data)
+
+    return render(request, "amazon_invoice.html", context)
 
 
 @login_required
@@ -325,7 +340,6 @@ def invoice_page(request, invoice, **_):
         for aws_account in invoice_data.project_m.amazon_account.all():
             rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date)
             aws_entries[aws_account] = rows
-            print rows
 
     entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows(), aws_entries)
 

@@ -21,12 +21,14 @@ class Command(BaseCommand):
         parser.add_argument('month', nargs=1, type=str)
 
     def handle(self, *args, **options):
+        year = options["year"][0]
+        month = options["month"][0]
         s3 = boto3.client(
             's3',
             aws_access_key_id=settings.AWS_ACCESS_KEY,
             aws_secret_access_key=settings.AWS_SECRET_KEY,
         )
         with tempfile.TemporaryFile() as data:
-            s3.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-%s-%s.csv" % (options["year"][0], options["month"][0]), data)
+            s3.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-%s-%s.csv" % (year, month), data)
             data.seek(0)
-            import_aws_invoice(data)
+            import_aws_invoice(data, int(year), int(month))

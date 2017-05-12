@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block header %}
+<link href="/static/css/invoice_page.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <ol class="breadcrumb">
+      <li><a href="{% url 'frontpage' %}">Home</a></li>
+      <li class="active">Amazon Invoice</li>
+    </ol>
+
+    <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
+
+    <div class="dropdown" style="display: inline-block">
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Select month
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        {% for entries_month in months %}
+        <li><a href="{% url "amazon_invoice" linked_account.linked_account entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="row" style="padding-bottom: 1em">
+      <div class="col-md-12">
+        {% if previous_invoices %}
+        <div class="dropdown" style="display: inline-block">
+          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Open another invoice
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+            {% for previous_invoice in previous_invoices %}
+            <li><a href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        {% include "invoice.html" %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

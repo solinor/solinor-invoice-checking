@@ -23,11 +23,11 @@ class Command(BaseCommand):
             aws_secret_access_key=settings.AWS_SECRET_KEY,
         )
         today = timezone.now()
-        fetch_months = [today.strftime("%Y-%m")]
+        fetch_months = [today]
         if today.day < 5:
-            fetch_months = [(today - datetime.timedelta(days=10)).strftime("%Y-%m")]
+            fetch_months = [(today - datetime.timedelta(days=10))]
         for date in fetch_months:
             with tempfile.TemporaryFile() as data:
-                s3.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-%s.csv" % date, data)
+                s3.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-%s.csv" % date.strftime("%Y-%m"), data)
                 data.seek(0)
-                import_aws_invoice(data)
+                import_aws_invoice(data, date.year, date.month)

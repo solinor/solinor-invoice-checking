@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^invoice/(?P<invoice>[0-9A-Fa-f-]+)/hours$', invoices.views.invoice_hours, name='invoice_hours'),
     url(r'^invoice/(?P<invoice>[0-9A-Fa-f-]+)/pdf/(?P<pdf_type>.+)$', invoices.views.get_pdf, name="get_pdf"),
     url(r'^invoice/(?P<invoice>[0-9A-Fa-f-]+)$', invoices.views.invoice_page, name="invoice"),
+    url(r'^amazon_invoice/(?P<linked_account_id>[0-9A-Fa-f-]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})$', invoices.views.amazon_invoice, name="amazon_invoice"),
     url(r'^invoice/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})/(?P<invoice>[0-9A-Fa-f-]+)$', invoices.views.invoice_page, name="invoice_backward_compatibility"),  # deprecated
     url(r'^hours$', invoices.views.hours_list, name="hours_list"),
     url(r'^people$', invoices.views.people_list, name='people'),

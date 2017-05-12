@@ -1,5 +1,5 @@
 from django.contrib import admin
-from invoices.models import AuthToken, ProjectFixedEntry, InvoiceFixedEntry, SlackChannel, Project
+from invoices.models import AuthToken, ProjectFixedEntry, InvoiceFixedEntry, SlackChannel, Project, FeetUser
 
 
 class DeleteNotAllowedModelAdmin(admin.ModelAdmin):
@@ -33,3 +33,10 @@ class ProjectAdmin(DeleteNotAllowedModelAdmin):
     search_fields = ("client", "name")
 
 admin.site.register(Project, ProjectAdmin)
+
+class UserAdmin(DeleteNotAllowedModelAdmin):
+    fields = ("amazon_account",)
+    list_display = ("first_name", "last_name", "email")
+    search_fields = ("first_name", "last_name", "email")
+
+admin.site.register(FeetUser, UserAdmin)

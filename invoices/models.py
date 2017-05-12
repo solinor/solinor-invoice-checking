@@ -298,6 +298,7 @@ class FeetUser(models.Model):
     archived_at = models.DateTimeField(null=True, blank=True)
     thumbnail = models.CharField(max_length=1000, null=True, blank=True)
     slack_id = models.CharField(max_length=50, null=True, blank=True)
+    amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
 
 
 class Project(models.Model):
@@ -379,16 +380,6 @@ class ProjectFixedEntry(models.Model):
         return u"%s - %s - %s" % (self.project, self.description, self.price)
 
 
-"""
-"InvoiceID","PayerAccountId","LinkedAccountId","RecordType","RecordID","BillingPeriodStartDate","BillingPeriodEndDate","InvoiceDate","PayerAccountName","LinkedAccountName","TaxationAddress","PayerPONumber","ProductCode","ProductName","SellerOfRecord","UsageType","Operation","RateId","ItemDescription","UsageStartDate","UsageEndDate","UsageQuantity","BlendedRate","CurrencyCode","CostBeforeTax","Credits","TaxAmount","TaxType","TotalCost"
-
-"Estimated","321914701408","908774477202","LinkedLineItem","3600000000614116491","2017/05/01 00:00:00","2017/05/31 23:59:59","2017/05/12 14:04:18","Hostmaster","Olli Jarva","Teollisuuskatu 21, Helsinki, Uusimaa, 00510, FI","","AmazonS3","Amazon Simple Storage Service","Amazon Web Services, Inc.","EU-TimedStorage-ByteHrs","","23712747","$0.023 per GB - first 50 TB / month of storage used","2017/05/01 00:00:00","2017/05/31 23:59:59","4.20741252","0.022999884","USD","0.096770","0.0","0.000000","None","0.096770"
-
-"","321914701408","908774477202","AccountTotal","AccountTotal:908774477202","2017/05/01 00:00:00","2017/05/31 23:59:59","","Hostmaster","Olli Jarva","","","","","","","","","Total for linked account# 908774477202 (Olli Jarva)","","","","","USD","197.710480","0.0","0.000000","","197.710480"
-
-"""
-
-
 class AmazonLinkedAccount(models.Model):
     linked_account_id = models.CharField(max_length=50, primary_key=True, editable=False)
     name = models.CharField(max_length=255)
@@ -415,6 +406,7 @@ class AmazonInvoiceRow(models.Model):
     usage_quantity = models.FloatField(null=True, blank=True)
     total_cost = models.FloatField()
     currency = models.CharField(max_length=3)
+    invoice_month = models.DateField(null=True)
 
 
 class DataUpdate(models.Model):

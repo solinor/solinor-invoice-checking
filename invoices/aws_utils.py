@@ -15,7 +15,8 @@ def parse_date_record(d):
     unaware = datetime.datetime.strptime(d, "%Y/%m/%d %H:%M:%S")
     return pytz.utc.localize(unaware)
 
-def import_aws_invoice(f):
+def import_aws_invoice(f, year, month):
+    invoice_month = datetime.date(year, month, 1)
     linked_accounts = {}
     for record in parse_aws_invoice(f):
         linked_account_id = record["LinkedAccountId"]
@@ -36,6 +37,7 @@ def import_aws_invoice(f):
             "usage_quantity": usage_quantity,
             "total_cost": float(record["TotalCost"]),
             "currency": record["CurrencyCode"],
+            "invoice_month": invoice_month,
         }
         if linked_account_id in linked_accounts:
             linked_account = linked_accounts[linked_account_id]
