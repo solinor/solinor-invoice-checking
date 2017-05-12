@@ -10,7 +10,7 @@
       <li class="active">Amazon Invoice</li>
     </ol>
 
-    <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
+    <h2>Invoice details for {{ linked_account.name }}</h2>
 
     <div class="dropdown" style="display: inline-block">
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -19,7 +19,7 @@
       </button>
       <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
         {% for entries_month in months %}
-        <li><a href="{% url "amazon_invoice" linked_account.linked_account entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+        <li><a href="{% url "amazon_invoice" linked_account.linked_account_id entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
         {% endfor %}
       </ul>
     </div>
