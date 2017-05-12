@@ -5,7 +5,7 @@ import time
 from django.db import models
 
 
-def calculate_entry_stats(entries, fixed_invoice_rows):
+def calculate_entry_stats(entries, fixed_invoice_rows, aws_entries=None):
     phases = {}
     billable_incorrect_price = []
     non_billable_hours = []
@@ -13,6 +13,7 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
     no_category = []
     not_approved_hours = []
     empty_descriptions = []
+    total_rows = {"hours": {"description": "Hour markings", "incurred_hours": 0, "incurred_money": 0, "bill_rate_avg": None, "currency": "EUR" }}
     total_hours = 0
     total_money = 0
     total_entries = 0
@@ -34,11 +35,11 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
             billable_incorrect_price.append(entry)
 
         if entry.calculated_is_billable:
-            total_money += entry.incurred_money
+            total_rows["hours"]["incurred_money"] += entry.incurred_money
             phase_details["incurred_money"] += entry.incurred_money
         else:
             non_billable_hours.append(entry)
-        total_hours += entry.incurred_hours
+        total_rows["hours"]["incurred_hours"] += entry.incurred_hours
         phase_details["incurred_hours"] += entry.incurred_hours
         if not entry.calculated_has_phase:
             non_phase_specific.append(entry)
@@ -49,22 +50,37 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
         if not entry.calculated_has_category:
             no_category.append(entry)
 
-    if total_hours > 0:
-        bill_rate_avg = total_money / total_hours
-    else:
-        bill_rate_avg = 0
+    if total_rows["hours"]["incurred_hours"] > 0:
+        total_rows["hours"]["bill_rate_avg"] = total_rows["hours"]["incurred_money"] / total_rows["hours"]["incurred_hours"]
     if len(fixed_invoice_rows) > 0:
+        total_rows["fixed"] = {"description": "Fixed rows", "incurred_money": 0}
         phases["Fixed"] = {"entries": {}, "billable": True}
         for item in fixed_invoice_rows:
-            phases["Fixed"]["entries"][item.description] = item.price
-            total_money += item.price
+            phases["Fixed"]["entries"][item.description] = {"price": item.price, "currency": "EUR"}
+            total_rows["fixed"]["incurred_money"] += item.price
+
+    if aws_entries and len(aws_entries):
+        for aws_account, aws_entries in aws_entries.items():
+            account_key = "AWS: %s" % aws_account
+            phases[account_key] = {"entries": {}, "billable": True}
+            for aws_entry in aws_entries:
+                print aws_entry
+                if aws_entry.record_type == "AccountTotal":
+                    total_key = "aws_%s" % aws_entry.currency
+                    if total_key not in total_rows:
+                        total_rows[total_key] = {"description": "Amazon billing (%s)" % aws_entry.currency, "incurred_money": 0, "currency": aws_entry.currency}
+
+                    total_rows[total_key]["incurred_money"] += aws_entry.total_cost
+                    phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": aws_entry.total_cost, "currency": aws_entry.currency}
+                    break
+            else:
+                phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": 0, "currency": "USD"}
 
     stats = {
+        "total_rows": total_rows,
         "phases": phases,
         "billable_incorrect_price": billable_incorrect_price,
         "non_billable_hours": non_billable_hours,
-        "total_hours": total_hours,
-        "total_money": total_money,
         "non_phase_specific": non_phase_specific,
         "billable_incorrect_price_count": len(billable_incorrect_price),
         "non_billable_hours_count": len(non_billable_hours),
@@ -75,7 +91,6 @@ def calculate_entry_stats(entries, fixed_invoice_rows):
         "empty_descriptions_count": len(empty_descriptions),
         "no_category": no_category,
         "no_category_count": len(no_category),
-        "bill_rate_avg": bill_rate_avg,
         "total_entries": total_entries,
     }
     stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"] + stats["no_category_count"]
@@ -292,6 +307,7 @@ class Project(models.Model):
     starts_at = models.DateField(null=True, blank=True)
     ends_at = models.DateField(null=True, blank=True)
     slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True)
+    amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
 
     def __unicode__(self):
         return u"%s - %s" % (self.client, self.name)
@@ -353,6 +369,44 @@ class ProjectFixedEntry(models.Model):
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.project, self.description, self.price)
+
+
+"""
+"InvoiceID","PayerAccountId","LinkedAccountId","RecordType","RecordID","BillingPeriodStartDate","BillingPeriodEndDate","InvoiceDate","PayerAccountName","LinkedAccountName","TaxationAddress","PayerPONumber","ProductCode","ProductName","SellerOfRecord","UsageType","Operation","RateId","ItemDescription","UsageStartDate","UsageEndDate","UsageQuantity","BlendedRate","CurrencyCode","CostBeforeTax","Credits","TaxAmount","TaxType","TotalCost"
+
+"Estimated","321914701408","908774477202","LinkedLineItem","3600000000614116491","2017/05/01 00:00:00","2017/05/31 23:59:59","2017/05/12 14:04:18","Hostmaster","Olli Jarva","Teollisuuskatu 21, Helsinki, Uusimaa, 00510, FI","","AmazonS3","Amazon Simple Storage Service","Amazon Web Services, Inc.","EU-TimedStorage-ByteHrs","","23712747","$0.023 per GB - first 50 TB / month of storage used","2017/05/01 00:00:00","2017/05/31 23:59:59","4.20741252","0.022999884","USD","0.096770","0.0","0.000000","None","0.096770"
+
+"","321914701408","908774477202","AccountTotal","AccountTotal:908774477202","2017/05/01 00:00:00","2017/05/31 23:59:59","","Hostmaster","Olli Jarva","","","","","","","","","Total for linked account# 908774477202 (Olli Jarva)","","","","","USD","197.710480","0.0","0.000000","","197.710480"
+
+"""
+
+
+class AmazonLinkedAccount(models.Model):
+    linked_account_id = models.CharField(max_length=50, primary_key=True, editable=False)
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        ordering = ("name", "linked_account_id")
+
+    def __unicode__(self):
+        return self.name
+
+
+class AmazonInvoiceRow(models.Model):
+    record_id = models.CharField(max_length=50, primary_key=True, editable=False)
+    record_type = models.CharField(max_length=50)
+    billing_period_start = models.DateTimeField()
+    billing_period_end = models.DateTimeField()
+    invoice_date = models.DateTimeField(null=True, blank=True)
+    linked_account = models.ForeignKey("AmazonLinkedAccount")
+    product_code = models.CharField(max_length=255)
+    usage_type = models.CharField(max_length=255)
+    item_description = models.CharField(max_length=1000, null=True, blank=True)
+    usage_start = models.DateTimeField(null=True, blank=True)
+    usage_end = models.DateTimeField(null=True, blank=True)
+    usage_quantity = models.FloatField(null=True, blank=True)
+    total_cost = models.FloatField()
+    currency = models.CharField(max_length=3)
 
 
 class DataUpdate(models.Model):

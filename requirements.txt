@@ -13,3 +13,4 @@ redis==2.10.5
 django-sslify==0.2.7
 django-tables2==1.4.2
 slacker==0.9.42
+boto3==1.4.4

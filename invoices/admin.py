@@ -28,7 +28,7 @@ class SlackChannelAdmin(DeleteNotAllowedModelAdmin):
 admin.site.register(SlackChannel, SlackChannelAdmin)
 
 class ProjectAdmin(DeleteNotAllowedModelAdmin):
-    fields = ("slack_channel", )
+    fields = ("slack_channel", "amazon_account")
     list_display = ("client", "name", "slack_channel")
     search_fields = ("client", "name")
 

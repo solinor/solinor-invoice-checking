@@ -16,7 +16,7 @@ from django.db.models import Count, Sum
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry
+from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
@@ -316,17 +316,24 @@ def invoice_page(request, invoice, **_):
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
-    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
+    month_start_date = datetime.date(invoice_data.year, invoice_data.month, 1)
+    month_end_date = month_start_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
 
-    entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows())
+    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
+    aws_entries = {}
+    if invoice_data.project_m:
+        for aws_account in invoice_data.project_m.amazon_account.all():
+            rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date)
+            aws_entries[aws_account] = rows
+            print rows
+
+    entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows(), aws_entries)
 
     try:
         latest_comments = Comments.objects.filter(invoice=invoice_data).latest()
     except Comments.DoesNotExist:
         latest_comments = None
 
-    month_start_date = datetime.date(invoice_data.year, invoice_data.month, 1)
-    month_end_date = month_start_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
 
     previous_invoices = []
     if invoice_data.project_m:
