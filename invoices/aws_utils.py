@@ -24,6 +24,10 @@ def import_aws_invoice(f, year, month):
             usage_quantity = float(record["UsageQuantity"])
         else:
             usage_quantity = None
+        if len(record["TotalCost"]):
+            total_cost = float(record["TotalCost"])
+        else:
+            total_cost = None
         record_data = {
             "record_type": record["RecordType"],
             "billing_period_start": parse_date_record(record["BillingPeriodStartDate"]),
@@ -35,7 +39,7 @@ def import_aws_invoice(f, year, month):
             "usage_start": parse_date_record(record["UsageStartDate"]),
             "usage_end": parse_date_record(record["UsageEndDate"]),
             "usage_quantity": usage_quantity,
-            "total_cost": float(record["TotalCost"]),
+            "total_cost": total_cost,
             "currency": record["CurrencyCode"],
             "invoice_month": invoice_month,
         }

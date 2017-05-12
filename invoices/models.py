@@ -404,7 +404,7 @@ class AmazonInvoiceRow(models.Model):
     usage_start = models.DateTimeField(null=True, blank=True)
     usage_end = models.DateTimeField(null=True, blank=True)
     usage_quantity = models.FloatField(null=True, blank=True)
-    total_cost = models.FloatField()
+    total_cost = models.FloatField(null=True, blank=True)
     currency = models.CharField(max_length=3)
     invoice_month = models.DateField(null=True)
 
