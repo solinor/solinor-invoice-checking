@@ -243,8 +243,8 @@ def refresh_stats(start_date, end_date):
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
 
-        invoice.total_money = sum([row["incurred_money"] for row in stats["total_rows"].values() if "incurred_money" in row])
-        invoice.total_hours = sum([row["incurred_hours"] for row in stats["total_rows"].values() if "incurred_hours" in row])
+        invoice.incurred_money = sum([row["incurred_money"] for row in stats["total_rows"].values() if "incurred_money" in row])
+        invoice.incurred_hours = sum([row["incurred_hours"] for row in stats["total_rows"].values() if "incurred_hours" in row])
         if stats["total_rows"]["hours"]["incurred_hours"] > 0:
             invoice.bill_rate_avg = stats["total_rows"]["hours"]["incurred_money"] / stats["total_rows"]["hours"]["incurred_hours"]
         else:

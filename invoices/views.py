@@ -71,7 +71,7 @@ def hours_list(request):
 
 def customer_view(request, auth_token):
     token = validate_auth_token(auth_token)
-    invoices = Invoice.objects.filter(project_m=token.project).filter(total_hours__gt=0)
+    invoices = Invoice.objects.filter(project_m=token.project).filter(incurred_hours__gt=0)
     context = {
         "project": token.project,
         "invoices": invoices,
@@ -166,11 +166,11 @@ def people_list(request):
         if not entry.calculated_has_notes or not entry.calculated_has_phase or not entry.calculated_has_category:
             people_data[entry.user_email]["issues"] += 1
     for person in people_data.values():
-        total_hours = person["billable"]["incurred_hours"] + person["non-billable"]["incurred_hours"]
-        person["total_hours"] = total_hours
-        if total_hours > 0:
-            person["invoicing_ratio"] = person["billable"]["incurred_hours"] / total_hours * 100
-            person["bill_rate_avg"] = person["billable"]["incurred_money"] / total_hours
+        incurred_hours = person["billable"]["incurred_hours"] + person["non-billable"]["incurred_hours"]
+        person["incurred_hours"] = incurred_hours
+        if incurred_hours > 0:
+            person["invoicing_ratio"] = person["billable"]["incurred_hours"] / incurred_hours * 100
+            person["bill_rate_avg"] = person["billable"]["incurred_money"] / incurred_hours
         if person["billable"]["incurred_hours"] > 0:
             person["bill_rate_avg_billable"] = person["billable"]["incurred_money"] / person["billable"]["incurred_hours"]
     return render(request, "people.html", {"people": people_data, "year": year, "month": month})
@@ -220,13 +220,13 @@ def get_pdf(request, invoice, pdf_type):
 @login_required
 def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    all_invoices = Invoice.objects.exclude(Q(total_hours=0) & Q(total_money=0)).exclude(client__in=["Solinor", "[none]"])
+    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(client__in=["Solinor", "[none]"])
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={
         'per_page': 250
     }).configure(table)
-    your_invoices = Invoice.objects.exclude(total_hours=0).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
+    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
     try:
         last_update_finished_at = DataUpdate.objects.exclude(finished_at=None).latest("finished_at").finished_at
     except DataUpdate.DoesNotExist:
@@ -253,7 +253,7 @@ def invoice_hours(request, invoice):
 
 @login_required
 def projects_list(request):
-    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__total_money"), incurred_hours=Sum("invoice__total_hours")).exclude(incurred_hours=0)
+    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__incurred_money"), incurred_hours=Sum("invoice__incurred_hours")).exclude(incurred_hours=0)
     filters = ProjectsFilter(request.GET, queryset=projects)
     table = ProjectsTable(filters.qs)
     RequestConfig(request, paginate={
@@ -280,7 +280,7 @@ def projects_list(request):
 @login_required
 def project_details(request, project_id):
     project = get_object_or_404(Project, guid=project_id)
-    invoices = Invoice.objects.filter(project_m=project).exclude(total_hours=0)
+    invoices = Invoice.objects.filter(project_m=project).exclude(Q(incurred_hours=0) & Q(incurred_money=0))
     filters = ProjectsFilter(request.GET, queryset=invoices)
     table = ProjectDetailsTable(filters.qs)
     RequestConfig(request, paginate={

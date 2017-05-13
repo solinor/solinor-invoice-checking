@@ -29,8 +29,8 @@
       <td>{{ invoice.date }}</td>
       <td><a href="{% url 'customer_invoice' auth_token invoice.year invoice.month %}">View invoice draft</a></td>
       <td><a href="{% url 'customer_hours' auth_token invoice.year invoice.month %}">View hours report</a></td>
-      <td class="number-column">{{ invoice.total_hours|floatformat:0|intcomma }}h</td>
-      <td class="number-column">{{ invoice.total_money|floatformat:0|intcomma }}&euro;</td>
+      <td class="number-column">{{ invoice.incurred_hours|floatformat:0|intcomma }}h</td>
+      <td class="number-column">{{ invoice.incurred_money|floatformat:0|intcomma }}&euro;</td>
     </tr>
     {% empty %}
     <tr>

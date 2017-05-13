@@ -188,9 +188,9 @@ class Invoice(models.Model):
     not_approved_hours_count = models.IntegerField(default=0)
     no_category_count = models.IntegerField(default=0)
     empty_descriptions_count = models.IntegerField(default=0)
-    total_hours = models.FloatField(default=0, verbose_name="Incurred hours")
+    incurred_hours = models.FloatField(default=0, verbose_name="Incurred hours")
     bill_rate_avg = models.FloatField(default=0)
-    total_money = models.FloatField(default=0, verbose_name="Incurred money")
+    incurred_money = models.FloatField(default=0, verbose_name="Incurred money")
     invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
 
     @property
@@ -245,9 +245,9 @@ class Invoice(models.Model):
             return {"diff": diff, "percentage": percentage, "this_value": field_value, "other_value": other_field_value}
 
         data = {
-            "hours": calc_stats("total_hours"),
+            "hours": calc_stats("incurred_hours"),
             "bill_rate_avg": calc_stats("bill_rate_avg"),
-            "money": calc_stats("total_money"),
+            "money": calc_stats("incurred_money"),
         }
         if abs(data["hours"]["diff"]) > 10 and (not data["hours"]["percentage"] or abs(data["hours"]["percentage"]) > 25):
             data["remarkable"] = True
