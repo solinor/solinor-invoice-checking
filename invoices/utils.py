@@ -236,12 +236,10 @@ def refresh_stats(start_date, end_date):
         invoices = Invoice.objects.all()
     for invoice in invoices:
         entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
-        aws_entries = {}
-        if invoice.project_m:
-            for aws_account in invoice.project_m.amazon_account.all():
-                rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=invoice.month_start_date).filter(billing_period_end__date=invoice.month_end_date)
-                aws_entries[aws_account] = rows
-        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows(), aws_entries)
+        aws_accounts = {}
+        if invoice_data.project_m:
+            aws_accounts = invoice_data.project_m.amazon_account.all()
+        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows(), aws_accounts)
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
 

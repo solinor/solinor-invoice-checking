@@ -335,13 +335,10 @@ def invoice_page(request, invoice, **_):
     month_end_date = invoice_data.month_end_date
 
     entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
-    aws_entries = {}
+    aws_accounts = {}
     if invoice_data.project_m:
-        for aws_account in invoice_data.project_m.amazon_account.all():
-            rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date)
-            aws_entries[aws_account] = rows
-
-    entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows(), aws_entries)
+        aws_accounts = invoice_data.project_m.amazon_account.all()
+    entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows(), aws_accounts)
 
     try:
         latest_comments = Comments.objects.filter(invoice=invoice_data).latest()
