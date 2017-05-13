@@ -55,4 +55,5 @@ def import_aws_invoice(f, year, month):
                 month = invoice_month.month
                 Invoice.objects.get_or_create(year=year, month=month, client=project.client, project=project.name, project_m=project)
         record_data["linked_account"] = linked_account
-        AmazonInvoiceRow.objects.update_or_create(record_id=record["RecordID"], defaults=record_data)
+        record_id = record["RecordID"] + invoice_month.strftime("%Y-%m-%d")
+        AmazonInvoiceRow.objects.update_or_create(record_id=record_id, defaults=record_data)
