@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
-import calendar
 import datetime
 import uuid
 import time
 from django.db import models
+import invoices.date_utils as date_utils
 
 
 def calculate_entry_stats(entries, fixed_invoice_rows, aws_entries=None):
@@ -195,12 +195,11 @@ class Invoice(models.Model):
 
     @property
     def month_start_date(self):
-        return datetime.date(self.year, self.month, 1)
+        return date_utils.month_start_date(self.year, self.month)
 
     @property
     def month_end_date(self):
-        return self.month_start_date.replace(day=calendar.monthrange(self.year, self.month)[1])
-
+        return date_utils.month_end_date(self.year, self.month)
 
     @property
     def processed_tags(self):

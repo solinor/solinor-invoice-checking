@@ -3,7 +3,6 @@
 import datetime
 import redis
 import json
-import calendar
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
@@ -21,6 +20,7 @@ from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter,
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
 from invoices.invoice_utils import generate_amazon_invoice_data
+import invoices.date_utils as date_utils
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -51,8 +51,8 @@ def amazon_invoice(request, linked_account_id, year, month):
 def hours_list(request):
     if len(request.GET) == 0:
         today = datetime.date.today()
-        month_start_date = datetime.date(today.year, today.month, 1)
-        month_end_date = month_start_date.replace(day=calendar.monthrange(today.year, today.month)[1])
+        month_start_date = date_utils.month_start_date(today.year, today.month)
+        month_end_date = date_utils.month_end_date(today.year, today.month)
         return HttpResponseRedirect("%s?date__gte=%s&date__lte=%s" % (reverse("hours_list"), month_start_date, month_end_date))
     hours = HourEntry.objects.filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
     filters = HourListFilter(request.GET, queryset=hours)
@@ -331,8 +331,8 @@ def invoice_page(request, invoice, **_):
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
-    month_start_date = datetime.date(invoice_data.year, invoice_data.month, 1)
-    month_end_date = month_start_date.replace(day=calendar.monthrange(invoice_data.year, invoice_data.month)[1])
+    month_start_date = invoice_data.month_start_date
+    month_end_date = invoice_data.month_end_date
 
     entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
     aws_entries = {}
