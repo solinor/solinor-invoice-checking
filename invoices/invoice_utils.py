@@ -116,10 +116,10 @@ def calculate_stats_for_aws_entries(aws_entries):
                     total_rows[total_key] = {"description": "Amazon billing (%s)" % aws_entry.currency, "incurred_money": 0, "currency": aws_entry.currency}
 
                 total_rows[total_key]["incurred_money"] += aws_entry.total_cost
-                phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": aws_entry.total_cost, "currency": aws_entry.currency}
+                phases[account_key]["entries"]["Amazon Web Services billing"] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}
                 break
             else:
-                phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": 0, "currency": "USD"}
+                phases[account_key]["entries"]["Amazon Web Services billing"] = {"aws_id": aws_account.pk, "price": 0, "currency": "USD"}
     return {
         "phases": phases,
         "total_rows": total_rows,

@@ -60,8 +60,8 @@
               {% if phase.entries %}
                 {% for entry_name, price in phase.entries.items %}
                 <tr class="item">
-                    <td>{{ entry_name }}
-                    </td>
+                    <td>{% if price.aws_id %}<a href="{% url "amazon_invoice" price.aws_id invoice.year invoice.month %}">{{ entry_name }}</a>
+                      {% else %}{{ entry_name }}{% endif %}</td>
                     <td>-</td>
                     <td>-</td>
                     <td>
