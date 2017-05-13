@@ -32,6 +32,31 @@ def validate_auth_token(auth_token):
             raise Http404()
     return token
 
+@login_required
+def amazon_overview(request):
+    today = datetime.date.today()
+    aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "feetuser_set")
+    linked_accounts = sum([aws_account.has_linked_properties() for aws_account in aws_accounts])
+    total_billing = 0
+    linked_billing = 0
+    unlinked_billing = 0
+    for aws_account in aws_accounts:
+        aws_account.billing = aws_account.billing_for_month(today.year, today.month)
+        total_billing += aws_account.billing
+        if aws_account.has_linked_properties():
+            linked_billing += aws_account.billing
+        else:
+            unlinked_billing += aws_account.billing
+    context = {
+        "today": today,
+        "aws_accounts": aws_accounts,
+        "total_accounts": AmazonLinkedAccount.objects.all().count(),
+        "linked_accounts": linked_accounts,
+        "total_billing": total_billing,
+        "unlinked_billing": unlinked_billing,
+        "linked_billing": linked_billing,
+    }
+    return render(request, "amazon_overview.html", context)
 
 @login_required
 def amazon_invoice(request, linked_account_id, year, month):

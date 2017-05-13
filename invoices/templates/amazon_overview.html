@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+    <ol class="breadcrumb">
+      <li><a href="{% url 'frontpage' %}">Home</a></li>
+      <li class="active">Amazon Invoices</li>
+    </ol>
+
+    <h2>AWS accounts</h2>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Linked accounts</h3>
+          </div>
+          <div class="panel-body">
+            <h2>{{ linked_accounts }} / {{ total_accounts }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Total billing</h3>
+          </div>
+          <div class="panel-body">
+            <h2>{{ total_billing|floatformat:2|intcomma }} USD</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Linked billing</h3>
+          </div>
+          <div class="panel-body">
+            <h2>{{ linked_billing|floatformat:2|intcomma }} USD</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Unlinked billing</h3>
+          </div>
+          <div class="panel-body">
+            <h2>{{ unlinked_billing|floatformat:2|intcomma }} USD</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>AWS account</th>
+              <th>Linked</th>
+              <th>Linked projects</th>
+              <th>Linked users</th>
+              <th>Billing</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for aws_account in aws_accounts %}
+            {% if aws_account.pk %}
+            <tr>
+              <td><a href="{% url "amazon_invoice" aws_account.pk today.year today.month %}">{{ aws_account.name }}</a></td>
+              <td>{{ aws_account.has_linked_properties }}</td>
+              <td>{{ aws_account.project_set.all.count }}</td>
+              <td>{{ aws_account.feetuser_set.all.count }}</td>
+              <td>{{ aws_account.billing|floatformat:2|intcomma }} USD</td>
+            </tr>
+            {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -295,6 +295,15 @@ class AmazonLinkedAccount(models.Model):
     linked_account_id = models.CharField(max_length=50, primary_key=True, editable=False)
     name = models.CharField(max_length=255)
 
+    def has_linked_properties(self):
+        return self.project_set.all().count() > 0 or self.feetuser_set.all().count() > 0
+
+    def billing_for_month(self, year, month):
+        account_total = self.amazoninvoicerow_set.filter(invoice_month__year=year, invoice_month__month=month).filter(record_type="AccountTotal")
+        if account_total:
+            return account_total[0].total_cost
+        return 0
+
     class Meta:
         ordering = ("name", "linked_account_id")
 
