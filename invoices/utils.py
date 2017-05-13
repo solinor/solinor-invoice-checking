@@ -6,8 +6,10 @@ from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.conf import settings
 
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.models import HourEntry, Invoice, calculate_entry_stats, is_phase_billable, Project, FeetUser, AmazonInvoiceRow
+from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser, AmazonInvoiceRow
 from invoices.slack import send_slack_notification
+from invoices.invoice_utils import calculate_entry_stats
+
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name

@@ -15,11 +15,11 @@ from django.db.models import Count, Sum, Q
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
-from invoices.models import HourEntry, Invoice, Comments, calculate_entry_stats, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
+from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
-from invoices.invoice_utils import generate_amazon_invoice_data
+from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats
 import invoices.date_utils as date_utils
 
 REDIS = redis.from_url(settings.REDIS)
