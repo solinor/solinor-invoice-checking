@@ -1,4 +1,4 @@
-
+from invoices.models import AmazonInvoiceRow
 
 def generate_amazon_invoice_data(linked_account, entries, year, month):
     phases = {linked_account.name: {"entries": {}, "billable": True}}
@@ -96,11 +96,14 @@ def calculate_stats_for_fixed_rows(fixed_invoice_rows):
         "total_rows": total_rows,
     }
 
-def calculate_stats_for_aws_accounts(aws_accounts):
+def get_aws_entries(aws_accounts, month_start_date, month_end_date):
     aws_entries = {}
     for aws_account in aws_accounts:
         rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date).filter(record_type="AccountTotal")
         aws_entries[aws_account] = rows
+    return aws_entries
+
+def calculate_stats_for_aws_entries(aws_entries):
     phases = {}
     total_rows = {}
     if aws_entries and len(aws_entries):
@@ -132,8 +135,8 @@ def combine_invoice_parts(*combine_stats):
                 stats[k].update(v)
     return stats
 
-def calculate_entry_stats(hour_entries, fixed_invoice_rows, aws_accounts=None):
+def calculate_entry_stats(hour_entries, fixed_invoice_rows, aws_entries=None):
     hour_stats = calculate_stats_for_hours(hour_entries)
     fixed_invoice_stats = calculate_stats_for_fixed_rows(fixed_invoice_rows)
-    aws_stats = calculate_stats_for_aws_accounts(aws_accounts)
+    aws_stats = calculate_stats_for_aws_entries(aws_entries)
     return combine_invoice_parts(hour_stats, fixed_invoice_stats, aws_stats)

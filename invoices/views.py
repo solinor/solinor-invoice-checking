@@ -19,7 +19,7 @@ from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, 
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
-from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats
+from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, get_aws_entries
 import invoices.date_utils as date_utils
 
 REDIS = redis.from_url(settings.REDIS)
@@ -207,9 +207,9 @@ def queue_update(request):
 
 
 @login_required
-def get_pdf(request, invoice, pdf_type):
+def get_pdf(request, invoice_id, pdf_type):
     if pdf_type == "hours":
-        pdf, title = generate_hours_pdf_for_invoice(request, invoice)
+        pdf, title = generate_hours_pdf_for_invoice(request, invoice_id)
     else:
         return HttpResponseBadRequest("Invalid PDF type")
 
@@ -241,11 +241,11 @@ def frontpage(request):
 
 
 @login_required
-def invoice_hours(request, invoice):
-    invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
-    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0).select_related("user_m")
+def invoice_hours(request, invoice_id):
+    invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
+    entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0).select_related("user_m")
     context = {
-        "invoice": invoice_data,
+        "invoice": invoice,
         "entries": entries,
     }
     return render(request, "invoice_hours.html", context)
@@ -295,8 +295,8 @@ def project_details(request, project_id):
 
 
 @login_required
-def invoice_page(request, invoice, **_):
-    invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
+def invoice_page(request, invoice_id, **_):
+    invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
 
     if request.method == "POST":
         invoice_number = request.POST.get("invoiceNumber") or None
@@ -312,71 +312,65 @@ def invoice_page(request, invoice, **_):
                            invoice_number=invoice_number,
                            invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False),
                            user=request.user.email,
-                           invoice=invoice_data)
+                           invoice=invoice)
         comment.save()
-        invoice_data.is_approved = comment.checked
-        invoice_data.has_comments = comment.has_comments()
-        invoice_sent_earlier = invoice_data.invoice_state in ("P", "S")
-        invoice_data.update_state(comment)
-        invoice_data.save()
+        invoice.is_approved = comment.checked
+        invoice.has_comments = comment.has_comments()
+        invoice_sent_earlier = invoice.invoice_state in ("P", "S")
+        invoice.update_state(comment)
+        invoice.save()
         messages.add_message(request, messages.INFO, 'Saved.')
-        if not invoice_sent_earlier and invoice_data.invoice_state in ("P", "S") and invoice_data.project_m:
-            for project_fixed_entry in ProjectFixedEntry.objects.filter(project=invoice_data.project_m):
-                if InvoiceFixedEntry.objects.filter(invoice=invoice_data, price=project_fixed_entry.price, description=project_fixed_entry.description).count() == 0:
-                    InvoiceFixedEntry(invoice=invoice_data, price=project_fixed_entry.price, description=project_fixed_entry.description).save()
-        if invoice_sent_earlier and invoice_data.invoice_state not in ("P", "S"):
-            InvoiceFixedEntry.objects.filter(invoice=invoice_data).delete()
+        if not invoice_sent_earlier and invoice.invoice_state in ("P", "S") and invoice.project_m:
+            for project_fixed_entry in ProjectFixedEntry.objects.filter(project=invoice.project_m):
+                if InvoiceFixedEntry.objects.filter(invoice=invoice, price=project_fixed_entry.price, description=project_fixed_entry.description).count() == 0:
+                    InvoiceFixedEntry(invoice=invoice, price=project_fixed_entry.price, description=project_fixed_entry.description).save()
+        if invoice_sent_earlier and invoice.invoice_state not in ("P", "S"):
+            InvoiceFixedEntry.objects.filter(invoice=invoice).delete()
         return HttpResponseRedirect(reverse("invoice", args=[invoice]))
 
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
-    month_start_date = invoice_data.month_start_date
-    month_end_date = invoice_data.month_end_date
+    month_start_date = invoice.month_start_date
+    month_end_date = invoice.month_end_date
 
-    entries = HourEntry.objects.filter(invoice=invoice_data).filter(incurred_hours__gt=0)
-    aws_accounts = {}
-    if invoice_data.project_m:
-        aws_accounts = invoice_data.project_m.amazon_account.all()
-    entry_data = calculate_entry_stats(entries, invoice_data.get_fixed_invoice_rows(), aws_accounts)
+    entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
+    aws_entries = None
+    if invoice.project_m:
+        aws_accounts = invoice.project_m.amazon_account.all()
+        aws_entries = get_aws_entries(aws_accounts, invoice.month_start_date, invoice.month_end_date)
+    entry_data = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows(), aws_entries)
 
     try:
-        latest_comments = Comments.objects.filter(invoice=invoice_data).latest()
+        latest_comments = Comments.objects.filter(invoice=invoice).latest()
     except Comments.DoesNotExist:
         latest_comments = None
 
 
     previous_invoices = []
-    if invoice_data.project_m:
-        previous_invoices = Invoice.objects.filter(project_m=invoice_data.project_m)
+    if invoice.project_m:
+        previous_invoices = Invoice.objects.filter(project_m=invoice.project_m)
 
     context = {
         "today": today,
         "due_date": due_date,
-        "client": invoice_data.client,
-        "project": invoice_data.project,
         "entries": entries,
         "form_data": latest_comments,
-        "year": invoice_data.year,
-        "month": invoice_data.month,
-        "month_start_date": month_start_date,
-        "month_end_date": month_end_date,
-        "invoice_id": invoice,
-        "invoice": invoice_data,
+        "invoice": invoice,
         "previous_invoices": previous_invoices,
-        "recent_invoice": abs((datetime.date.today() - datetime.date(invoice_data.year, invoice_data.month, 1)).days) < 60,
+        "recent_invoice": abs((datetime.date.today() - datetime.date(invoice.year, invoice.month, 1)).days) < 60,
     }
     context.update(entry_data)
 
-    previous_invoice_month = invoice_data.month - 1
-    previous_invoice_year = invoice_data.year
+    previous_invoice_month = invoice.month - 1
+    previous_invoice_year = invoice.year
     if previous_invoice_month == 0:
         previous_invoice_month = 12
         previous_invoice_year -= 1
     try:
-        last_month_invoice = Invoice.objects.get(project=invoice_data.project, client=invoice_data.client, year=previous_invoice_year, month=previous_invoice_month)
+        last_month_invoice = Invoice.objects.get(project=invoice.project, client=invoice.client, year=previous_invoice_year, month=previous_invoice_month)
         context["last_month_invoice"] = last_month_invoice
-        context["diff_last_month"] = last_month_invoice.compare(invoice_data)
+        context["diff_last_month"] = last_month_invoice.compare(invoice)
     except Invoice.DoesNotExist:
         pass
 

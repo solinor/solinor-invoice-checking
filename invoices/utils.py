@@ -8,7 +8,7 @@ from django.conf import settings
 from invoices.tenkfeet_api import TenkFeetApi
 from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser, AmazonInvoiceRow
 from invoices.slack import send_slack_notification
-from invoices.invoice_utils import calculate_entry_stats
+from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -236,10 +236,11 @@ def refresh_stats(start_date, end_date):
         invoices = Invoice.objects.all()
     for invoice in invoices:
         entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
-        aws_accounts = {}
-        if invoice_data.project_m:
-            aws_accounts = invoice_data.project_m.amazon_account.all()
-        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows(), aws_accounts)
+        aws_entries = None
+        if invoice.project_m:
+            aws_accounts = invoice.project_m.amazon_account.all()
+            aws_entries = get_aws_entries(aws_accounts, invoice.month_start_date, invoice.month_end_date)
+        stats = calculate_entry_stats(entries, invoice.get_fixed_invoice_rows(), aws_entries)
         for field in STATS_FIELDS:
             setattr(invoice, field, stats[field])
 

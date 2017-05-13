@@ -319,6 +319,8 @@ class AmazonInvoiceRow(models.Model):
     currency = models.CharField(max_length=3)
     invoice_month = models.DateField(null=True)
 
+    def __unicode__(self):
+        return u"%s - %s - %s - %s" % (self.linked_account.name, self.product_code, self.usage_type, self.total_cost)
 
 class DataUpdate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
