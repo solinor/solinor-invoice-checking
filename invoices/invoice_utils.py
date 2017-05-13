@@ -7,7 +7,7 @@ def generate_amazon_invoice_data(linked_account, entries, year, month):
     for entry in entries:
         if entry.record_type == "AccountTotal":
             continue
-        phases[linked_account.name]["entries"]["%s - %s" % (entry.product_code, entry.usage_type)] = {"price": entry.total_cost, "currency": entry.currency}
+        phases[linked_account.name]["entries"]["%s - %s" % (entry.product_code, entry.usage_type)] = {"price": entry.total_cost, "currency": entry.currency, "decimals": 6}
         total_rows["aws"]["incurred_money"] += entry.total_cost
     return {
         "total_rows": total_rows,

@@ -66,7 +66,11 @@
                     <td>-</td>
                     <td>
                       {% if not phase.billable %}<s>{% endif %}
-                      {{ price.price|floatformat:2|intcomma }} {{ price.currency}}
+                        {% if price.decimals %}
+                          {{ price.price|floatformat:price.decimals|intcomma }} {{ price.currency}}
+                        {% else %}
+                          {{ price.price|floatformat:2|intcomma }} {{ price.currency}}
+                        {% endif %}
                       {% if not phase.billable %}</s>{% endif %}
                     </td>
                 </tr>
