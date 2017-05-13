@@ -99,7 +99,7 @@ def calculate_stats_for_fixed_rows(fixed_invoice_rows):
 def calculate_stats_for_aws_accounts(aws_accounts):
     aws_entries = {}
     for aws_account in aws_accounts:
-        rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date)
+        rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date).filter(record_type="AccountTotal")
         aws_entries[aws_account] = rows
     phases = {}
     total_rows = {}
@@ -108,14 +108,13 @@ def calculate_stats_for_aws_accounts(aws_accounts):
             account_key = "AWS: %s" % aws_account
             phases[account_key] = {"entries": {}, "billable": True}
             for aws_entry in aws_entries:
-                if aws_entry.record_type == "AccountTotal":
-                    total_key = "aws_%s" % aws_entry.currency
-                    if total_key not in total_rows:
-                        total_rows[total_key] = {"description": "Amazon billing (%s)" % aws_entry.currency, "incurred_money": 0, "currency": aws_entry.currency}
+                total_key = "aws_%s" % aws_entry.currency
+                if total_key not in total_rows:
+                    total_rows[total_key] = {"description": "Amazon billing (%s)" % aws_entry.currency, "incurred_money": 0, "currency": aws_entry.currency}
 
-                    total_rows[total_key]["incurred_money"] += aws_entry.total_cost
-                    phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": aws_entry.total_cost, "currency": aws_entry.currency}
-                    break
+                total_rows[total_key]["incurred_money"] += aws_entry.total_cost
+                phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": aws_entry.total_cost, "currency": aws_entry.currency}
+                break
             else:
                 phases[account_key]["entries"]["Amazon Web Services billing"] = {"price": 0, "currency": "USD"}
     return {
