@@ -41,7 +41,9 @@ def amazon_invoice(request, linked_account_id, year, month):
     invoice_rows = AmazonInvoiceRow.objects.filter(linked_account=linked_account).filter(invoice_month__year=year, invoice_month__month=month)
     invoice_data = generate_amazon_invoice_data(linked_account, invoice_rows, year, month)
     months = AmazonInvoiceRow.objects.filter(linked_account=linked_account).dates("invoice_month", "month", order="DESC")
-    context = {"year": year, "month": month, "months": months, "linked_account": linked_account}
+    linked_projects = linked_account.project_set.all()
+    linked_users = linked_account.feetuser_set.all()
+    context = {"year": year, "month": month, "months": months, "linked_account": linked_account, "linked_users": linked_users, "linked_projects": linked_projects}
     context.update(invoice_data)
 
     return render(request, "amazon_invoice.html", context)
