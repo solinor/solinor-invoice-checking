@@ -305,8 +305,8 @@ class AmazonLinkedAccount(models.Model):
 class AmazonInvoiceRow(models.Model):
     record_id = models.CharField(max_length=50, primary_key=True, editable=False)
     record_type = models.CharField(max_length=50)
-    billing_period_start = models.DateTimeField()
-    billing_period_end = models.DateTimeField()
+    billing_period_start = models.DateTimeField(null=True, blank=True)
+    billing_period_end = models.DateTimeField(null=True, blank=True)
     invoice_date = models.DateTimeField(null=True, blank=True)
     linked_account = models.ForeignKey("AmazonLinkedAccount")
     product_code = models.CharField(max_length=255)

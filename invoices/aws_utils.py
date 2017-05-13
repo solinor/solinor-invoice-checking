@@ -51,8 +51,8 @@ def import_aws_invoice(f, year, month):
             })
             linked_accounts[linked_account_id] = linked_account
             for project in linked_account.project_set.all():
-                year = record_data["billing_period_start"].year
-                month = record_data["billing_period_start"].month
+                year = invoice_month.year
+                month = invoice_month.month
                 Invoice.objects.get_or_create(year=year, month=month, client=project.client, project=project.name, project_m=project)
         record_data["linked_account"] = linked_account
         AmazonInvoiceRow.objects.update_or_create(record_id=record["RecordID"], defaults=record_data)

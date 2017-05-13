@@ -38,7 +38,7 @@ def amazon_invoice(request, linked_account_id, year, month):
     year = int(year)
     month = int(month)
     linked_account = get_object_or_404(AmazonLinkedAccount, linked_account_id=linked_account_id)
-    invoice_rows = AmazonInvoiceRow.objects.filter(linked_account=linked_account).filter(billing_period_start__year=year, billing_period_start__month=month)
+    invoice_rows = AmazonInvoiceRow.objects.filter(linked_account=linked_account).filter(invoice_month__year=year, invoice_month__month=month)
     invoice_data = generate_amazon_invoice_data(linked_account, invoice_rows, year, month)
     months = AmazonInvoiceRow.objects.filter(linked_account=linked_account).dates("invoice_month", "month", order="DESC")
     context = {"year": year, "month": month, "months": months, "linked_account": linked_account}
