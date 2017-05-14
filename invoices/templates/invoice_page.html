@@ -4,6 +4,9 @@
 <link href="/static/css/invoice_page.css" rel="stylesheet">
 {% endblock %}
 
+{% block title %}{{ invoice.full_name }} - {{ invoice.date }} - Solinor{% endblock %}
+
+
 {% block content %}
     <ol class="breadcrumb">
       <li><a href="{% url 'frontpage' %}">Home</a></li>

@@ -4,13 +4,15 @@
 <link href="/static/css/invoice_page.css" rel="stylesheet">
 {% endblock %}
 
+{% block title %}Amazon invoice: {{ linked_account.name }} - Solinor{% endblock %}
+
 {% block content %}
     <ol class="breadcrumb">
       <li><a href="{% url 'frontpage' %}">Home</a></li>
       <li class="active">Amazon Invoice</li>
     </ol>
 
-    <h2>Invoice details for {{ linked_account.name }}</h2>
+    <h2>Amazon invoice details for {{ linked_account.name }}</h2>
 
     <div class="dropdown" style="display: inline-block">
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -25,7 +27,7 @@
     </div>
     {% if linked_users %}
     {% for linked_user in linked_users %}
-      <a href="{% url "person" linked_user.guid year month %}" role="button" class="btn btn-info">User: {{ linked_user.first_name }} {{ linked_user.last_name }}</a>
+      <a href="{% url "person" linked_user.guid year month %}" role="button" class="btn btn-info">User: {{ linked_user.display_name }}</a>
     {% endfor %}
     {% endif %}
     {% if linked_projects %}

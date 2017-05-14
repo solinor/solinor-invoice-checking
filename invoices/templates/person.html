@@ -7,6 +7,7 @@ $('#person-hours a').click(function (e) {
 });
 </script>
 {% endblock %}
+{% block title %}{{ person.display_name }}{% endblock %}
 {% block content %}
 <ol class="breadcrumb">
   <li><a href="{% url 'frontpage' %}">Home</a></li>
