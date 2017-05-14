@@ -338,6 +338,11 @@ def project_details(request, project_id):
 @login_required
 def invoice_charts(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
+    if invoice.project_m:
+        previous_invoices = Invoice.objects.filter(project_m=invoice.project_m).order_by("-year", "-month")
+        print previous_invoices
+    else:
+        previous_invoices = []
     first_day = datetime.datetime.strptime(request.GET.get("first_day", invoice.month_start_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
     last_day = datetime.datetime.strptime(request.GET.get("last_day", invoice.month_end_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
     def get_chart_data(queryset):
@@ -403,6 +408,7 @@ def invoice_charts(request, invoice_id):
         "invoice": invoice,
         "charts": charts,
         "per_person_categories_data": per_person_categories_data,
+        "previous_invoices": previous_invoices,
     }
     return render(request, "invoice_charts.html", context)
 

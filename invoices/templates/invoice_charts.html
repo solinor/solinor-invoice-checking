@@ -38,6 +38,24 @@ function drawChart() {
 
 <h2>Invoice charts for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
 
+{% if previous_invoices %}
+<div class="row">
+  <div class="col-md-12">
+    <div class="dropdown" style="display: inline-block">
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Open another invoice
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        {% for previous_invoice in previous_invoices %}
+        <li><a href="{% url "invoice_charts" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <h3>General</h3>
 <div class="row">
   <div class="col-md-6">
