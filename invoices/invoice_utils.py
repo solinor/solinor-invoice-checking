@@ -1,14 +1,23 @@
 from invoices.models import AmazonInvoiceRow
 
 def generate_amazon_invoice_data(linked_account, entries, year, month):
-    phases = {linked_account.name: {"entries": {}, "billable": True}}
-    total_rows = {"aws": {"incurred_money": 0, "currency": "USD"}}
+    phases = {}
+    total_rows = {"aws": {"incurred_money": 0, "currency": "USD", "description": "Total", "priority": 2}}
     total_entries = 0
     for entry in entries:
         if entry.record_type == "AccountTotal":
             continue
-        phases[linked_account.name]["entries"]["%s - %s" % (entry.product_code, entry.usage_type)] = {"price": entry.total_cost, "currency": entry.currency, "decimals": 6}
+        if entry.product_code not in phases:
+            phases[entry.product_code] = {"name": entry.product_code, "entries": [], "billable": True}
+        if entry.product_code not in total_rows:
+            total_rows[entry.product_code] = {"incurred_money": 0, "currency": "USD", "description": entry.product_code, "priority": 1}
+        total_rows[entry.product_code]["incurred_money"] += entry.total_cost
+        phases[entry.product_code]["entries"].append({"price": entry.total_cost, "currency": entry.currency, "decimals": 6, "quantity": entry.usage_quantity, "description": entry.item_description, "usage": entry.usage_type})
         total_rows["aws"]["incurred_money"] += entry.total_cost
+    for phase in phases.values():
+        phase["entries"] = sorted(phase["entries"], key=lambda k: k['usage'])
+    total_rows = sorted(total_rows.values(), key=lambda k: "%s-%s" % (k["priority"], k["description"]))
+    phases = sorted(phases.values(), key=lambda k: k["name"])
     return {
         "total_rows": total_rows,
         "phases": phases,

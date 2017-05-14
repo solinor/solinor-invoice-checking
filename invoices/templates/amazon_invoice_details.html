@@ -1,0 +1,86 @@
+{% load humanize %}
+
+    <div class="invoice-box">
+        <table cellpadding="0" cellspacing="0">
+            <tr class="top">
+                <td colspan="3">
+                    <table>
+                        <tr>
+                            <td class="title">
+                                <img src="https://solinor.fi/wp-content/themes/twentyfifteen-child/images/logo-solinor@2x.png" style="width:100%; max-width:300px;">
+                            </td>
+
+                            <td>
+                                Invoice #: 123<br>
+                                Created: {{ today }}<br>
+                                Due: {{ due_date }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <tr class="information">
+                <td colspan="3">
+                    <table>
+                        <tr>
+                            <td>
+                                Solinor Oy<br>
+                                Teollisuuskatu 21<br>
+                                00510 Helsinki
+                            </td>
+
+                            <td>
+                                {{ invoice.client }}<br>
+                                {{ invoice.project }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+
+
+            {% for phase_details in phases %}
+            <tr class="heading">
+                <td>
+                    {{ phase_details.name }}
+                </td>
+                <td>
+                    Quantity
+                </td>
+                <td>
+                    Price
+                </td>
+            </tr>
+              {% for entry in phase_details.entries %}
+              <tr class="item">
+                  <td>{{ entry.usage }}
+                  {% if entry.description %}<br><small>{{ entry.description }}</small>{% endif %}</td>
+                  <td>{{ entry.quantity|floatformat:3 }}</td>
+                  <td>
+                    {% if not phase_details.billable %}<s>{% endif %}
+                      {% if entry.decimals %}
+                        {{ entry.price|floatformat:entry.decimals|intcomma }} {{ entry.currency}}
+                      {% else %}
+                        {{ entry.price|floatformat:2|intcomma }} {{ entry.currency}}
+                      {% endif %}
+                    {% if not phase.billable %}</s>{% endif %}
+                  </td>
+              </tr>
+              {% endfor %}
+            {% endfor %}
+
+            {% for total_row in total_rows %}
+            <tr class="total">
+                <td>{{ total_row.description }}</td>
+                <td>
+                  {% if total_row.incurred_hours %}{{ total_row.incurred_hours|floatformat:2 }}h{% endif %}
+                </td>
+                <td>
+                  {{ total_row.incurred_money|floatformat:2|intcomma }} {{ total_row.currency }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
