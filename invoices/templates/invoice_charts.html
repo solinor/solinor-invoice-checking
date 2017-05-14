@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block header %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  var per_category_hours_data = google.visualization.arrayToDataTable({{ per_category_hours_data_json|safe }});
+  var per_category_hours_options = { title: 'Incurred hours per category' };
+  var per_category_hours_chart = new google.visualization.PieChart(document.getElementById('per_category_hours'));
+  per_category_hours_chart.draw(per_category_hours_data, per_category_hours_options);
+
+  var per_category_billing_data = google.visualization.arrayToDataTable({{ per_category_billing_data_json|safe }});
+  var per_category_billing_options = { title: 'Incurred money per category' };
+  var per_category_billing_chart = new google.visualization.PieChart(document.getElementById('per_category_billing'));
+  per_category_billing_chart.draw(per_category_billing_data, per_category_billing_options);
+
+  var per_person_billing_data = google.visualization.arrayToDataTable({{ per_person_billing_data_json|safe }});
+  var per_person_billing_options = { title: 'Incurred money per person' };
+  var per_person_billing_chart = new google.visualization.PieChart(document.getElementById('per_person_billing'));
+  per_person_billing_chart.draw(per_person_billing_data, per_person_billing_options);
+
+
+  var per_person_hours_data = google.visualization.arrayToDataTable({{ per_person_hours_data_json|safe }});
+  var per_person_hours_options = { title: 'Incurred hours per person' };
+  var per_person_hours_chart = new google.visualization.PieChart(document.getElementById('per_person_hours'));
+  per_person_hours_chart.draw(per_person_hours_data, per_person_hours_options);
+
+  {% for item in per_person_categories_data %}
+    var per_person_categories_data_{{ item.0 }} = google.visualization.arrayToDataTable({{ item.2|safe }});
+    var per_person_categories_options_{{ item.0 }} = { title: 'Categories for {{ item.1 }}' };
+    var per_person_categories_chart_{{ item.0 }} = new google.visualization.PieChart(document.getElementById('per_person_categories_{{ item.0 }}'));
+    per_person_categories_chart_{{ item.0 }}.draw(per_person_categories_data_{{ item.0 }}, per_person_categories_options_{{ item.0 }});
+  {% endfor %}
+
+}
+</script>
+{% endblock %}
+
+{% block title %}{{ invoice.full_name }} - {{ invoice.date }} - Solinor{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url 'projects_list' %}">Projects</a></li>
+  <li>{% if invoice.project_m %}<a href="{% url 'project' invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+  <li><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
+  <li class="active">Charts</li>
+</ol>
+
+<h2>Invoice charts for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
+
+<h3>General</h3>
+<div class="row">
+  <div class="col-md-6">
+    <div id="per_category_hours" style="height: 250px"></div>
+  </div>
+  <div class="col-md-6">
+    <div id="per_category_billing" style="height: 250px"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div id="per_person_hours" style="height: 250px"></div>
+  </div>
+  <div class="col-md-6">
+    <div id="per_person_billing" style="height: 250px"></div>
+  </div>
+</div>
+
+<h3>Per person</h3>
+
+<div class="row">
+  {% for item in per_person_categories_data %}
+  <div class="col-md-6">
+    <div id="per_person_categories_{{ item.0 }}" style="height: 250px"></div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

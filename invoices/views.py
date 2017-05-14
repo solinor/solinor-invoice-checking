@@ -4,6 +4,8 @@ import datetime
 import redis
 import json
 
+from collections import defaultdict
+
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
 from django.contrib.auth.decorators import login_required
@@ -331,6 +333,55 @@ def project_details(request, project_id):
         "project": project,
     }
     return render(request, "project_details.html", context)
+
+
+@login_required
+def invoice_charts(request, invoice_id):
+    invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
+
+    def get_chart_data(queryset):
+        d = defaultdict(float)
+        for item in queryset:
+            d[item[0]] += item[1]
+        return [["a", "b"]] + d.items()
+
+    def get_2d_chart_data(queryset):
+        def per_person_dict():
+            return defaultdict(float)
+
+        d = defaultdict(per_person_dict)
+        for item in queryset:
+            d[item[0]][item[1]] += item[2]
+        return d
+
+    per_category_hours_data = get_chart_data(HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice))
+    per_category_billing_data = get_chart_data(HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_money")).filter(invoice=invoice))
+    per_person_hours_data = get_chart_data(HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice))
+    per_person_billing_data = get_chart_data(HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_money")).filter(invoice=invoice))
+
+    per_person_categories = get_2d_chart_data(HourEntry.objects.values_list("user_name", "category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice))
+
+    categories = set()
+    for data in per_person_categories.values():
+        categories.update(data.keys())
+
+    per_person_categories_data = []
+    i = 0
+    for user_name, data in per_person_categories.items():
+        for item in categories:
+            data[item] += 0
+        per_person_categories_data.append((i, user_name, json.dumps([["a", "b"]] + data.items())))
+        i += 1
+
+    context = {
+        "invoice": invoice,
+        "per_category_hours_data_json": json.dumps(per_category_hours_data),
+        "per_category_billing_data_json": json.dumps(per_category_billing_data),
+        "per_person_hours_data_json": json.dumps(per_person_hours_data),
+        "per_person_billing_data_json": json.dumps(per_person_billing_data),
+        "per_person_categories_data": per_person_categories_data,
+    }
+    return render(request, "invoice_charts.html", context)
 
 
 @login_required
