@@ -370,7 +370,8 @@ def invoice_charts(request, invoice_id):
     for user_name, data in per_person_categories.items():
         for item in categories:
             data[item] += 0
-        per_person_categories_data.append((i, user_name, json.dumps([["a", "b"]] + data.items())))
+        data = sorted(data.items(), key=lambda k: k[0])
+        per_person_categories_data.append((i, user_name, json.dumps([["a", "b"]] + data)))
         i += 1
 
     context = {
