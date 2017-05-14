@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import urllib
+try:
+    from urllib import quote as url_quote
+except ImportError:
+    from urllib.parse import quote as url_quote
 
 import django_tables2 as tables
 from invoices.models import Project, Invoice, HourEntry
@@ -91,7 +94,7 @@ class ProjectsTable(tables.Table):
         return format_html(u"<a href='%s'>%s</a>" % (reverse('project', args=[record.guid]), value))
 
     def render_client(self, value):
-        return format_html(u"<a href='?client__icontains=%s'>%s</a>" % (urllib.quote(value.encode("utf8")), value))
+        return format_html(u"<a href='?client__icontains=%s'>%s</a>" % (url_quote(value.encode("utf8")), value))
 
     def render_incurred_hours(self, value):
         return u"%sh" % intcomma(floatformat(value, 0))
