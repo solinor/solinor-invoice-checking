@@ -9,7 +9,8 @@
 {% block content %}
     <ol class="breadcrumb">
       <li><a href="{% url 'frontpage' %}">Home</a></li>
-      <li class="active">Amazon Invoice</li>
+      <li><a href="{% url 'amazon_overview' %}">Amazon</a></li>
+      <li class="active">Invoice: {{ linked_account.name }}</li>
     </ol>
 
     <h2>Amazon invoice details for {{ linked_account.name }}</h2>
