@@ -58,22 +58,22 @@ $('#person-hours a').click(function (e) {
       <!-- Tab panes -->
       <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="all_entries">
-          {% include "person_hour_table.html" with entries=hour_entries %}
+          {% include "snippets/person_hour_table.html" with entries=hour_entries %}
         </div>
         <div role="tabpanel" class="tab-pane" id="non_phase_specific">
-          {% include "person_hour_table.html" with entries=stats.non_phase_specific %}
+          {% include "snippets/person_hour_table.html" with entries=stats.non_phase_specific %}
         </div>
         <div role="tabpanel" class="tab-pane" id="empty_descriptions">
-          {% include "person_hour_table.html" with entries=stats.empty_descriptions %}
+          {% include "snippets/person_hour_table.html" with entries=stats.empty_descriptions %}
         </div>
         <div role="tabpanel" class="tab-pane" id="billable_incorrect_price">
-          {% include "person_hour_table.html" with entries=stats.billable_incorrect_price %}
+          {% include "snippets/person_hour_table.html" with entries=stats.billable_incorrect_price %}
         </div>
         <div role="tabpanel" class="tab-pane" id="not_approved_hours">
-          {% include "person_hour_table.html" with entries=stats.not_approved_hours %}
+          {% include "snippets/person_hour_table.html" with entries=stats.not_approved_hours %}
         </div>
         <div role="tabpanel" class="tab-pane" id="no_category">
-          {% include "person_hour_table.html" with entries=stats.no_category %}
+          {% include "snippets/person_hour_table.html" with entries=stats.no_category %}
         </div>
       </div>
 
