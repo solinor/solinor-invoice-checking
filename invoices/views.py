@@ -37,24 +37,36 @@ def amazon_overview(request):
     today = datetime.date.today()
     aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "feetuser_set")
     linked_accounts = sum([aws_account.has_linked_properties() for aws_account in aws_accounts])
-    total_billing = 0
-    linked_billing = 0
-    unlinked_billing = 0
+    total_billing = linked_billing = unlinked_billing = employee_billing = project_billing = 0
+
     for aws_account in aws_accounts:
         aws_account.billing = aws_account.billing_for_month(today.year, today.month)
         total_billing += aws_account.billing
+
         if aws_account.has_linked_properties():
             linked_billing += aws_account.billing
+            if aws_account.project_set.all().count() > 0:
+                project_billing += aws_account.billing
+            if aws_account.feetuser_set.all().count() > 0:
+                employee_billing += aws_account.billing
         else:
             unlinked_billing += aws_account.billing
+    billing_data = (
+        ("Type", "USD"),
+        ("Project billing", project_billing),
+        ("Employee billing", employee_billing),
+        ("Unaccounted billing", unlinked_billing),
+    )
+    linking_data = (
+        ("a", "b"),
+        ("Linked accounts", linked_accounts),
+        ("Unlinked accounts", AmazonLinkedAccount.objects.all().count() - linked_accounts),
+    )
     context = {
         "today": today,
         "aws_accounts": aws_accounts,
-        "total_accounts": AmazonLinkedAccount.objects.all().count(),
-        "linked_accounts": linked_accounts,
-        "total_billing": total_billing,
-        "unlinked_billing": unlinked_billing,
-        "linked_billing": linked_billing,
+        "billing_data_json": json.dumps(billing_data),
+        "linking_data_json": json.dumps(linking_data),
     }
     return render(request, "amazon_overview.html", context)
 

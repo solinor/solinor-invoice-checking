@@ -1,6 +1,26 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block title %}Amazon invoices - Solinor{% endblock %}
+{% block header %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  var billing_data = google.visualization.arrayToDataTable({{ billing_data_json|safe }});
+  var billing_options = { title: 'Billing' };
+  var billing_chart = new google.visualization.PieChart(document.getElementById('billing_distribution_chart'));
+
+  var linking_data = google.visualization.arrayToDataTable({{ linking_data_json|safe }});
+  var linking_options = { title: 'Linking' };
+  var linking_chart = new google.visualization.PieChart(document.getElementById('linking_distribution_chart'));
+
+  linking_chart.draw(linking_data, linking_options);
+  billing_chart.draw(billing_data, billing_options);
+}
+</script>
+{% endblock %}
 {% block content %}
     <ol class="breadcrumb">
       <li><a href="{% url 'frontpage' %}">Home</a></li>
@@ -10,45 +30,11 @@
     <h2>AWS accounts</h2>
 
     <div class="row">
-      <div class="col-md-3">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">Linked accounts</h3>
-          </div>
-          <div class="panel-body">
-            <h2>{{ linked_accounts }} / {{ total_accounts }}</h2>
-          </div>
-        </div>
+      <div class="col-md-6">
+        <div id="linking_distribution_chart"></div>
       </div>
-      <div class="col-md-3">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">Total billing</h3>
-          </div>
-          <div class="panel-body">
-            <h2>{{ total_billing|floatformat:2|intcomma }} USD</h2>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">Linked billing</h3>
-          </div>
-          <div class="panel-body">
-            <h2>{{ linked_billing|floatformat:2|intcomma }} USD</h2>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h3 class="panel-title">Unlinked billing</h3>
-          </div>
-          <div class="panel-body">
-            <h2>{{ unlinked_billing|floatformat:2|intcomma }} USD</h2>
-          </div>
-        </div>
+      <div class="col-md-6">
+        <div id="billing_distribution_chart"></div>
       </div>
     </div>
 
