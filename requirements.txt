@@ -1,11 +1,11 @@
 dj-database-url==0.4.1
-Django==1.9.7
+Django==1.11
 gunicorn==19.6.0
 psycopg2==2.6.2
 whitenoise==2.0.6
 requests==2.9.1
 pytz==2017.2
-django-googleauth==2.1
+git+git://github.com/ojarva/django-googleauth.git@095c4a9ed86e5af6348c98d159d678221cb99b52
 django-filter==1.0.2
 wkhtmltopdf-pack==0.12.3.0
 pdfkit==0.6.0
