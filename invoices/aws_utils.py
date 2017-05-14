@@ -3,6 +3,36 @@ import datetime
 from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow, Project, Invoice
 import pytz
 
+AWS_URLS = {
+    "OCBPremiumSupport": "https://aws.amazon.com/premiumsupport/",
+    "AmazonEC2": "https://aws.amazon.com/ec2/",
+    "awskms": "https://aws.amazon.com/kms/",
+    "AWSQueueService": "https://aws.amazon.com/sqs/",
+    "AmazonS3": "https://aws.amazon.com/s3/",
+    "AmazonPolly": "https://aws.amazon.com/polly/",
+    "AWSLambda": "https://aws.amazon.com/lambda/",
+    "CodeBuild": "https://aws.amazon.com/codebuild/",
+    "AmazonRDS": "https://aws.amazon.com/rds/",
+    "AWSCodePipeline": "https://aws.amazon.com/codepipeline/",
+    "AmazonRoute53": "https://aws.amazon.com/route53/",
+    "AmazonECR": "https://aws.amazon.com/ecr/",
+    "AmazonRegistrar": "http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/registrar.html",
+    "APNFee": "https://aws.amazon.com/partners/",
+    "AmazonLex": "https://aws.amazon.com/lex/",
+    "AmazonDynamoDB": "https://aws.amazon.com/dynamodb/",
+    "AmazonElastiCache": "https://aws.amazon.com/elasticache/",
+    "AmazonApiGateway": "https://aws.amazon.com/api-gateway/",
+    "AmazonCloudFront": "https://aws.amazon.com/cloudfront/",
+    "AmazonSNS": "https://aws.amazon.com/sns/",
+    "AWSCloudTrail": "https://aws.amazon.com/cloudtrail/",
+    "AmazonSES": "https://aws.amazon.com/ses/",
+    "AWSXRay": "https://aws.amazon.com/xray/",
+    "AmazonCloudWatch": "https://aws.amazon.com/cloudwatch/",
+    "AmazonVPC": "https://aws.amazon.com/vpc/",
+    "AmazonEFS": "https://aws.amazon.com/efs/",
+    "AWSCodeCommit": "https://aws.amazon.com/codecommit/",
+}
+
 def parse_aws_invoice(f):
     reader = csv.reader(f)
     header = next(reader)

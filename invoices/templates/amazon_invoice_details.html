@@ -44,7 +44,9 @@
             {% for phase_details in phases %}
             <tr class="heading">
                 <td>
+                    {% if phase_details.url %}<a href="{{ url }}">{{ phase_details.name }}</a>{% else %}
                     {{ phase_details.name }}
+                    {% endif %}
                 </td>
                 <td>
                     Quantity

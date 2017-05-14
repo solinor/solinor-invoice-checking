@@ -1,4 +1,5 @@
 from invoices.models import AmazonInvoiceRow
+from invoices.aws_utils import AWS_URLS
 
 def generate_amazon_invoice_data(linked_account, entries, year, month):
     phases = {}
@@ -8,7 +9,7 @@ def generate_amazon_invoice_data(linked_account, entries, year, month):
         if entry.record_type == "AccountTotal":
             continue
         if entry.product_code not in phases:
-            phases[entry.product_code] = {"name": entry.product_code, "entries": [], "billable": True}
+            phases[entry.product_code] = {"name": entry.product_code, "entries": [], "billable": True, "url": AWS_URLS.get(entry.product_code)}
         if entry.product_code not in total_rows:
             total_rows[entry.product_code] = {"incurred_money": 0, "currency": "USD", "description": entry.product_code, "priority": 1}
         total_rows[entry.product_code]["incurred_money"] += entry.total_cost
