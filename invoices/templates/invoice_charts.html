@@ -7,26 +7,12 @@ google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  var per_category_hours_data = google.visualization.arrayToDataTable({{ per_category_hours_data_json|safe }});
-  var per_category_hours_options = { title: 'Incurred hours per category' };
-  var per_category_hours_chart = new google.visualization.PieChart(document.getElementById('per_category_hours'));
-  per_category_hours_chart.draw(per_category_hours_data, per_category_hours_options);
-
-  var per_category_billing_data = google.visualization.arrayToDataTable({{ per_category_billing_data_json|safe }});
-  var per_category_billing_options = { title: 'Incurred money per category' };
-  var per_category_billing_chart = new google.visualization.PieChart(document.getElementById('per_category_billing'));
-  per_category_billing_chart.draw(per_category_billing_data, per_category_billing_options);
-
-  var per_person_billing_data = google.visualization.arrayToDataTable({{ per_person_billing_data_json|safe }});
-  var per_person_billing_options = { title: 'Incurred money per person' };
-  var per_person_billing_chart = new google.visualization.PieChart(document.getElementById('per_person_billing'));
-  per_person_billing_chart.draw(per_person_billing_data, per_person_billing_options);
-
-
-  var per_person_hours_data = google.visualization.arrayToDataTable({{ per_person_hours_data_json|safe }});
-  var per_person_hours_options = { title: 'Incurred hours per person' };
-  var per_person_hours_chart = new google.visualization.PieChart(document.getElementById('per_person_hours'));
-  per_person_hours_chart.draw(per_person_hours_data, per_person_hours_options);
+  {% for chart_name, chart_data in charts.items %}
+    var {{ chart_name }}_data = google.visualization.arrayToDataTable({{ chart_data.json_data|safe }});
+    var {{ chart_name }}_options = { title: '{{ chart_data.title }}' };
+    var {{ chart_name }}_chart = new google.visualization.PieChart(document.getElementById('{{ chart_name }}'));
+    {{ chart_name }}_chart.draw({{ chart_name }}_data, {{ chart_name }}_options);
+  {% endfor %}
 
   {% for item in per_person_categories_data %}
     var per_person_categories_data_{{ item.0 }} = google.visualization.arrayToDataTable({{ item.2|safe }});

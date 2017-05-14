@@ -338,12 +338,14 @@ def project_details(request, project_id):
 @login_required
 def invoice_charts(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
-
+    first_day = datetime.datetime.strptime(request.GET.get("first_day", invoice.month_start_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
+    last_day = datetime.datetime.strptime(request.GET.get("last_day", invoice.month_end_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
     def get_chart_data(queryset):
         d = defaultdict(float)
         for item in queryset:
             d[item[0]] += item[1]
-        return [["a", "b"]] + d.items()
+        d = sorted(d.items(), key=lambda k: k[0])
+        return [["a", "b"]] + d
 
     def get_2d_chart_data(queryset):
         def per_person_dict():
@@ -354,12 +356,35 @@ def invoice_charts(request, invoice_id):
             d[item[0]][item[1]] += item[2]
         return d
 
-    per_category_hours_data = get_chart_data(HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice))
-    per_category_billing_data = get_chart_data(HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_money")).filter(invoice=invoice))
-    per_person_hours_data = get_chart_data(HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice))
-    per_person_billing_data = get_chart_data(HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_money")).filter(invoice=invoice))
+    charts = {
+        "per_category_hours": {
+            "queryset": HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_hours")),
+            "callback": get_chart_data,
+            "title": "Incurred hours per category",
+        },
+        "per_category_billing": {
+            "queryset": HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_money")),
+            "callback": get_chart_data,
+            "title": "Incurred money per category",
+        },
+        "per_person_hours": {
+            "queryset": HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_hours")),
+            "callback": get_chart_data,
+            "title": "Incurred hours per person",
+        },
+        "per_person_billing": {
+            "queryset": HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_money")),
+            "callback": get_chart_data,
+            "title": "Incurred money per person",
+        },
+    }
+    for chart_name in charts:
+        chart_data = charts[chart_name]
+        chart_data["queryset"] = chart_data["queryset"].filter(invoice=invoice).filter(date__gte=first_day).filter(date__lte=last_day)
+        chart_data["data"] = chart_data["callback"](chart_data["queryset"])
+        chart_data["json_data"] = json.dumps(chart_data["data"])
 
-    per_person_categories = get_2d_chart_data(HourEntry.objects.values_list("user_name", "category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice))
+    per_person_categories = get_2d_chart_data(HourEntry.objects.values_list("user_name", "category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice).filter(date__gte=first_day).filter(date__lte=last_day))
 
     categories = set()
     for data in per_person_categories.values():
@@ -376,10 +401,7 @@ def invoice_charts(request, invoice_id):
 
     context = {
         "invoice": invoice,
-        "per_category_hours_data_json": json.dumps(per_category_hours_data),
-        "per_category_billing_data_json": json.dumps(per_category_billing_data),
-        "per_person_hours_data_json": json.dumps(per_person_hours_data),
-        "per_person_billing_data_json": json.dumps(per_person_billing_data),
+        "charts": charts,
         "per_person_categories_data": per_person_categories_data,
     }
     return render(request, "invoice_charts.html", context)
