@@ -128,7 +128,7 @@ class Invoice(models.Model):
         return "%s - %s" % (self.client, self.project)
 
     def __unicode__(self):
-        return u"%s %s - %s-%s" % (self.client, self.project, self.year, self.month)
+        return u"%s - %s" % (self.full_name, self.date)
 
     def update_state(self, comment):
         self.invoice_state = "C"
