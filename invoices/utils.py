@@ -246,6 +246,11 @@ def refresh_stats(start_date, end_date):
 
         invoice.incurred_money = sum([row["incurred_money"] for row in stats["total_rows"].values() if "incurred_money" in row])
         invoice.incurred_hours = sum([row["incurred_hours"] for row in stats["total_rows"].values() if "incurred_hours" in row])
+        invoice.incurred_billable_hours = stats["total_rows"]["hours"]["incurred_billable_hours"]
+        if invoice.incurred_hours > 0:
+            invoice.billable_percentage = invoice.incurred_billable_hours / invoice.incurred_hours
+        else:
+            invoice.billable_percentage = 0
         if stats["total_rows"]["hours"]["incurred_hours"] > 0:
             invoice.bill_rate_avg = stats["total_rows"]["hours"]["incurred_money"] / stats["total_rows"]["hours"]["incurred_hours"]
         else:

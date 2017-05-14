@@ -67,7 +67,7 @@ class FrontpageInvoices(tables.Table):
     class Meta:
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoices-table"}
-        fields = ("full_name", "date", "processed_tags", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money")
+        fields = ("full_name", "date", "processed_tags", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
 
     def render_full_name(self, value, record):
         return format_html('<a href="%s">%s</a>' % (reverse("invoice", args=[record.invoice_id]), value))
@@ -83,6 +83,9 @@ class FrontpageInvoices(tables.Table):
 
     def render_incurred_money(self, value):
         return u"%s€" % intcomma(floatformat(value, 0))
+
+    def render_billable_percentage(self, value):
+        return u"%s%%" % floatformat(value * 100, 0)
 
 class ProjectsTable(tables.Table):
     class Meta:
@@ -113,7 +116,7 @@ class ProjectDetailsTable(tables.Table):
     class Meta:
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoice-table"}
-        fields = ("date", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "invoice_id")
+        fields = ("date", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage", "invoice_id")
 
     def render_invoice_id(self, value):
         return format_html('<a href="%s">Invoice</a>, <a href="%s">hours</a>' % (reverse("invoice", args=[value]), reverse("invoice_hours", args=[value])))
@@ -126,3 +129,6 @@ class ProjectDetailsTable(tables.Table):
 
     def render_incurred_money(self, value):
         return u"%s€" % intcomma(floatformat(value, 0))
+
+    def render_billable_percentage(self, value):
+        return u"%s%%" % floatformat(value * 100, 0)

@@ -100,8 +100,10 @@ class Invoice(models.Model):
     not_approved_hours_count = models.IntegerField(default=0)
     no_category_count = models.IntegerField(default=0)
     empty_descriptions_count = models.IntegerField(default=0)
-    incurred_hours = models.FloatField(default=0, verbose_name="Incurred hours")
     bill_rate_avg = models.FloatField(default=0)
+    incurred_hours = models.FloatField(default=0, verbose_name="Incurred hours")
+    incurred_billable_hours = models.FloatField(default=0)
+    billable_percentage = models.FloatField(default=0)
     incurred_money = models.FloatField(default=0, verbose_name="Incurred money")
     invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
 

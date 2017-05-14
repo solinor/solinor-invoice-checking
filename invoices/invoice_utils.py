@@ -33,7 +33,7 @@ def calculate_stats_for_hours(entries):
     no_category = []
     not_approved_hours = []
     empty_descriptions = []
-    total_rows = {"hours": {"description": "Hour markings", "incurred_hours": 0, "incurred_money": 0, "bill_rate_avg": None, "currency": "EUR" }}
+    total_rows = {"hours": {"description": "Hour markings", "incurred_hours": 0, "incurred_money": 0, "bill_rate_avg": None, "currency": "EUR", "incurred_billable_hours": 0 }}
     total_entries = 0
 
     for entry in entries:
@@ -55,6 +55,7 @@ def calculate_stats_for_hours(entries):
         if entry.calculated_is_billable:
             total_rows["hours"]["incurred_money"] += entry.incurred_money
             phase_details["incurred_money"] += entry.incurred_money
+            total_rows["hours"]["incurred_billable_hours"] += entry.incurred_hours
         else:
             non_billable_hours.append(entry)
         total_rows["hours"]["incurred_hours"] += entry.incurred_hours
