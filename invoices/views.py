@@ -340,7 +340,6 @@ def invoice_charts(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
     if invoice.project_m:
         previous_invoices = Invoice.objects.filter(project_m=invoice.project_m).order_by("-year", "-month")
-        print previous_invoices
     else:
         previous_invoices = []
     first_day = datetime.datetime.strptime(request.GET.get("first_day", invoice.month_start_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
