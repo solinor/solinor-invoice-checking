@@ -119,18 +119,19 @@ def calculate_stats_for_aws_entries(aws_entries):
     total_rows = {}
     if aws_entries and len(aws_entries):
         for aws_account, aws_entries in aws_entries.items():
-            account_key = u"AWS: %s" % aws_account.name
-            phases[account_key] = {"entries": {}, "billable": True}
+            account_key = u"Amazon Web Services"
+            if account_key not in phases:
+                phases[account_key] = {"entries": {}, "billable": True}
             for aws_entry in aws_entries:
                 total_key = "aws_%s" % aws_entry.currency
                 if total_key not in total_rows:
                     total_rows[total_key] = {"description": "Amazon billing (%s)" % aws_entry.currency, "incurred_money": 0, "currency": aws_entry.currency}
 
                 total_rows[total_key]["incurred_money"] += aws_entry.total_cost
-                phases[account_key]["entries"]["Amazon Web Services billing"] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}
+                phases[account_key]["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}
                 break
             else:
-                phases[account_key]["entries"]["Amazon Web Services billing"] = {"aws_id": aws_account.pk, "price": 0, "currency": "USD"}
+                phases[account_key]["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": 0, "currency": "USD"}
     return {
         "phases": phases,
         "total_rows": total_rows,
