@@ -119,7 +119,7 @@ def calculate_stats_for_aws_entries(aws_entries):
     total_rows = {}
     if aws_entries and len(aws_entries):
         for aws_account, aws_entries in aws_entries.items():
-            account_key = "AWS: %s" % aws_account
+            account_key = u"AWS: %s" % aws_account.name
             phases[account_key] = {"entries": {}, "billable": True}
             for aws_entry in aws_entries:
                 total_key = "aws_%s" % aws_entry.currency
