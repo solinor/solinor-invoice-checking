@@ -261,7 +261,7 @@ def get_pdf(request, invoice_id, pdf_type):
 @login_required
 def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(client__in=["Solinor", "[none]"])
+    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_state="Internal").exclude(client__in=["Solinor", "[none]"])
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={
