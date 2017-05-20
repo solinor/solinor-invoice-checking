@@ -213,6 +213,8 @@ class FeetUser(models.Model):
     slack_id = models.CharField(max_length=50, null=True, blank=True)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
 
+    def __unicode__(self):
+        return u"%s %s" % (self.first_name, self.last_name)
 
 class Project(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
@@ -230,6 +232,7 @@ class Project(models.Model):
     ends_at = models.DateField(null=True, blank=True)
     slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
+    admin_users = models.ManyToManyField("FeetUser", blank=True)
 
     def __unicode__(self):
         return u"%s - %s" % (self.client, self.name)

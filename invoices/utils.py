@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+from collections import defaultdict
+
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.conf import settings
@@ -92,6 +94,25 @@ def update_projects():
         }
         project_obj, created = Project.objects.update_or_create(guid=project["guid"],
                                                           defaults=project_fields)
+        user_cache = {}
+
+        for tag in project["tags"]["data"]:
+            tag_value = tag["value"]
+            if tag_value in user_cache:
+                matching_users = user_cache[tag_value]
+            else:
+                try:
+                    first_name, last_name = tag_value.split(" ", 1)
+                except ValueError:
+                    logger.info("Invalid tag: %s for %s", tag, project["id"])
+                matching_users = FeetUser.objects.filter(first_name=first_name, last_name=last_name)
+                logger.debug("Matched %s to tag %s; first_name=%s, last_name=%s", matching_users, tag, first_name, last_name)
+                user_cache[tag_value] = matching_users
+
+            project_obj.admin_users.clear()
+            for matching_user in matching_users:
+                project_obj.admin_users.add(matching_user)
+        project_obj.save()
         projects.append(project_obj)
         if created:
             send_slack_notification(project_obj)
