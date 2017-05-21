@@ -91,7 +91,7 @@ class ProjectsTable(tables.Table):
     class Meta:
         model = Project
         attrs = {"class": "table table-striped table-hover projects-table"}
-        fields = ("client", "name", "starts_at", "ends_at", "incurred_hours", "incurred_money")
+        fields = ("client", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
 
     def render_name(self, value, record):
         return format_html(u"<a href='%s'>%s</a>" % (reverse('project', args=[record.guid]), value))
@@ -104,6 +104,9 @@ class ProjectsTable(tables.Table):
 
     def render_incurred_money(self, value):
         return u"%s€" % intcomma(floatformat(value, 0))
+
+    def render_admin_users(self, value):
+        return format_html(u" ".join([u'<span class="label label-default">%s %s</span>' % (a.first_name, a.last_name) for a in value.all()]))
 
     def render_guid(self, value):
         return format_html(u"<a href='%s'>Details</a>" % reverse("project", args=[value]))

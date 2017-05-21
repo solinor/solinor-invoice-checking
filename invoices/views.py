@@ -294,7 +294,14 @@ def invoice_hours(request, invoice_id):
 
 @login_required
 def projects_list(request):
-    projects = Project.objects.exclude(client="Solinor").annotate(incurred_money=Sum("invoice__incurred_money"), incurred_hours=Sum("invoice__incurred_hours")).exclude(incurred_hours=0)
+    projects = Project.objects.annotate(incurred_money=Sum("invoice__incurred_money"), incurred_hours=Sum("invoice__incurred_hours")).exclude(incurred_hours=0).prefetch_related("admin_users")
+    show_only = request.GET.get("show_only", "").split(",")
+    if "no_lead" in show_only:
+        projects = projects.annotate(admin_users_count=Count("admin_users")).filter(admin_users_count=0)
+    if "running" in show_only:
+        today = datetime.date.today()
+        projects = projects.filter(ends_at__gte=today).filter(starts_at__lte=today)
+
     filters = ProjectsFilter(request.GET, queryset=projects)
     table = ProjectsTable(filters.qs)
     RequestConfig(request, paginate={
