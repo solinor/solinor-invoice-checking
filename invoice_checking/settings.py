@@ -123,6 +123,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
 AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
 
+SLACK_NOTIFICATIONS_ADMIN = os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")
+
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

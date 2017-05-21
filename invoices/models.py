@@ -348,6 +348,18 @@ class DataUpdate(models.Model):
     def __unicode__(self):
         return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)
 
+
+class SlackNotification(models.Model):
+    recipient = models.ForeignKey("FeetUser")
+    message = models.TextField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+
+class SlackChat(models.Model):
+    chat_id = models.CharField(max_length=50, primary_key=True, editable=False)
+    members = models.ManyToManyField("FeetUser")
+
+
 def gen_auth_token():
     return "%s-%s-%s" % (time.time(), str(uuid.uuid4()), str(uuid.uuid4()))
 
