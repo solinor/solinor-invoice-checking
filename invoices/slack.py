@@ -49,7 +49,7 @@ def refresh_slack_users():
         email = member.get("profile", {}).get("email")
         if not email:
             continue
-        FeetUser.objects.filter(email=email).update(slack_id=member.get("id"))
+        FeetUser.objects.filter(email__iexact=email).update(slack_id=member.get("id"))
 
 
 def refresh_slack_channels():
