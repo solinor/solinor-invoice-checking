@@ -209,6 +209,7 @@ class HourEntryUpdate(object):
                 "phase_name": entry[31],
                 "billable": entry[21] in ("1", 1),
                 "approved": entry[52] == "Approved",
+                "status": entry[52],
                 "user_email": entry[29],
                 "project_tags": entry[34],
                 "last_updated_at": now,

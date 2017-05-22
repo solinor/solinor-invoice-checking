@@ -43,6 +43,7 @@ class HourEntry(models.Model):
     billable = models.BooleanField(blank=True)
     approved = models.BooleanField(blank=True)
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
+    status = models.CharField(max_length=30)
 
     calculated_is_billable = models.BooleanField(blank=True, default=False, verbose_name="Billable")
     calculated_has_notes = models.BooleanField(blank=True, default=True, verbose_name="Has notes")
@@ -239,6 +240,11 @@ class Project(models.Model):
 
     class Meta:
         ordering = ("client", "name")
+
+
+class Phase(models.Model):
+    project = models.ForeignKey("Project")
+    phase_name = models.CharField(max_length=100)
 
 
 class Comments(models.Model):
