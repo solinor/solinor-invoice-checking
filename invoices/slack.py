@@ -1,13 +1,59 @@
 import logging
 
 import slacker
-from invoices.models import FeetUser, SlackChannel, Project, SlackNotification, SlackChat
+import datetime
+from invoices.models import FeetUser, SlackChannel, Project, SlackNotification, SlackChat, SlackChatMember
 from django.conf import settings
 from django.db.models import Count, Sum
 from django.core.urlresolvers import reverse
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
 logger = logging.getLogger(__name__)
+
+def create_slack_mpim(members_list):
+    slack_chat = SlackChat.objects.annotate(users_count=Count("slackchatmember")).filter(users_count=len(members_list))
+    for recipient in members_list:
+        slack_chat = slack_chat.filter(slackchatmember__member_id=recipient)
+
+    if slack_chat.count() == 0:
+        if len(members_list) < 2:
+            logger.info("Unable to create a new chat for %s - not enough members", members_list)
+            return
+        logger.info("Trying to create a new Slack group chat with %s.", members_list)
+        slack_chat_details = slack.mpim.open(u",".join(members_list))
+        chat_id = slack_chat_details.body["group"]["id"]
+        slack_chat = SlackChat(chat_id=chat_id)
+        slack_chat.save()
+        for member in members_list:
+            SlackChatMember(slack_chat=slack_chat, member_id=member).save()
+        logger.info("Created a new slack.mpim for %s.", members_list)
+    else:
+        slack_chat = slack_chat[0]
+        chat_id = slack_chat.chat_id
+    return chat_id
+
+def send_unsubmitted_hours_notifications():
+    today = datetime.date.today()
+    for user in FeetUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
+        message = """<%s|You> have unsubmitted hours: %s hour markings with total of %s hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""" % (reverse("person", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
+        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).order_by("date")
+        for unsubmitted_hour in unsubmitted_hours:
+            project_name_field = "%s - %s" % (unsubmitted_hour.client, unsubmitted_hour.project)
+            if unsubmitted_hour.project_m:
+                project_name_field = "<https://solinor-finance.herokuapp.com%s|%s>" % (reverse("project", args=(unsubmitted_hour.project_m.guid,)), project_name_field)
+            message += "\n- %s - %s - %s - %s - %sh - %s" % (unsubmitted_hour.date, project_name_field, unsubmitted_hour.category, unsubmitted_hour.phase_name, unsubmitted_hour.incurred_hours, unsubmitted_hour.notes)
+        if not user.slack_id:
+            logger.warning("No slack_id for %s", user.email)
+            continue
+
+        members_list = set([user.slack_id] + settings.SLACK_NOTIFICATIONS_ADMIN)
+        chat_id = create_slack_mpim(members_list)
+        if not chat_id:
+            logger.warning("No chat_id for %s - %s", user.email, members_list)
+            continue
+        logger.info("%s - %s", chat_id, message)
+        slack.chat.post_message(chat_id, message)
+
 
 def send_unapproved_hours_notifications(year, month):
     for project in Project.objects.all().filter(hourentry__approved=False, hourentry__date__year=year, hourentry__date__month=month).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
@@ -19,27 +65,11 @@ def send_unapproved_hours_notifications(year, month):
             logger.warning("Unapproved hours in %s, but no admin users specified.", project.project_id)
             continue
 
-        slack_chat = SlackChat.objects.annotate(admin_users_count=Count("members")).filter(admin_users_count=admin_users_count)
-        for recipient in admin_users:
-            slack_chat = slack_chat.filter(members=recipient)
-
-        if slack_chat.count() == 0:
-            members_list = set([member.slack_id for member in project.admin_users.all() if member.slack_id] + settings.SLACK_NOTIFICATIONS_ADMIN)
-            if len(members_list) < 2:
-                logger.info("Unable to create a new chat for %s - not enough members: %s.", project.project_id, members_list)
-                continue
-            logger.info("Trying to create a new Slack group chat with %s.", members_list)
-            slack_chat_details = slack.mpim.open(u",".join(members_list))
-            chat_id = slack_chat_details.body["group"]["id"]
-            slack_chat = SlackChat(chat_id=chat_id)
-            slack_chat.save()
-            for admin_user in admin_users:
-                slack_chat.members.add(admin_user)
-            slack_chat.save()
-            logger.info("Created a new slack.mpim for %s.", members_list)
-        else:
-            slack_chat = slack_chat[0]
-            chat_id = slack_chat.chat_id
+        members_list = set([member.slack_id for member in project.admin_users.all() if member.slack_id] + settings.SLACK_NOTIFICATIONS_ADMIN)
+        chat_id = create_slack_mpim(members_list)
+        if not chat_id:
+            logger.warning("No chat_id for %s - %s", project, members_list)
+            continue
         logger.info(u"%s %s", message, chat_id)
         slack.chat.post_message(chat_id, message)
 

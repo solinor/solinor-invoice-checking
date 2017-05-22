@@ -363,7 +363,14 @@ class SlackNotification(models.Model):
 
 class SlackChat(models.Model):
     chat_id = models.CharField(max_length=50, primary_key=True, editable=False)
-    members = models.ManyToManyField("FeetUser")
+
+
+class SlackChatMember(models.Model):
+    slack_chat = models.ForeignKey("SlackChat")
+    member_id = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = (("slack_chat", "member_id"),)
 
 
 def gen_auth_token():
