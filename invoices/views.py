@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count, Sum, Q
+from django.db.models.functions import TruncMonth
 
 from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
 
@@ -350,6 +351,26 @@ def project_details(request, project_id):
         "project": project,
     }
     return render(request, "project_details.html", context)
+
+
+@login_required
+def project_charts(request, project_id):
+    project = get_object_or_404(Project, guid=project_id)
+    linecharts = []
+    year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
+    entries = project.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+    hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"], entry["money"]) for entry in entries]
+
+    money_per_month = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in money_per_month]
+    linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
+    money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in money_per_month]
+    linecharts.append(("incurred_money", "Incurred money per month", json.dumps(money_per_month_data)))
+    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in money_per_month]
+    linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
+
+    return render(request, "project_charts.html", {"hours_calendar_data": hours_calendar_data, "project": project, "linecharts": linecharts})
+
 
 
 @login_required
