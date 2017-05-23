@@ -35,7 +35,7 @@ def create_slack_mpim(members_list):
 def send_unsubmitted_hours_notifications():
     today = datetime.date.today()
     for user in FeetUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
-        message = """<https://solinor-finance.herokuapp.com%s|You> have unsubmitted hours: %s hour markings with total of %s hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""" % (reverse("person", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
+        message = """<https://solinor-finance.herokuapp.com%s|You> have *unsubmitted hours*: %s hour markings with total of %s hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""" % (reverse("person", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).order_by("date")
         for unsubmitted_hour in unsubmitted_hours:
             project_name_field = "%s - %s" % (unsubmitted_hour.client, unsubmitted_hour.project)
