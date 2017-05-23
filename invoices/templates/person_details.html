@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ person.display_name }}{% endblock %}
+{% block header %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load("current", {packages:["calendar"]});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  var dataTable = new google.visualization.DataTable();
+  dataTable.addColumn({ type: 'date', id: 'Date' });
+  dataTable.addColumn({ type: 'number', id: 'Hours' });
+  dataTable.addRows([
+    {% for entry in hours_calendar_data %}[{{ entry.0 }}, {{ entry.1 }}], {% endfor %}
+  ]);
+  var chart = new google.visualization.Calendar(document.getElementById('hours_calendar'));
+  var options = {
+    title: "Incurred hours per day",
+    height: 350,
+  };
+
+  chart.draw(dataTable, options);
+
+  var dataTable = new google.visualization.DataTable();
+  dataTable.addColumn({ type: 'date', id: 'Date' });
+  dataTable.addColumn({ type: 'number', id: 'Money' });
+  dataTable.addRows([
+    {% for entry in hours_calendar_data %}[{{ entry.0 }}, {{ entry.2 }}], {% endfor %}
+  ]);
+  var chart = new google.visualization.Calendar(document.getElementById('money_calendar'));
+  var options = {
+    title: "Incurred billing per day",
+    height: 350,
+  };
+  chart.draw(dataTable, options);
+}
+</script>
+{% endblock %}
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url 'people' %}">People</a></li>
+  <li class="active">Person: {{ person.first_name }}</li>
+</ol>
+
+<h2>{{ person.display_name }}</h2>
+
+
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-md-12">
+  <div class="dropdown" style="display: inline-block">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      Select month
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      {% for entries_month in months %}
+      <li><a href="{% url "person" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+    <a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div id="hours_calendar"></div>
+    <div id="money_calendar"></div>
+
+  </div>
+</div>
+{% endblock %}

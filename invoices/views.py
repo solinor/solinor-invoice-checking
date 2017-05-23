@@ -174,7 +174,17 @@ def customer_view_hours(request, auth_token, year, month):
 
 
 @login_required
-def person_details(request, year, month, user_guid):
+def person_details(request, user_guid):
+    person = get_object_or_404(FeetUser, guid=user_guid)
+    year_ago = datetime.date.today() - datetime.timedelta(days=365)
+    entries = person.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+    hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"], entry["money"]) for entry in entries]
+    months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
+
+    return render(request, "person_details.html", {"entries": entries, "person": person, "hours_calendar_data": hours_calendar_data, "months": months})
+
+@login_required
+def person_details_month(request, year, month, user_guid):
     year = int(year)
     month = int(month)
     person = get_object_or_404(FeetUser, guid=user_guid)

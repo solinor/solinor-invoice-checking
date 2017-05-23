@@ -12,7 +12,8 @@ $('#person-hours a').click(function (e) {
 <ol class="breadcrumb">
   <li><a href="{% url 'frontpage' %}">Home</a></li>
   <li><a href="{% url 'people' %}">People</a></li>
-  <li class="active">Person: {{ person.first_name }}</li>
+  <li><a href="{% url 'person_details' person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="active">{{ year }}-{{ month }}</li>
 </ol>
 
 <h2>{{ person.display_name }} - {{ year }}-{{ month }}</h2>
