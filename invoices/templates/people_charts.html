@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block header %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load("current", {packages:["calendar", "corechart"]});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  {% include "snippets/calendar_charts.js" %}
+  {% include "snippets/line_charts.js" %}
+</script>
+{% endblock %}
+
+{% block title %}People - Solinor{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url 'people' %}">People</a></li>
+  <li class="active">Charts</li>
+</ol>
+
+<h2>Overview</h2>
+
+<div class="row">
+  <div class="col-md-12">
+    {% include "snippets/calendar_charts.html" %}
+    {% include "snippets/line_charts.html" %}
+  </div>
+</div>
+
+{% endblock %}
