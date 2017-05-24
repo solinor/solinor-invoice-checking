@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block header %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load("current", {packages:["treemap"]});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  {% include "snippets/treemap_charts.js" %}
+</script>
+{% endblock %}
+
+{% block title %}People - Solinor{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url 'hours_list' %}">Hours</a></li>
+  <li class="active">Charts</li>
+</ol>
+
+<h2>Overview</h2>
+
+<div class="row">
+  <div class="col-md-12">
+    {% include "snippets/treemap_charts.html" %}
+  </div>
+</div>
+
+{% endblock %}

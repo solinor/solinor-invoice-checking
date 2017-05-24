@@ -365,6 +365,43 @@ def project_details(request, project_id):
     }
     return render(request, "project_details.html", context)
 
+
+@login_required
+def hours_charts(request):
+    treemaps = []
+    data = [['Project', 'Client', 'Hours', 'Diff from last month'], ["All", None, 0, 0]]
+    today = datetime.date.today()
+    month_ago = today - datetime.timedelta(days=30)
+    two_months_ago = month_ago - datetime.timedelta(days=30)
+    for entry in HourEntry.objects.filter(date__gte=month_ago).order_by("client").values("client").distinct("client"):
+        data.append((entry["client"], "All", 0, 0))
+
+    entries_for_past_month = HourEntry.objects.filter(date__gte=month_ago, date__lte=today).order_by("project").values("project").annotate(hours=Sum("incurred_hours")).values("project", "client", "hours")
+    entries_before_past_month =  HourEntry.objects.filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project").values("project").annotate(hours=Sum("incurred_hours")).values("project", "client", "hours")
+
+    per_project_data = {}
+    for entry in entries_for_past_month:
+        k = "%s - %s" % (entry["client"], entry["project"])
+        per_project_data[k] = {"1m": entry}
+
+    for entry in entries_before_past_month:
+        k = "%s - %s" % (entry["client"], entry["project"])
+        if k in per_project_data:
+            per_project_data[k]["2m"] = entry
+
+
+    for entry in per_project_data.values():
+        if "2m" in entry:
+            diff = entry["2m"]["hours"] - entry["1m"]["hours"]
+        else:
+            diff = 0
+
+        data.append((entry["1m"]["project"], entry["1m"]["client"], entry["1m"]["hours"], diff))
+
+    treemaps.append(("projects_treemap", "Projects for past 30 days", json.dumps(data)))
+
+    return render(request, "hours_charts.html", {"treemap_charts": treemaps})
+
 @login_required
 def people_charts(request):
     linecharts = []
@@ -376,13 +413,13 @@ def people_charts(request):
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type="Sick leave").order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+    entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type="Sick leave").order_by("date").values("date").annotate(hours=Count("incurred_hours")).annotate(money=Sum("incurred_money"))
     hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"]) for entry in entries]
-    calendar_charts.append(("sick_leaves_calendar", "Sick leave hours per day", "Hours", hours_calendar_data))
+    calendar_charts.append(("sick_leaves_calendar", "People on sick leave per day", "Hours", hours_calendar_data))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type="Annual holiday").order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+    entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type__in=["Annual holiday", "Flex time Leave", "Other paid leave", "Parental leave", "Unpaid leave", "Vuosiloma"]).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
     hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"]) for entry in entries]
-    calendar_charts.append(("annual_holiday_calendar", "Annual holiday hours per day", "Hours", hours_calendar_data))
+    calendar_charts.append(("annual_holiday_calendar", "Holiday hours per day", "Hours", hours_calendar_data))
 
 
     money_per_month = HourEntry.objects.filter(date__gte=year_ago).filter(billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")

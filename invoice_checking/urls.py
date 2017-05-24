@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^amazon_invoice/(?P<linked_account_id>[0-9A-Fa-f-]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})$', invoices.views.amazon_invoice, name="amazon_invoice"),
     url(r'^amazon$', invoices.views.amazon_overview, name="amazon_overview"),
     url(r'^hours$', invoices.views.hours_list, name="hours_list"),
+    url(r'^hours/charts$', invoices.views.hours_charts, name="hours_charts"),
     url(r'^people$', invoices.views.people_list, name='people'),
     url(r'^people/charts$', invoices.views.people_charts, name='people_charts'),
     url(r'^person/(?P<user_guid>[0-9A-Fa-f-]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})', invoices.views.person_details_month, name='person'),
