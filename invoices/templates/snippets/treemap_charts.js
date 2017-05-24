@@ -13,4 +13,3 @@ var options = {
 var chart = new google.visualization.TreeMap(document.getElementById('{{ treemap.0 }}'));
 chart.draw(data, options);
 {% endfor %}
-}
