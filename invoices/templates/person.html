@@ -39,6 +39,7 @@ $('#person-hours a').click(function (e) {
     <a href="{% url "amazon_invoice" account.linked_account_id year month %}" role="button" class="btn btn-info">Amazon: {{ account.name }}</a>
     {% endfor %}
     {% endif %}
+    <a class="btn btn-info" href="{% url 'person_details' person.guid %}">Charts</a>
   </div>
 </div>
 

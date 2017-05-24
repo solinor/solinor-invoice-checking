@@ -8,13 +8,25 @@
   <li class="active">People</li>
 </ol>
 
-<p class="well">This table is excluding all leaves.</p>
+<h2>People</h2>
 
-<form method="get" action="?">
-  <input type="number" name="month" value="{{ month }}">
-  <input type="number" name="year" value="{{ year }}">
-  <button type="submit" class="btn btn-primary">Choose time</button>
-</form>
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-md-12">
+    <a class="btn btn-info" href="{% url 'people_charts' %}">Charts</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <p class="well">This table is excluding all leaves.</p>
+
+    <form method="get" action="?">
+      <input type="number" name="month" value="{{ month }}">
+      <input type="number" name="year" value="{{ year }}">
+      <button type="submit" class="btn btn-primary">Choose time</button>
+    </form>
+  </div>
+</div>
 
 <table class="table table-striped">
   <thead>
