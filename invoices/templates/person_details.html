@@ -7,32 +7,7 @@ google.charts.load("current", {packages:["calendar"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  var dataTable = new google.visualization.DataTable();
-  dataTable.addColumn({ type: 'date', id: 'Date' });
-  dataTable.addColumn({ type: 'number', id: 'Hours' });
-  dataTable.addRows([
-    {% for entry in hours_calendar_data %}[{{ entry.0 }}, {{ entry.1 }}], {% endfor %}
-  ]);
-  var chart = new google.visualization.Calendar(document.getElementById('hours_calendar'));
-  var options = {
-    title: "Incurred hours per day",
-    height: 350,
-  };
-
-  chart.draw(dataTable, options);
-
-  var dataTable = new google.visualization.DataTable();
-  dataTable.addColumn({ type: 'date', id: 'Date' });
-  dataTable.addColumn({ type: 'number', id: 'Money' });
-  dataTable.addRows([
-    {% for entry in hours_calendar_data %}[{{ entry.0 }}, {{ entry.2 }}], {% endfor %}
-  ]);
-  var chart = new google.visualization.Calendar(document.getElementById('money_calendar'));
-  var options = {
-    title: "Incurred billing per day",
-    height: 350,
-  };
-  chart.draw(dataTable, options);
+  {% include "snippets/calendar_charts.js" %}
 }
 </script>
 {% endblock %}
@@ -65,9 +40,7 @@ function drawChart() {
 
 <div class="row">
   <div class="col-md-12">
-    <div id="hours_calendar"></div>
-    <div id="money_calendar"></div>
-
+    {% include "snippets/calendar_charts.html" %}
   </div>
 </div>
 {% endblock %}

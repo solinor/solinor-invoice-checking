@@ -178,18 +178,31 @@ def customer_view_hours(request, auth_token, year, month):
 def person_details(request, user_guid):
     person = get_object_or_404(FeetUser, guid=user_guid)
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(day=1, month=1)
-    entries = person.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
-    hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"], entry["money"]) for entry in entries]
+    entries = person.hourentry_set
+    filters = request.GET.get("filters", "").split(",")
+    if "exclude_leaves" in filters:
+        entries = entries.exclude(client="[none]")
+    if "exclude_nonbillable" in filters:
+        entries = entries.exclude(billable=False)
+
+    entries = entries.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+
+    calendar_charts = []
+    hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"]) for entry in entries]
+    money_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["money"]) for entry in entries]
+    calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
+    calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
+
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
-    return render(request, "person_details.html", {"entries": entries, "person": person, "hours_calendar_data": hours_calendar_data, "months": months})
+    return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months})
 
 @login_required
 def person_details_month(request, year, month, user_guid):
     year = int(year)
     month = int(month)
     person = get_object_or_404(FeetUser, guid=user_guid)
-    entries = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
+    entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
     if len(entries) > 0:
         user_name = entries[0].user_name
@@ -359,7 +372,12 @@ def project_charts(request, project_id):
     linecharts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
     entries = project.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
-    hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"], entry["money"]) for entry in entries]
+    hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"]) for entry in entries]
+    money_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["money"]) for entry in entries]
+    calendar_charts = []
+    calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
+    calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
+
 
     money_per_month = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in money_per_month]
@@ -369,8 +387,7 @@ def project_charts(request, project_id):
     hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in money_per_month]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
-    return render(request, "project_charts.html", {"hours_calendar_data": hours_calendar_data, "project": project, "linecharts": linecharts})
-
+    return render(request, "project_charts.html", {"calendar_charts": calendar_charts, "project": project, "line_charts": linecharts})
 
 
 @login_required

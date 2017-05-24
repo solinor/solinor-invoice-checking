@@ -7,46 +7,8 @@ google.charts.load("current", {packages:["calendar", "corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  var dataTable = new google.visualization.DataTable();
-  dataTable.addColumn({ type: 'date', id: 'Date' });
-  dataTable.addColumn({ type: 'number', id: 'Hours' });
-  dataTable.addRows([
-    {% for entry in hours_calendar_data %}[{{ entry.0 }}, {{ entry.1 }}], {% endfor %}
-  ]);
-  var chart = new google.visualization.Calendar(document.getElementById('hours_calendar'));
-  var options = {
-    title: "Incurred hours per day",
-    height: 350,
-  };
-  chart.draw(dataTable, options);
-
-  var dataTable = new google.visualization.DataTable();
-  dataTable.addColumn({ type: 'date', id: 'Date' });
-  dataTable.addColumn({ type: 'number', id: 'Hours' });
-  dataTable.addRows([
-    {% for entry in hours_calendar_data %}[{{ entry.0 }}, {{ entry.2 }}], {% endfor %}
-  ]);
-  var chart = new google.visualization.Calendar(document.getElementById('money_calendar'));
-  var options = {
-    title: "Incurred money per day",
-    height: 350,
-  };
-  chart.draw(dataTable, options);
-
-  {% for linechart in linecharts %}
-  var data = google.visualization.arrayToDataTable({{ linechart.2|safe }});
-  var options = {
-   title: '{{ linechart.1 }}',
-   curveType: 'function',
-   height: 400,
-   legend: {
-     position: "none",
-   }
-  };
-  var chart = new google.visualization.LineChart(document.getElementById('{{ linechart.0 }}'));
-  chart.draw(data, options);
-  {% endfor %}
-}
+  {% include "snippets/calendar_charts.js" %}
+  {% include "snippets/line_charts.js" %}
 </script>
 {% endblock %}
 
@@ -64,11 +26,8 @@ function drawChart() {
 
 <div class="row">
   <div class="col-md-12">
-    <div id="hours_calendar"></div>
-    <div id="money_calendar"></div>
-    {% for linechart in linecharts %}
-      <div id="{{ linechart.0 }}"></div>
-    {% endfor %}
+    {% include "snippets/calendar_charts.html" %}
+    {% include "snippets/line_charts.html" %}
   </div>
 </div>
 
