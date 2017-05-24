@@ -3,11 +3,12 @@
 {% block header %}
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
-google.charts.load("current", {packages:["calendar"]});
+google.charts.load("current", {packages:["calendar", "treemap"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
   {% include "snippets/calendar_charts.js" %}
+  {% include "snippets/treemap_charts.js" %}
 }
 </script>
 {% endblock %}
@@ -41,6 +42,7 @@ function drawChart() {
 <div class="row">
   <div class="col-md-12">
     {% include "snippets/calendar_charts.html" %}
+    {% include "snippets/treemap_charts.html" %}
   </div>
 </div>
 {% endblock %}

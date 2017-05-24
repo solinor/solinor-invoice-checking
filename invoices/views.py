@@ -24,6 +24,7 @@ from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
 from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, get_aws_entries
 import invoices.date_utils as date_utils
+from invoices.chart_utils import gen_treemap_data
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -193,9 +194,13 @@ def person_details(request, user_guid):
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
+    treemaps = []
+
+    treemaps.append(gen_treemap_data(person.hourentry_set.all()))
+
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
-    return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months})
+    return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
 
 @login_required
 def person_details_month(request, year, month, user_guid):
@@ -369,55 +374,7 @@ def project_details(request, project_id):
 @login_required
 def hours_charts(request):
     treemaps = []
-    data = [['Project', 'Client', 'Hours', 'Diff from last month'], ["All", None, 0, 0]]
-    today = datetime.date.today()
-    month_ago = today - datetime.timedelta(days=30)
-    two_months_ago = month_ago - datetime.timedelta(days=30)
-    for entry in HourEntry.objects.filter(date__gte=month_ago).order_by("client").values("client").distinct("client"):
-        data.append((entry["client"], "All", 0, 0))
-
-    entries_for_past_month = HourEntry.objects.filter(date__gte=month_ago, date__lte=today).order_by("project").values("project").annotate(hours=Sum("incurred_hours")).values("project", "client", "hours")
-    entries_before_past_month =  HourEntry.objects.filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project").values("project").annotate(hours=Sum("incurred_hours")).values("project", "client", "hours")
-
-    per_person_entries_for_past_month = HourEntry.objects.exclude(client="[none]").filter(date__gte=month_ago, date__lte=today).order_by("project").values("project", "user_name").annotate(hours=Sum("incurred_hours")).values("user_name", "project", "client", "hours")
-    per_person_entries_before_past_month = HourEntry.objects.exclude(client="[none]").filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project").values("project", "user_name").annotate(hours=Sum("incurred_hours")).values("user_name", "project", "client", "hours")
-
-    per_project_data = {}
-    for entry in entries_for_past_month:
-        k = "%s - %s" % (entry["client"], entry["project"])
-        per_project_data[k] = {"1m": entry}
-
-    for entry in entries_before_past_month:
-        k = "%s - %s" % (entry["client"], entry["project"])
-        if k in per_project_data:
-            per_project_data[k]["2m"] = entry
-
-    for entry in per_project_data.values():
-        if "2m" in entry:
-            diff = entry["2m"]["hours"] - entry["1m"]["hours"]
-        else:
-            diff = 0
-        data.append((entry["1m"]["project"], entry["1m"]["client"], entry["1m"]["hours"], diff))
-
-    per_user_data = {}
-    for entry in per_person_entries_for_past_month:
-        k = "%s - %s - %s" % (entry["user_name"], entry["client"], entry["project"])
-        per_user_data[k] = {"1m": entry}
-
-    for entry in per_person_entries_before_past_month:
-        k = "%s - %s - %s" % (entry["user_name"], entry["client"], entry["project"])
-        if k in per_user_data:
-            per_user_data[k]["2m"] = entry
-
-    for entry in per_user_data.values():
-        if "2m" in entry:
-            diff = entry["2m"]["hours"] - entry["1m"]["hours"]
-        else:
-            diff = 0
-        data.append((u"%s - %s" % (entry["1m"]["user_name"], entry["1m"]["project"]), entry["1m"]["project"], entry["1m"]["hours"], diff))
-
-    treemaps.append(("projects_treemap", "Projects for past 30 days", json.dumps(data)))
-
+    treemaps.append(gen_treemap_data(HourEntry.objects.all()))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps})
 
 @login_required
