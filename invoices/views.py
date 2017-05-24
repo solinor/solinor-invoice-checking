@@ -209,10 +209,6 @@ def person_details_month(request, year, month, user_guid):
     person = get_object_or_404(FeetUser, guid=user_guid)
     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
-    if len(entries) > 0:
-        user_name = entries[0].user_name
-    else:
-        user_name = user_email
     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
 
 
