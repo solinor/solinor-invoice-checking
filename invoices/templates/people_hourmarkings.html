@@ -26,7 +26,7 @@
         <td><a href="{% url 'person' guid today.year today.month %}">{{ person.name }}</a></td>
         <td>{{ person.sum_of_hours }}</td>
         {% for day in person.days %}
-        <td>{{ day.hours }}</td>
+        <td>{% if day.hours > 0 %}{{ day.hours }}{% endif %}</td>
         {% endfor %}
       </tr>
     {% endfor %}
