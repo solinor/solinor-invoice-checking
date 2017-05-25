@@ -24,7 +24,7 @@ from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import *
 from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, get_aws_entries
 import invoices.date_utils as date_utils
-from invoices.chart_utils import gen_treemap_data
+from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -196,7 +196,7 @@ def person_details(request, user_guid):
 
     treemaps = []
 
-    treemaps.append(gen_treemap_data(person.hourentry_set.all()))
+    treemaps.append(gen_treemap_data_projects(person.hourentry_set.all()))
 
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
@@ -370,7 +370,10 @@ def project_details(request, project_id):
 @login_required
 def hours_charts(request):
     treemaps = []
-    treemaps.append(gen_treemap_data(HourEntry.objects.all()))
+    treemaps.append(gen_treemap_data_projects(HourEntry.objects.all()))
+    treemaps.append(gen_treemap_data_projects(HourEntry.objects.all(), "incurred_money", "Money"))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.all()))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.all(), "incurred_money", "Money"))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps})
 
 @login_required
