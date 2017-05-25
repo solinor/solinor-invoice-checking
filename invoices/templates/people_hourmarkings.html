@@ -7,8 +7,16 @@
   <thead>
     <tr>
       <th></th>
+      <th>&Sigma;</th>
       {% for day in days %}
       <th>{{ day.date }}</th>
+      {% endfor %}
+    </tr>
+    <tr>
+      <th></th>
+      <th></th>
+      {% for day in days %}
+      <th>{{ day.weekday }}</th>
       {% endfor %}
     </tr>
   </thead>
@@ -16,6 +24,7 @@
     {% for guid, person in people.items %}
       <tr>
         <td><a href="{% url 'person' guid today.year today.month %}">{{ person.name }}</a></td>
+        <td>{{ person.sum_of_hours }}</td>
         {% for day in person.days %}
         <td>{{ day.hours }}</td>
         {% endfor %}

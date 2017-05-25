@@ -425,7 +425,7 @@ def people_hourmarkings(request):
     days = []
     d = period_start
     while True:
-        days.append({"date": d, "hours": 0})
+        days.append({"date": d, "hours": 0, "weekday": d.strftime("%a")})
         d += datetime.timedelta(days=1)
         if d > today:
             break
@@ -435,10 +435,12 @@ def people_hourmarkings(request):
         guid = hour_marking["user_m__guid"]
         if guid not in people:
             people[guid] = {"name": hour_marking["user_name"],
-                            "days": copy.deepcopy(days)}
+                            "days": copy.deepcopy(days),
+                            "sum_of_hours": 0}
         for i, d in enumerate(people[guid]["days"]):
             if d["date"] == hour_marking["date"]:
                 people[guid]["days"][i]["hours"] += hour_marking["hours"]
+                people[guid]["sum_of_hours"] += hour_marking["hours"]
     return render(request, "people_hourmarkings.html", {"people": people, "days": days, "today": today})
 
 
