@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Hour markings for past 30 days</h2>
+
+<table class="table table-condensed table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      {% for day in days %}
+      <th>{{ day.date }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for guid, person in people.items %}
+      <tr>
+        <td><a href="{% url 'person' guid today.year today.month %}">{{ person.name }}</a></td>
+        {% for day in person.days %}
+        <td>{{ day.hours }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

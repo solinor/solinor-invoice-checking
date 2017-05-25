@@ -3,6 +3,7 @@
 import datetime
 import redis
 import json
+import copy
 
 from collections import defaultdict
 
@@ -414,6 +415,31 @@ def people_charts(request):
     calendar_charts.append(("sick_leaves_calendar", "People on sick leave per day", "People", hours_calendar_data))
 
     return render(request, "people_charts.html", {"calendar_charts": calendar_charts, "line_charts": linecharts})
+
+
+@login_required
+def people_hourmarkings(request):
+    today = datetime.date.today()
+    period_start = today - datetime.timedelta(days=30)
+    hour_markings = HourEntry.objects.filter(date__gte=period_start).exclude(user_m=None).values("user_m__guid", "user_name", "date").annotate(hours=Sum("incurred_hours"))
+    days = []
+    d = period_start
+    while True:
+        days.append({"date": d, "hours": 0})
+        d += datetime.timedelta(days=1)
+        if d > today:
+            break
+    print days
+    people = {}
+    for hour_marking in hour_markings:
+        guid = hour_marking["user_m__guid"]
+        if guid not in people:
+            people[guid] = {"name": hour_marking["user_name"],
+                            "days": copy.deepcopy(days)}
+        for i, d in enumerate(people[guid]["days"]):
+            if d["date"] == hour_marking["date"]:
+                people[guid]["days"][i]["hours"] += hour_marking["hours"]
+    return render(request, "people_hourmarkings.html", {"people": people, "days": days, "today": today})
 
 
 @login_required
