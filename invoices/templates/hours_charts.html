@@ -3,11 +3,13 @@
 {% block header %}
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
-google.charts.load("current", {packages:["treemap"]});
+google.charts.load("current", {packages:["treemap", "corechart", "calendar"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
   {% include "snippets/treemap_charts.js" %}
+  {% include "snippets/line_charts.js" %}
+  {% include "snippets/calendar_charts.js" %}
 }
 </script>
 {% endblock %}
@@ -23,9 +25,17 @@ function drawChart() {
 
 <h2>Overview</h2>
 
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-md-12">
+    <a class="btn btn-info" href="{% url 'people_charts' %}">Charts for people</a>
+  </div>
+</div>
+
 <div class="row">
   <div class="col-md-12">
     {% include "snippets/treemap_charts.html" %}
+    {% include "snippets/line_charts.html" %}
+    {% include "snippets/calendar_charts.html" %}
   </div>
 </div>
 

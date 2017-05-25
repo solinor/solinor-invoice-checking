@@ -14,7 +14,15 @@
   <li><a href="{% url 'frontpage' %}">Home</a></li>
   <li class="active"><a href="{% url 'projects_list' %}">Projects</a></li>
 </ol>
+
 <h2>Projects</h2>
+
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-md-12">
+    <a class="btn btn-info" href="{% url 'people_charts' %}">Charts for people</a>
+    <a class="btn btn-info" href="{% url 'hours_charts' %}">Charts for hours</a>
+  </div>
+</div>
 
 <form action="" method="get" class="form-inline">
   {% for field in filters.form %}

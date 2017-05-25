@@ -11,4 +11,3 @@
   var chart = new google.visualization.LineChart(document.getElementById('{{ linechart.0 }}'));
   chart.draw(data, options);
   {% endfor %}
-}

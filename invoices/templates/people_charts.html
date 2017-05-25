@@ -9,6 +9,7 @@ google.charts.setOnLoadCallback(drawChart);
 function drawChart() {
   {% include "snippets/calendar_charts.js" %}
   {% include "snippets/line_charts.js" %}
+}
 </script>
 {% endblock %}
 
@@ -22,6 +23,12 @@ function drawChart() {
 </ol>
 
 <h2>Overview</h2>
+
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-md-12">
+    <a class="btn btn-info" href="{% url 'hours_charts' %}">Charts for hours</a>
+  </div>
+</div>
 
 <div class="row">
   <div class="col-md-12">
