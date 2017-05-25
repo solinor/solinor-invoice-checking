@@ -435,8 +435,8 @@ def project_charts(request, project_id):
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
     money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Incurred money per month", json.dumps(money_per_month_data)))
-    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     entries = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
     return render(request, "project_charts.html", {"calendar_charts": calendar_charts, "project": project, "line_charts": linecharts})
