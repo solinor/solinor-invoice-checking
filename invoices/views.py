@@ -429,7 +429,6 @@ def people_hourmarkings(request):
         d += datetime.timedelta(days=1)
         if d > today:
             break
-    print days
     people = {}
     for hour_marking in hour_markings:
         guid = hour_marking["user_m__guid"]
