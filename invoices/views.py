@@ -197,6 +197,7 @@ def person_details(request, user_guid):
     treemaps = []
 
     treemaps.append(gen_treemap_data_projects(person.hourentry_set.all()))
+    treemaps.append(gen_treemap_data_projects(person.hourentry_set.filter(billable=True), "incurred_money", "Money"))
 
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
@@ -374,12 +375,13 @@ def hours_charts(request):
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
     treemaps.append(gen_treemap_data_projects(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_projects(HourEntry.objects.all(), "incurred_money", "Money"))
+    treemaps.append(gen_treemap_data_projects(HourEntry.objects.filter(billable=True), "incurred_money", "Money"))
     treemaps.append(gen_treemap_data_users(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_users(HourEntry.objects.all(), "incurred_money", "Money"))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(billable=True), "incurred_money", "Money"))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+    entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
     hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"]) for entry in entries]
+    entries = HourEntry.objects.filter(date__gte=year_ago).filter(billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
     money_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["money"]) for entry in entries]
 
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
@@ -389,9 +391,10 @@ def hours_charts(request):
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg (billable hours)", json.dumps(monthly_avg_billing)))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.filter(date__gte=year_ago).filter(billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Incurred money per month", json.dumps(money_per_month_data)))
+    entries = HourEntry.objects.filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
@@ -419,19 +422,21 @@ def project_charts(request, project_id):
     linecharts = []
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
-    entries = project.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
+    entries = project.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
     hours_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["hours"]) for entry in entries]
+    entries = project.hourentry_set.filter(date__gte=year_ago).filter(billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
     money_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["money"]) for entry in entries]
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
 
-    money_per_month = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in money_per_month]
+    entries = HourEntry.objects.filter(project_m=project).filter(billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
-    money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in money_per_month]
+    money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Incurred money per month", json.dumps(money_per_month_data)))
-    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in money_per_month]
+    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
+    entries = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
     return render(request, "project_charts.html", {"calendar_charts": calendar_charts, "project": project, "line_charts": linecharts})
@@ -469,7 +474,7 @@ def invoice_charts(request, invoice_id):
             "title": "Incurred hours per category",
         },
         "per_category_billing": {
-            "queryset": HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_money")),
+            "queryset": HourEntry.objects.values_list("category").filter(billable=True).annotate(hours=Sum("incurred_money")),
             "callback": get_chart_data,
             "title": "Incurred money per category",
         },
@@ -479,7 +484,7 @@ def invoice_charts(request, invoice_id):
             "title": "Incurred hours per person",
         },
         "per_person_billing": {
-            "queryset": HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_money")),
+            "queryset": HourEntry.objects.values_list("user_name").filter(billable=True).annotate(hours=Sum("incurred_money")),
             "callback": get_chart_data,
             "title": "Incurred money per person",
         },
