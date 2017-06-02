@@ -578,7 +578,7 @@ def invoice_page(request, invoice_id, **_):
                     InvoiceFixedEntry(invoice=invoice, price=project_fixed_entry.price, description=project_fixed_entry.description).save()
         if invoice_sent_earlier and invoice.invoice_state not in ("P", "S"):
             InvoiceFixedEntry.objects.filter(invoice=invoice).delete()
-        return HttpResponseRedirect(reverse("invoice", args=[invoice]))
+        return HttpResponseRedirect(reverse("invoice", args=[invoice.invoice_id]))
 
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
