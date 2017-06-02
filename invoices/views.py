@@ -555,14 +555,14 @@ def invoice_page(request, invoice_id, **_):
         if invoice_number:
             invoice_number = invoice_number.strip()
         comment = Comments(comments=request.POST.get("changesForInvoice"),
-                           checked=request.POST.get("invoiceChecked", False),
-                           checked_non_billable_ok=request.POST.get("nonBillableHoursOk", False),
-                           checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk", False),
-                           checked_phases_ok=request.POST.get("nonPhaseSpecificOk", False),
-                           checked_no_category_ok=request.POST.get("noCategoryOk", False),
-                           checked_changes_last_month=request.POST.get("remarkableChangesOk", False),
+                           checked=request.POST.get("invoiceChecked", False) in (True, "true", "on"),
+                           checked_non_billable_ok=request.POST.get("nonBillableHoursOk", False) in (True, "true", "on"),
+                           checked_bill_rates_ok=request.POST.get("billableIncorrectPriceOk", False) in (True, "true", "on"),
+                           checked_phases_ok=request.POST.get("nonPhaseSpecificOk", False) in (True, "true", "on"),
+                           checked_no_category_ok=request.POST.get("noCategoryOk", False) in (True, "true", "on"),
+                           checked_changes_last_month=request.POST.get("remarkableChangesOk", False) in (True, "true", "on"),
                            invoice_number=invoice_number,
-                           invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False),
+                           invoice_sent_to_customer=request.POST.get("invoiceSentToCustomer", False) in (True, "true", "on"),
                            user=request.user.email,
                            invoice=invoice)
         comment.save()
