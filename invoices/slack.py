@@ -1,8 +1,8 @@
 import logging
+import datetime
 
 import slacker
-import datetime
-from invoices.models import FeetUser, SlackChannel, Project, SlackNotification, SlackChat, SlackChatMember
+from invoices.models import FeetUser, SlackChannel, Project, SlackChat, SlackChatMember
 from django.conf import settings
 from django.db.models import Count, Sum
 from django.core.urlresolvers import reverse

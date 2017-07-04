@@ -1,8 +1,8 @@
-from invoices.models import *
-from django.db.models import Sum
-
 import datetime
 import json
+
+from django.db.models import Sum
+
 
 def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
     data = [["User", "Project", title, "Diff from last month"], ["All", None, 0, 0]]
@@ -11,7 +11,7 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
     two_months_ago = month_ago - datetime.timedelta(days=30)
 
     entries_for_past_month = queryset.filter(date__gte=month_ago, date__lte=today).order_by("user_name").values("user_name").annotate(hours=Sum(sum_by)).values("user_name", "hours")
-    entries_before_past_month =  queryset.filter(date__lte=month_ago, date__gte=two_months_ago).order_by("user_name").values("user_name").annotate(hours=Sum(sum_by)).values("user_name", "hours")
+    entries_before_past_month = queryset.filter(date__lte=month_ago, date__gte=two_months_ago).order_by("user_name").values("user_name").annotate(hours=Sum(sum_by)).values("user_name", "hours")
 
     per_user_data = {}
     for entry in entries_for_past_month:
@@ -65,7 +65,7 @@ def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours"):
         data.append((entry["client"], "All", 0, 0))
 
     entries_for_past_month = queryset.filter(date__gte=month_ago, date__lte=today).order_by("project").values("project").annotate(hours=Sum(sum_by)).values("project", "client", "hours")
-    entries_before_past_month =  queryset.filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project").values("project").annotate(hours=Sum(sum_by)).values("project", "client", "hours")
+    entries_before_past_month = queryset.filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project").values("project").annotate(hours=Sum(sum_by)).values("project", "client", "hours")
 
     per_person_entries_for_past_month = queryset.exclude(client="[none]").filter(date__gte=month_ago, date__lte=today).order_by("project", "user_name").values("project", "user_name").annotate(hours=Sum(sum_by)).values("user_name", "project", "client", "hours")
     per_person_entries_before_past_month = queryset.exclude(client="[none]").filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project", "user_name").values("project", "user_name").annotate(hours=Sum(sum_by)).values("user_name", "project", "client", "hours")

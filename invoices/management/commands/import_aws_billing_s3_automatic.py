@@ -1,7 +1,5 @@
 import datetime
-import json
 import tempfile
-import pytz
 
 import boto3
 
@@ -9,7 +7,6 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 
-from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow
 from invoices.aws_utils import import_aws_invoice
 
 

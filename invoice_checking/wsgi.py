@@ -14,4 +14,4 @@ from django.core.wsgi import get_wsgi_application  # pylint: disable=wrong-impor
 from whitenoise.django import DjangoWhiteNoise  # pylint: disable=wrong-import-position
 
 application = get_wsgi_application()  # pylint: disable=invalid-name
-application = DjangoWhiteNoise(application)  # pylint: disable=redefined-variable-type,invalid-name
+application = DjangoWhiteNoise(application)  # pylint: disable=invalid-name

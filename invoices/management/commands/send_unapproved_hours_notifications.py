@@ -1,7 +1,8 @@
+import datetime
+
 from django.core.management.base import BaseCommand
 from invoices.slack import send_unapproved_hours_notifications
 
-import datetime
 
 class Command(BaseCommand):
     help = 'Send notifications for team leads with unapproved hours'

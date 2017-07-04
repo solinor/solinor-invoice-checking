@@ -33,7 +33,7 @@ def calculate_stats_for_hours(entries):
     no_category = []
     not_approved_hours = []
     empty_descriptions = []
-    total_rows = {"hours": {"description": "Hour markings", "incurred_hours": 0, "incurred_money": 0, "bill_rate_avg": None, "currency": "EUR", "incurred_billable_hours": 0 }}
+    total_rows = {"hours": {"description": "Hour markings", "incurred_hours": 0, "incurred_money": 0, "bill_rate_avg": None, "currency": "EUR", "incurred_billable_hours": 0}}
     total_entries = 0
 
     for entry in entries:
@@ -96,7 +96,7 @@ def calculate_stats_for_hours(entries):
 def calculate_stats_for_fixed_rows(fixed_invoice_rows):
     total_rows = {}
     phases = {}
-    if len(fixed_invoice_rows) > 0:
+    if fixed_invoice_rows:
         total_rows["fixed"] = {"description": "Fixed rows", "incurred_money": 0}
         phases["Fixed"] = {"entries": {}, "billable": True}
         for item in fixed_invoice_rows:
@@ -117,12 +117,12 @@ def get_aws_entries(aws_accounts, month_start_date, month_end_date):
 def calculate_stats_for_aws_entries(aws_entries):
     phases = {}
     total_rows = {}
-    if aws_entries and len(aws_entries):
-        for aws_account, aws_entries in aws_entries.items():
+    if aws_entries:
+        for aws_account, aws_entries_list in aws_entries.items():
             account_key = u"Amazon Web Services"
             if account_key not in phases:
                 phases[account_key] = {"entries": {}, "billable": True}
-            for aws_entry in aws_entries:
+            for aws_entry in aws_entries_list:
                 total_key = "aws_%s" % aws_entry.currency
                 if total_key not in total_rows:
                     total_rows[total_key] = {"description": "Amazon billing (%s)" % aws_entry.currency, "incurred_money": 0, "currency": aws_entry.currency}

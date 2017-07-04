@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import datetime
 import uuid
 import time
 from django.db import models
@@ -246,6 +245,9 @@ class Phase(models.Model):
     project = models.ForeignKey("Project")
     phase_name = models.CharField(max_length=100)
 
+    def __unicode__(self):
+        return u"Phase: %s - %s" % (self.project, self.phase_name)
+
 
 class Comments(models.Model):
     invoice = models.ForeignKey("Invoice")
@@ -263,7 +265,7 @@ class Comments(models.Model):
     invoice_sent_to_customer = models.BooleanField(blank=True, default=False)
 
     def has_comments(self):
-        if self.comments and len(self.comments) > 0:
+        if self.comments:
             return True
         return False
 
@@ -359,6 +361,9 @@ class SlackNotification(models.Model):
     recipient = models.ForeignKey("FeetUser")
     message = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return u"%s - %s (%s)" % (self.recipient, self.message, self.sent_at)
 
 
 class SlackChat(models.Model):

@@ -1,14 +1,12 @@
 import datetime
 import logging
 
-from collections import defaultdict
-
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.conf import settings
 
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser, AmazonInvoiceRow
+from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser
 from invoices.slack import send_slack_notification
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
 
@@ -45,7 +43,6 @@ def parse_datetime(date):
 def update_users():
     logger.info("Updating users")
     tenkfeet_users = tenkfeet_api.fetch_users()
-    users_by_email = {}
     total_updated = 0
     for user in tenkfeet_users:
         user_email = user["email"]
@@ -93,7 +90,7 @@ def update_projects():
             "ends_at": parse_date(project["ends_at"]),
         }
         project_obj, created = Project.objects.update_or_create(guid=project["guid"],
-                                                          defaults=project_fields)
+                                                                defaults=project_fields)
         user_cache = {}
 
         for tag in project["tags"]["data"]:
@@ -216,7 +213,7 @@ class HourEntryUpdate(object):
                 "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
             }
             if data["incurred_hours"] == 0 or data["incurred_hours"] is None:
-                logger.debug("Skipping hour entry with 0 incurred hours: %s" % data)
+                logger.debug("Skipping hour entry with 0 incurred hours: %s", data)
                 continue
 
             self.update_range(date)
@@ -239,6 +236,7 @@ class HourEntryUpdate(object):
             entry.update_calculated_fields()
             entries.append(entry)
 
+        # TODO: this add and remove process should be atomic.
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
         # Note: this does not call .save() for entries.
         HourEntry.objects.bulk_create(entries)

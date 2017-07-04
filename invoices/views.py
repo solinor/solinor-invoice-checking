@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import redis
 import json
 import copy
-
 from collections import defaultdict
+
+import redis
+
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
@@ -17,12 +18,12 @@ from django.utils import timezone
 from django.db.models import Count, Sum, Q
 from django.db.models.functions import TruncMonth
 
-from django_tables2 import MultiTableMixin, RequestConfig, SingleTableView
+from django_tables2 import RequestConfig
 
 from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
-from invoices.tables import *
+from invoices.tables import HourListTable, CustomerHoursTable, FrontpageInvoices, ProjectsTable, ProjectDetailsTable
 from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, get_aws_entries
 import invoices.date_utils as date_utils
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
@@ -93,7 +94,7 @@ def amazon_invoice(request, linked_account_id, year, month):
 
 @login_required
 def hours_list(request):
-    if len(request.GET) == 0:
+    if not request.GET:
         today = datetime.date.today()
         month_start_date = date_utils.month_start_date(today.year, today.month)
         month_end_date = date_utils.month_end_date(today.year, today.month)
@@ -221,7 +222,7 @@ def people_list(request):
     month = int(request.GET.get("month", now.month))
     people_data = {}
     for person in FeetUser.objects.filter(archived=False):
-        people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0},  "person": person, "issues": 0}
+        people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "person": person, "issues": 0}
     for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
         if entry.user_email not in people_data:
             continue  # TODO: logging
@@ -340,17 +341,6 @@ def projects_list(request):
     }
     return render(request, "projects.html", context)
 
-    projects_processed = []
-    for i, project in enumerate(projects):
-        if project.incurred_hours and project.incurred_hours > 0 and project.incurred_money:
-            project.bill_rate_avg = project.incurred_money / project.incurred_hours
-    for i, project in enumerate(filters.qs):
-        if project.incurred_hours and project.incurred_hours > 0 and project.incurred_money:
-            project.bill_rate_avg = project.incurred_money / project.incurred_hours
-    context = {
-        "projects": filters,
-    }
-    return render(request, "projects.html", context)
 
 @login_required
 def project_details(request, project_id):
@@ -582,9 +572,6 @@ def invoice_page(request, invoice_id, **_):
 
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
-
-    month_start_date = invoice.month_start_date
-    month_end_date = invoice.month_end_date
 
     entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
     aws_entries = None

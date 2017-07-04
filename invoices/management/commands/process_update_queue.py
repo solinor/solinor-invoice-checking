@@ -1,7 +1,7 @@
 import datetime
-import redis
 import json
 import logging
+import redis
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone

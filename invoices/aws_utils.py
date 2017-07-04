@@ -1,6 +1,6 @@
 import csv
 import datetime
-from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow, Project, Invoice
+from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow, Invoice
 import pytz
 
 AWS_URLS = {
@@ -50,11 +50,11 @@ def import_aws_invoice(f, year, month):
     linked_accounts = {}
     for record in parse_aws_invoice(f):
         linked_account_id = record["LinkedAccountId"]
-        if len(record["UsageQuantity"]):
+        if record["UsageQuantity"]:
             usage_quantity = float(record["UsageQuantity"])
         else:
             usage_quantity = None
-        if len(record["TotalCost"]):
+        if record["TotalCost"]:
             total_cost = float(record["TotalCost"])
         else:
             total_cost = None
