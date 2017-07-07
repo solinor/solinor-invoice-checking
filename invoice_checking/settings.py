@@ -84,6 +84,7 @@ INSTALLED_APPS = (
     'googleauth',
     'django_tables2',
     'invoices',
+    'flex_hours',
 )
 
 if DEBUG:
