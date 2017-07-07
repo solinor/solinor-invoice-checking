@@ -13,7 +13,7 @@ class WorkContract(models.Model):
     worktime_percent = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        ordering = ("start_date", )
+        ordering = ("start_date", "user")
 
     def __unicode__(self):
         return u"%s - %s - %s - %s - %s%%" % (self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
@@ -21,10 +21,22 @@ class WorkContract(models.Model):
 class FlexTimeCorrection(models.Model):
     user = models.ForeignKey(FeetUser)
     date = models.DateField()
-    adjust_by = models.DecimalField(max_digits=6, decimal_places=2)
-    set_to = models.DecimalField(max_digits=6, decimal_places=2)
+    adjust_by = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    set_to = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s - %s: adjust by %s or set to %s" % (self.user, self.date, self.adjust_by, self.set_to)
+
+    class Meta:
+        ordering = ("date", "user",)
 
 
 class PublicHoliday(models.Model):
     name = models.CharField(max_length=100)
     date = models.DateField()
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.date, self.name)
+
+    class Meta:
+        ordering = ("date", )
