@@ -18,6 +18,10 @@ class WorkContract(models.Model):
     def __unicode__(self):
         return u"%s - %s - %s - %s - %s%%" % (self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
 
+    def __str__(self):
+        return u"%s - %s - %s - %s - %s%%" % (self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
+
+
 class FlexTimeCorrection(models.Model):
     user = models.ForeignKey(FeetUser)
     date = models.DateField()
@@ -25,6 +29,9 @@ class FlexTimeCorrection(models.Model):
     set_to = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
     def __unicode__(self):
+        return u"%s - %s: adjust by %s or set to %s" % (self.user, self.date, self.adjust_by, self.set_to)
+
+    def __str__(self):
         return u"%s - %s: adjust by %s or set to %s" % (self.user, self.date, self.adjust_by, self.set_to)
 
     class Meta:
@@ -36,6 +43,9 @@ class PublicHoliday(models.Model):
     date = models.DateField()
 
     def __unicode__(self):
+        return u"%s - %s" % (self.date, self.name)
+
+    def __str__(self):
         return u"%s - %s" % (self.date, self.name)
 
     class Meta:
