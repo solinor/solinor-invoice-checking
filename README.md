@@ -30,6 +30,41 @@ REDIS_URL="url-to-redis-instance"
 # optional, defaults to sqlite:
 DATABASE_URL="database-url"
 SECURE_SSL_REDIRECT="False"  # For local development - disable automatic redirect to https
+SLACK_BOT_ACCESS_TOKEN="slack-bot-token"
+AWS_SECRET_KEY="aws-secret-key"
+AWS_ACCESS_KEY="aws-access-key"
 ```
+
+## Local development
+
+For local development run
+
+`
+./manage.py collectstatic
+`
+
+to add static assets to the project.
+
+You can use
+
+`
+./manage.py update_projects
+`
+
+and
+
+`
+./manage.py update_users
+`
+
+To update the users and projects in the database.
+
+To actually run the program you need to start
+
+`
+./manage.py process_update_queue
+`
+
+in order to fetch the data from 10kft with the "Request data update" -button.
 
 For development, to avoid using Google authentication, modify `AUTHENTICATION_BACKENDS` from `invoice_checking/settings.py`.
