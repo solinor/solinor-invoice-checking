@@ -20,7 +20,7 @@ from django.db.models.functions import TruncMonth
 
 from django_tables2 import RequestConfig
 
-from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
+from invoices.models import HourEntry, Invoice, WeeklyReport, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import HourListTable, CustomerHoursTable, FrontpageInvoices, ProjectsTable, ProjectDetailsTable
@@ -587,8 +587,12 @@ def invoice_page(request, invoice_id, **_):
 
 
     previous_invoices = []
+    weekly_reports = []
+    recent_weekly_report = None
     if invoice.project_m:
         previous_invoices = Invoice.objects.filter(project_m=invoice.project_m)
+        weekly_reports = WeeklyReport.objects.filter(project_m=invoice.project_m, client=invoice.client)
+        recent_weekly_report = weekly_reports[0]
 
     context = {
         "today": today,
@@ -598,7 +602,9 @@ def invoice_page(request, invoice_id, **_):
         "invoice": invoice,
         "previous_invoices": previous_invoices,
         "recent_invoice": abs((datetime.date.today() - datetime.date(invoice.year, invoice.month, 1)).days) < 60,
+        "recent_weekly_report": recent_weekly_report
     }
+
     context.update(entry_data)
 
     previous_invoice_month = invoice.month - 1
@@ -614,3 +620,26 @@ def invoice_page(request, invoice_id, **_):
         pass
 
     return render(request, "invoice_page.html", context)
+
+@login_required
+def weekly_report_page(request, weekly_report_id, **_):
+    weekly_report = get_object_or_404(WeeklyReport, weekly_report_id=weekly_report_id)
+
+    today = datetime.date.today()
+    due_date = today + datetime.timedelta(days=14)
+
+    entries = HourEntry.objects.filter(weekly_report=weekly_report).filter(incurred_hours__gt=0)
+    previous_weekly_reports = []
+
+    if weekly_report.project_m:
+        previous_weekly_reports = WeeklyReport.objects.filter(project_m=weekly_report.project_m, client=weekly_report.client)
+
+    context = {
+        "today": today,
+        "due_date": due_date,
+        "entries": entries,
+        "weekly_report": weekly_report,
+        "previous_weekly_reports": previous_weekly_reports,
+    }
+
+    return render(request, "weekly_report_page.html", context)

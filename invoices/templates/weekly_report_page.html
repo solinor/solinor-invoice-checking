@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block header %}
+<link href="/static/css/invoice_page.css" rel="stylesheet">
+{% endblock %}
+
+{% block title %}{{ weekly_report.full_name }} - {{ weekly_report.date }} - Solinor{% endblock %}
+
+
+{% block content %}
+    <ol class="breadcrumb">
+      <li><a href="{% url 'frontpage' %}">Home</a></li>
+      <li><a href="{% url 'projects_list' %}">Projects</a></li>
+      <li>{% if weekly_report.project_m %}<a href="{% url 'project' weekly_report.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+    </ol>
+
+    <h2>Weekly report for {{ weekly_report.full_name }} -- {{ weekly_report.date }}</h2>
+    <div class="row" style="padding-bottom: 1em">
+      <div class="col-md-12">
+        {% if previous_weekly_reports %}
+        <div class="dropdown" style="display: inline-block">
+          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Open another weekly_report
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+            {% for previous_report in previous_weekly_reports %}
+            <li><a href="{% url "weekly_report" previous_report.weekly_report_id %}">{{ previous_report.date }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        {% include "snippets/weekly_report.html" %}
+        {% if last_month_invoice %}
+          {% include "snippets/last_month_invoice.html" %}
+        {% endif %}
+        {% include "snippets/incorrect_data.html" %}
+      </div>
+
+    </div>
+  </div>
+{% endblock %}

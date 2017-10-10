@@ -6,9 +6,9 @@ from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.conf import settings
 
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser
+from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser, WeeklyReport
 from invoices.slack import send_slack_notification
-from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
+from invoices.invoice_utils import calculate_entry_stats, get_aws_entries, calculate_weekly_entry_stats
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -122,6 +122,14 @@ def update_projects():
                 invoice.save()
                 break
 
+    for report in WeeklyReport.objects.filter(project_m=None):
+        for project in projects:
+            if project.name == report.project and project.client == report.client:
+                logger.info("Updating weekly report %s with project %s", report, project)
+                report.project_m = project
+                report.save()
+                break
+
 def get_projects():
     projects_data = {}
     for project in Project.objects.all():
@@ -136,6 +144,12 @@ def get_invoices():
         invoices_data[invoice_key] = invoice
     return invoices_data
 
+def get_weekly_reports():
+    weekly_report_data = {}
+    for weekly_report in WeeklyReport.objects.all():
+        weekly_report_key = u"%s-%s %s - %s" % (weekly_report.year, weekly_report.week, weekly_report.client, weekly_report.project)
+        weekly_report_data[weekly_report_key] = weekly_report
+    return weekly_report_data
 
 def get_users():
     users = {}
@@ -143,11 +157,11 @@ def get_users():
         users[user.email] = user
     return users
 
-
 class HourEntryUpdate(object):
     def __init__(self, start_date, end_date):
         self.logger = logging.getLogger(__name__)
         self.invoices_data = get_invoices()
+        self.weekly_report_data = get_weekly_reports()
         self.projects_data = get_projects()
         self.user_data = get_users()
         self.start_date = start_date
@@ -173,9 +187,35 @@ class HourEntryUpdate(object):
             return invoice
         else:
             logger.info("Creating a new invoice: %s", invoice_key)
-            invoice, _ = Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
+            invoice, _ = Invoice.objects.update_or_create(
+                year=data["date"].year,
+                month=data["date"].month,
+                client=data["client"],
+                project=data["project"],
+                defaults={"tags": data["project_tags"]})
             self.invoices_data[invoice_key] = invoice
             return invoice
+
+    def match_weekly_report(self, data):
+        week_number = data["date"].isocalendar()[1] # week number, 1-53
+        weekly_report_key = u"%s-%s %s - %s" % (data["date"].year, week_number, data["client"], data["project"])
+        weekly_report = self.weekly_report_data.get(weekly_report_key)
+        if weekly_report is not None:
+            logger.debug("Weekly report already exists: %s", weekly_report_key)
+            if weekly_report.tags != data["project_tags"]:
+                weekly_report.tags = data["project_tags"]
+                weekly_report.save()
+            return weekly_report
+        else:
+            logger.info("Creating a new weekly report %s", weekly_report_key)
+            weekly_report, _ = WeeklyReport.objects.update_or_create(
+                year=data["date"].year,
+                week=week_number,
+                client=data["client"],
+                project=data["project"],
+                defaults={"tags": data["project_tags"]})
+            self.weekly_report_data[weekly_report_key] = weekly_report
+            return weekly_report
 
     def match_user(self, email):
         return self.user_data.get(email)
@@ -231,6 +271,7 @@ class HourEntryUpdate(object):
             assert data["incurred_hours"] >= 0
 
             data["invoice"] = self.match_invoice(data)
+            data["weekly_report"] = self.match_weekly_report(data)
             data["user_m"] = self.match_user(data["user_email"])
             entry = HourEntry(**data)
             entry.update_calculated_fields()
@@ -277,3 +318,27 @@ def refresh_stats(start_date, end_date):
             invoice.bill_rate_avg = 0
         invoice.save()
         logger.debug("Updated statistics for %s", invoice)
+
+
+def refresh_weekly_stats(start_date, end_date):
+    if start_date and end_date:
+        weekly_reports = WeeklyReport.objects.filter(
+            year__gte=start_date.year,
+            year__lte=end_date.year,
+            week__gte=start_date.isocalendar()[1],
+            week__lte=end_date.isocalendar()[1])
+        logger.info("Updating statistics for weekly reports between %s and %s: %s invoices",
+                    start_date,
+                    end_date,
+                    weekly_reports.count())
+    else:
+        logger.info("Updating statistics for all weekly reports")
+        weekly_reports = WeeklyReport.objects.all()
+    for weekly_report in weekly_reports:
+        entries = HourEntry.objects.filter(weekly_report=weekly_report).filter(incurred_hours__gt=0)
+        aws_entries = None
+        stats = calculate_weekly_entry_stats(entries, aws_entries)
+        for field in STATS_FIELDS:
+            setattr(weekly_report, field, stats[field])
+        weekly_report.save()
+        logger.debug("Updated statistics for %s", weekly_report)

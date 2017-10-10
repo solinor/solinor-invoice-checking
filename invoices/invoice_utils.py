@@ -152,3 +152,8 @@ def calculate_entry_stats(hour_entries, fixed_invoice_rows, aws_entries=None):
     fixed_invoice_stats = calculate_stats_for_fixed_rows(fixed_invoice_rows)
     aws_stats = calculate_stats_for_aws_entries(aws_entries)
     return combine_invoice_parts(hour_stats, fixed_invoice_stats, aws_stats)
+
+def calculate_weekly_entry_stats(hour_entries, aws_entries=None):
+    hour_stats = calculate_stats_for_hours(hour_entries)
+    aws_stats = calculate_stats_for_aws_entries(aws_entries)
+    return combine_invoice_parts(hour_stats, aws_stats)
