@@ -3,6 +3,7 @@
 import datetime
 import json
 import copy
+import calendar
 from collections import defaultdict
 
 import redis
@@ -218,12 +219,22 @@ def person_details_month(request, year, month, user_guid):
 def person_details_week(request, year, week, user_guid):
      year = int(year)
      week = int(week)
-     month = 10
+     week_start = date_utils.week_start_date(year, week)
+     week_end = date_utils.week_end_date(year, week)
      person = get_object_or_404(FeetUser, guid=user_guid)
-     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year,
-                                                                     date__range=(date_utils.week_start_date(year, week), date_utils.week_end_date(year, week))).select_related("project_m", "user_m").order_by("date")
-     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "week", order="DESC")
-     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "week": week, "year": year, "stats": calculate_entry_stats(entries, [])})
+     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__range=(week_start, week_end)).select_related("project_m", "user_m").order_by("date")
+     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date","month", order="DESC")
+     weeks = set()
+     current_week = datetime.date.today().isocalendar()[1]
+     for month in months:
+         cal = calendar.Calendar()
+         monthweeks = cal.monthdatescalendar(month.year, month.month)
+         for weekdays in monthweeks:
+            week_number = weekdays[0].isocalendar()[1]
+            if week_number <= current_week:
+                weeks.add((week_number, month.year))
+     weeks_sorted = sorted(weeks, key=lambda tup: tup[0], reverse=True)
+     return render(request, "personweek.html", {"person": person, "hour_entries": entries, "weeks": weeks_sorted, "week": week, "year": year, "stats": calculate_entry_stats(entries, [])})
 
 @login_required
 def people_list(request):

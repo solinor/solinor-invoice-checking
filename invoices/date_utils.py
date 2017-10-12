@@ -18,7 +18,7 @@ def week_start_date(year, week):
 
 def week_end_date(year, week):
     date = week_start_date(year, week)
-    return date + datetime.timedelta(days=7)
+    return date + datetime.timedelta(days=6)
 
 
 def weeks_in_a_year(year):
