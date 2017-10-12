@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^people/hourmarkings$', invoices.views.people_hourmarkings, name='people_hourmarkings'),
     url(r'^people/charts$', invoices.views.people_charts, name='people_charts'),
     url(r'^person/(?P<user_guid>[0-9A-Fa-f-]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{1,2})', invoices.views.person_details_month, name='person'),
+    #url(r'^person/(?P<user_guid>[0-9A-Fa-f-]+)/(?P<year>[0-9]{4})/(?P<week>[0-9]{1,2})',invoices.views.person_details_week, name='person'),
     url(r'^person/(?P<user_guid>[0-9A-Fa-f-]+)', invoices.views.person_details, name='person_details'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^queue_update$', invoices.views.queue_update, name="queue_update"),

@@ -340,5 +340,19 @@ def refresh_weekly_stats(start_date, end_date):
         stats = calculate_weekly_entry_stats(entries, aws_entries)
         for field in STATS_FIELDS:
             setattr(weekly_report, field, stats[field])
+
+        weekly_report.incurred_money = sum(
+            [row["incurred_money"] for row in stats["total_rows"].values() if "incurred_money" in row])
+        weekly_report.incurred_hours = sum(
+            [row["incurred_hours"] for row in stats["total_rows"].values() if "incurred_hours" in row])
+        weekly_report.incurred_billable_hours = stats["total_rows"]["hours"]["incurred_billable_hours"]
+        if weekly_report.incurred_hours > 0:
+            weekly_report.billable_percentage = weekly_report.incurred_billable_hours / weekly_report.incurred_hours
+        else:
+            weekly_report.billable_percentage = 0
+        if stats["total_rows"]["hours"]["incurred_hours"] > 0:
+            weekly_report.bill_rate_avg = stats["total_rows"]["hours"]["incurred_money"] / stats["total_rows"]["hours"]["incurred_hours"]
+        else:
+            weekly_report.bill_rate_avg = 0
         weekly_report.save()
         logger.debug("Updated statistics for %s", weekly_report)

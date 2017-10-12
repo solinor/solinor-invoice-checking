@@ -147,7 +147,7 @@ def combine_invoice_parts(*combine_stats):
                 stats[k].update(v)
     return stats
 
-def calculate_entry_stats(hour_entries, fixed_invoice_rows, aws_entries=None):
+def calculate_entry_stats(hour_entries, fixed_invoice_rows=None, aws_entries=None):
     hour_stats = calculate_stats_for_hours(hour_entries)
     fixed_invoice_stats = calculate_stats_for_fixed_rows(fixed_invoice_rows)
     aws_stats = calculate_stats_for_aws_entries(aws_entries)

@@ -80,7 +80,7 @@
                   {% if details.incurred_hours > 0 %}
                     <tr class="item">
                         <td>
-                          {% if person_details.user_m and not customer_preview %}<a href="{% url 'person' person_details.user_m.guid invoice.year invoice.month %}">{{ person_details.user_name }}</a>
+                          {% if person_details.user_m and not customer_preview %}<a href="{% url 'person' person_details.user_m.guid weekly_report.year weekly_report.week %}">{{ person_details.user_name }}</a>
                           {% else %}{{ person_details.user_name }}{% endif %}
                         </td>
 

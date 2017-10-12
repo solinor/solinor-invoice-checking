@@ -35,8 +35,8 @@
     <div class="row">
       <div class="col-md-8">
         {% include "snippets/weekly_report.html" %}
-        {% if last_month_invoice %}
-          {% include "snippets/last_month_invoice.html" %}
+        {% if last_weeks_report %}
+          {% include "snippets/last_week_report.html" %}
         {% endif %}
         {% include "snippets/incorrect_data.html" %}
       </div>
