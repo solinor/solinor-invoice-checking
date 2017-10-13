@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^project/(?P<project_id>[0-9A-Fa-f-]+)$', invoices.views.project_details, name='project'),
     url(r'^project/(?P<project_id>[0-9A-Fa-f-]+)/charts$', invoices.views.project_charts, name='project_charts'),
     url(r'^invoice/(?P<invoice_id>[0-9A-Fa-f-]+)/hours$', invoices.views.invoice_hours, name='invoice_hours'),
+    url(r'^weekly_report/(?P<weekly_report_id>[0-9A-Fa-f-]+)/hours$', invoices.views.weekly_report_hours, name='weekly_report_hours'),
     url(r'^invoice/(?P<invoice_id>[0-9A-Fa-f-]+)/charts$', invoices.views.invoice_charts, name='invoice_charts'),
     url(r'^invoice/(?P<invoice_id>[0-9A-Fa-f-]+)/pdf/(?P<pdf_type>.+)$', invoices.views.get_pdf, name="get_pdf"),
     url(r'^invoice/(?P<invoice_id>[0-9A-Fa-f-]+)$', invoices.views.invoice_page, name="invoice"),

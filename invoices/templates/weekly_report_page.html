@@ -31,6 +31,7 @@
         </div>
         {% endif %}
         <a class="btn btn-info" href="{% url 'get_pdf' weekly_report.weekly_report_id 'weekly' %}" role="button">Download hours</a>
+        <a class="btn btn-info" href="{% url 'weekly_report_hours' weekly_report.weekly_report_id %}" role="button">View hours</a>
       </div>
     </div>
     <div class="row">
