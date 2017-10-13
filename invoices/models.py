@@ -187,12 +187,11 @@ class Invoice(models.Model):
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")
 
+
 class WeeklyReport(models.Model):
-    INVOICE_STATE_CHOICES = (
+    WEEKLY_REPORT_STATE_CHOIOCES = (
         ("C", "Created"),
-        ("A", "Approved"),
-        ("P", "Preview"),
-        ("S", "Sent"),
+        ("A", "Approved")
     )
 
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
@@ -220,7 +219,7 @@ class WeeklyReport(models.Model):
     incurred_billable_hours = models.FloatField(default=0)
     billable_percentage = models.FloatField(default=0)
     incurred_money = models.FloatField(default=0, verbose_name="Incurred money")
-    invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
+    weekly_report_state = models.CharField(max_length=1, choices=WEEKLY_REPORT_STATE_CHOIOCES, default='C')
 
     @property
     def week_start_date(self):
@@ -251,14 +250,10 @@ class WeeklyReport(models.Model):
         return u"%s - %s" % (self.full_name, self.date)
 
     def update_state(self, comment):
-        self.invoice_state = "C"
+        self.weekly_report_state = "C"
         if comment.checked:
-            self.invoice_state = "A"
-        if comment.invoice_number:
-            self.invoice_state = "P"
-        if comment.invoice_sent_to_customer:
-            self.invoice_state = "S"
-        return self.invoice_state
+            self.weekly_report_state = "A"
+        return self.weekly_report_state
 
     def get_tags(self):
         if self.tags:
@@ -373,6 +368,22 @@ class Phase(models.Model):
 
     def __str__(self):
         return u"Phase: %s - %s" % (self.project, self.phase_name)
+
+
+class WeeklyReportComments(models.Model):
+    weekly_report = models.ForeignKey("WeeklyReport")
+    timestamp = models.DateTimeField(auto_now_add=True)
+    checked = models.BooleanField(blank=True, default=False)
+    user = models.TextField(max_length=100)
+
+    class Meta:
+        get_latest_by = "timestamp"
+
+    def __unicode__(self):
+        return u"%s - %s - %s" % (self.weekly_report, self.timestamp, self.user)
+
+    def __str__(self):
+        return u"%s - %s - %s" % (self.weekly_report, self.timestamp, self.user)
 
 
 class Comments(models.Model):

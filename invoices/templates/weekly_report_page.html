@@ -12,6 +12,7 @@
       <li><a href="{% url 'frontpage' %}">Home</a></li>
       <li><a href="{% url 'projects_list' %}">Projects</a></li>
       <li>{% if weekly_report.project_m %}<a href="{% url 'project' weekly_report.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+      <li class="active"><a href="{% url 'weekly_report' weekly_report.weekly_report_id %}">Weekly report</a></li>
     </ol>
 
     <h2>Weekly report for {{ weekly_report.full_name }} -- {{ weekly_report.date }}</h2>
@@ -41,6 +42,11 @@
           {% include "snippets/last_week_report.html" %}
         {% endif %}
         {% include "snippets/incorrect_data.html" %}
+      </div>
+      <div class="col-md-4">
+        <div class="well">
+          {% include "snippets/weekly_report_accept.html" %}
+        </div>
       </div>
 
     </div>
