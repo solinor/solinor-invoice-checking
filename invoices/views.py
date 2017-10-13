@@ -22,7 +22,7 @@ from django_tables2 import RequestConfig
 
 from invoices.models import HourEntry, Invoice, WeeklyReport, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
-from invoices.pdf_utils import generate_hours_pdf_for_invoice
+from invoices.pdf_utils import generate_hours_pdf_for_invoice, generate_hours_pdf_for_weekly_report
 from invoices.tables import HourListTable, CustomerHoursTable, FrontpageInvoices, ProjectsTable, ProjectDetailsTable
 from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, calculate_weekly_entry_stats, get_aws_entries
 import invoices.date_utils as date_utils
@@ -214,14 +214,16 @@ def person_details_month(request, year, month, user_guid):
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
 
-# @login_required
-# def person_details_week(request, year, week, user_guid):
-#     year = int(year)
-#     week = int(week)
-#     person = get_object_or_404(FeetUser, guid=user_guid)
-#     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__week=month).select_related("project_m", "user_m").order_by("date")
-#     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
-#     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
+@login_required
+def person_details_week(request, year, week, user_guid):
+     year = int(year)
+     week = int(week)
+     month = 10
+     person = get_object_or_404(FeetUser, guid=user_guid)
+     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year,
+                                                                     date__range=(date_utils.week_start_date(year, week), date_utils.week_end_date(year, week))).select_related("project_m", "user_m").order_by("date")
+     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "week", order="DESC")
+     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "week": week, "year": year, "stats": calculate_entry_stats(entries, [])})
 
 @login_required
 def people_list(request):
@@ -287,6 +289,8 @@ def queue_update(request):
 def get_pdf(request, invoice_id, pdf_type):
     if pdf_type == "hours":
         pdf, title = generate_hours_pdf_for_invoice(request, invoice_id)
+    elif pdf_type == "weekly":
+        pdf, title = generate_hours_pdf_for_weekly_report(request, invoice_id)
     else:
         return HttpResponseBadRequest("Invalid PDF type")
 
@@ -655,7 +659,10 @@ def weekly_report_page(request, weekly_report_id, **_):
     previous_weekly_report_week = weekly_report.week - 1
     previous_weekly_report_year = weekly_report.year
     if previous_weekly_report_week == 0:
-        previous_weekly_report_week = 51
+        if date_utils.weeks_in_a_year(previous_weekly_report_year-1) == 53:
+            previous_weekly_report_week = 53
+        else:
+            previous_weekly_report_week = 52
         previous_weekly_report_year -= 1
     try:
         last_weeks_report = WeeklyReport.objects.get(
@@ -665,7 +672,7 @@ def weekly_report_page(request, weekly_report_id, **_):
             week=previous_weekly_report_week)
         context["last_weeks_report"] = last_weeks_report
         context["diff_last_week"] = last_weeks_report.compare(weekly_report)
-    except Invoice.DoesNotExist:
+    except WeeklyReport.DoesNotExist:
         pass
 
     return render(request, "weekly_report_page.html", context)
