@@ -388,6 +388,11 @@ def project_details(request, project_id):
     invoices = Invoice.objects.filter(project_m=project).exclude(Q(incurred_hours=0) & Q(incurred_money=0))
     filters = ProjectsFilter(request.GET, queryset=invoices)
     table = ProjectDetailsTable(filters.qs)
+
+    if request.method == "POST":
+        project.enable_weekly_notifications = request.POST.get("weeklyReportEnableNotifications", False) in (True, "true", "on")
+        project.save()
+
     RequestConfig(request, paginate={
         'per_page': 250
     }).configure(table)

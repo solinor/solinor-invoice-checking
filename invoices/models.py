@@ -345,6 +345,7 @@ class Project(models.Model):
     starts_at = models.DateField(null=True, blank=True)
     ends_at = models.DateField(null=True, blank=True)
     slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True)
+    enable_weekly_notifications = models.BooleanField(blank=True, default=False)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
     admin_users = models.ManyToManyField("FeetUser", blank=True)
 
