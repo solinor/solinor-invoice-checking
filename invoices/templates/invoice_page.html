@@ -54,7 +54,7 @@
       <div class="col-md-8">
         {% include "snippets/invoice.html" %}
         {% if last_month_invoice %}
-          {% include "snippets/last_month_invoice.html" %}
+          {% include "snippets/changes_between_reports.html" with  month_or_week="month" last_report=last_month_invoice this_report=invoice diff_last_report=diff_last_month %}
         {% endif %}
         {% include "snippets/incorrect_data.html" %}
       </div>

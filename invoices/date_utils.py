@@ -22,5 +22,5 @@ def week_end_date(year, week):
 
 
 def weeks_in_a_year(year):
-    last_week = datetime.date(year, 12, 28) #4th of January is always in the first week of the year.
+    last_week = datetime.date(year, 12, 28)  # 4th of January is always in the first week of the year.
     return last_week.isocalendar()[1]

@@ -26,7 +26,7 @@ from invoices.models import HourEntry, Invoice, WeeklyReport, Comments, DataUpda
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice, generate_hours_pdf_for_weekly_report
 from invoices.tables import HourListTable, CustomerHoursTable, FrontpageInvoices, ProjectsTable, ProjectDetailsTable
-from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, calculate_weekly_entry_stats, get_aws_entries
+from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, calculate_weekly_entry_stats, get_aws_entries, compare_invoices
 import invoices.date_utils as date_utils
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
 
@@ -39,6 +39,7 @@ def validate_auth_token(auth_token):
         if token.valid_until > timezone.now():
             raise Http404()
     return token
+
 
 @login_required
 def amazon_overview(request):
@@ -77,6 +78,7 @@ def amazon_overview(request):
         "linking_data_json": json.dumps(linking_data),
     }
     return render(request, "amazon_overview.html", context)
+
 
 @login_required
 def amazon_invoice(request, linked_account_id, year, month):
@@ -125,6 +127,7 @@ def customer_view(request, auth_token):
         "auth_token": auth_token,
     }
     return render(request, "customer_main.html", context)
+
 
 def customer_view_invoice(request, auth_token, year, month):
     token = validate_auth_token(auth_token)
@@ -207,6 +210,7 @@ def person_details(request, user_guid):
 
     return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
 
+
 @login_required
 def person_details_month(request, year, month, user_guid):
     year = int(year)
@@ -214,35 +218,30 @@ def person_details_month(request, year, month, user_guid):
     person = get_object_or_404(FeetUser, guid=user_guid)
     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
-    return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
+    return render(request, "person.html", {"month_or_week": "month", "person": person, "hour_entries": entries, "months": months, "report_number": month, "year": year, "stats": calculate_entry_stats(entries, [])})
+
 
 @login_required
 def person_details_week(request, year, week, user_guid):
-     year = int(year)
-     week = int(week)
-     week_start = date_utils.week_start_date(year, week)
-     week_end = date_utils.week_end_date(year, week)
-     person = get_object_or_404(FeetUser, guid=user_guid)
-     entries = person.hourentry_set.exclude(incurred_hours=0)\
-         .filter(date__year=year, date__range=(week_start, week_end))\
-         .select_related("project_m", "user_m")\
-         .order_by("date")
-     months = HourEntry.objects\
-         .filter(user_m=person)\
-         .exclude(incurred_hours=0)\
-         .dates("date","month", order="DESC")
-     weeks = set()
-     current_week = datetime.date.today().isocalendar()[1]
-     for month in months:
-         cal = calendar.Calendar()
-         monthweeks = cal.monthdatescalendar(month.year, month.month)
-         for weekdays in monthweeks:
-            week_number = weekdays[0].isocalendar()[1] #Weekdays contain all seven days of the week, choose the first (Monday)
-            if week_number <= current_week: #Do not add week numbers that are in the future
+    year = int(year)
+    week = int(week)
+    week_start = date_utils.week_start_date(year, week)
+    week_end = date_utils.week_end_date(year, week)
+    person = get_object_or_404(FeetUser, guid=user_guid)
+    entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__range=(week_start, week_end)).select_related("project_m", "user_m").order_by("date")
+    months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date","month", order="DESC")
+    weeks = set()
+    current_week = datetime.date.today().isocalendar()[1]
+    for month in months:
+        cal = calendar.Calendar()
+        monthweeks = cal.monthdatescalendar(month.year, month.month)
+        for weekdays in monthweeks:
+            week_number = weekdays[0].isocalendar()[1]  # Weekdays contain all seven days of the week, choose the first (Monday)
+            if week_number <= current_week:  # Do not add week numbers that are in the future
                 weeks.add((week_number, month.year))
-     weeks_sorted = sorted(weeks, key=lambda tup: (tup[1], tup[0]), reverse=True) #Sort first by year and then by week
-     return render(request, "personweek.html",
-                   {"person": person, "hour_entries": entries, "weeks": weeks_sorted, "week": week, "year": year, "stats": calculate_entry_stats(entries, [])})
+    weeks_sorted = sorted(weeks, key=lambda tup: (tup[1], tup[0]), reverse=True)  # Sort first by year and then by week
+    return render(request, "person.html", {"month_or_week": "week", "person": person, "hour_entries": entries, "weeks": weeks_sorted, "report_number": week, "year": year, "stats": calculate_entry_stats(entries, [])})
+
 
 @login_required
 def people_list(request):
@@ -273,8 +272,10 @@ def people_list(request):
             person["bill_rate_avg_billable"] = person["billable"]["incurred_money"] / person["billable"]["incurred_hours"]
     return render(request, "people.html", {"people": people_data, "year": year, "month": month})
 
+
 def parse_date(date_string):
     return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
+
 
 @login_required
 def queue_update(request):
@@ -309,13 +310,14 @@ def get_pdf(request, invoice_id, pdf_type):
     if pdf_type == "hours":
         pdf, title = generate_hours_pdf_for_invoice(request, invoice_id)
     elif pdf_type == "weekly":
-        pdf, title = generate_hours_pdf_for_weekly_report(request, invoice_id) #invoice_id is actually weekly_report_id
+        pdf, title = generate_hours_pdf_for_weekly_report(request, invoice_id)  # invoice_id is actually weekly_report_id
     else:
         return HttpResponseBadRequest("Invalid PDF type")
 
     response = HttpResponse(pdf, content_type="application/pdf")
     response['Content-Disposition'] = u'attachment; filename="Hours for %s.pdf"' % title
     return response
+
 
 @login_required
 def frontpage(request):
@@ -350,15 +352,17 @@ def invoice_hours(request, invoice_id):
     }
     return render(request, "invoice_hours.html", context)
 
+
 @login_required
 def weekly_report_hours(request, weekly_report_id):
-    weekly_report= get_object_or_404(WeeklyReport, weekly_report_id=weekly_report_id)
+    weekly_report = get_object_or_404(WeeklyReport, weekly_report_id=weekly_report_id)
     entries = HourEntry.objects.filter(weekly_report=weekly_report).filter(incurred_hours__gt=0).select_related("user_m")
     context = {
         "weekly_report": weekly_report,
         "entries": entries,
     }
     return render(request, "weekly_report_hours.html", context)
+
 
 @login_required
 def projects_list(request):
@@ -390,8 +394,11 @@ def project_details(request, project_id):
     table = ProjectDetailsTable(filters.qs)
 
     if request.method == "POST":
-        project.enable_weekly_notifications = request.POST.get("weeklyReportEnableNotifications", False) in (True, "true", "on")
+        enable_notifications = request.POST.get("weeklyReportEnableNotifications", False) in (True, "true", "on")
+        project.enable_weekly_notifications = enable_notifications
         project.save()
+        messages.add_message(request, messages.INFO, 'Slack notifications enabled.' if enable_notifications else 'Slack notifications disabled.')
+        return HttpResponseRedirect(reverse("project", args=[project_id]))
 
     RequestConfig(request, paginate={
         'per_page': 250
@@ -434,6 +441,7 @@ def hours_charts(request):
     hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
+
 
 @login_required
 def people_charts(request):
@@ -491,7 +499,6 @@ def project_charts(request, project_id):
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
-
     entries = HourEntry.objects.filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
@@ -513,6 +520,7 @@ def invoice_charts(request, invoice_id):
         previous_invoices = []
     first_day = datetime.datetime.strptime(request.GET.get("first_day", invoice.month_start_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
     last_day = datetime.datetime.strptime(request.GET.get("last_day", invoice.month_end_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
+
     def get_chart_data(queryset):
         d = defaultdict(float)
         for item in queryset:
@@ -630,13 +638,13 @@ def invoice_page(request, invoice_id, **_):
     except Comments.DoesNotExist:
         latest_comments = None
 
-
     previous_invoices = []
     recent_weekly_report = None
     if invoice.project_m:
         previous_invoices = Invoice.objects.filter(project_m=invoice.project_m)
-        weekly_reports = WeeklyReport.objects.filter(project_m=invoice.project_m, client=invoice.client)
-        recent_weekly_report = weekly_reports[0]
+        weekly_reports = WeeklyReport.objects.filter(project_m=invoice.project_m)
+        if weekly_reports:
+            recent_weekly_report = weekly_reports[0]
 
     context = {
         "today": today,
@@ -659,7 +667,7 @@ def invoice_page(request, invoice_id, **_):
     try:
         last_month_invoice = Invoice.objects.get(project=invoice.project, client=invoice.client, year=previous_invoice_year, month=previous_invoice_month)
         context["last_month_invoice"] = last_month_invoice
-        context["diff_last_month"] = last_month_invoice.compare(invoice)
+        context["diff_last_month"] = compare_invoices(last_month_invoice, invoice)
     except Invoice.DoesNotExist:
         pass
 
@@ -722,7 +730,7 @@ def weekly_report_page(request, weekly_report_id, **_):
             year=previous_weekly_report_year,
             week=previous_weekly_report_week)
         context["last_weeks_report"] = last_weeks_report
-        context["diff_last_week"] = last_weeks_report.compare(weekly_report)
+        context["diff_last_week"] = compare_invoices(last_weeks_report, weekly_report)
     except WeeklyReport.DoesNotExist:
         pass
 

@@ -1,6 +1,7 @@
 from invoices.models import AmazonInvoiceRow
 from invoices.aws_utils import AWS_URLS
 
+
 def generate_amazon_invoice_data(linked_account, entries, year, month):
     phases = {}
     total_rows = {"aws": {"incurred_money": 0, "currency": "USD", "description": "Total", "priority": 2}}
@@ -24,6 +25,7 @@ def generate_amazon_invoice_data(linked_account, entries, year, month):
         "phases": phases,
         "total_entries": total_entries,
     }
+
 
 def calculate_stats_for_hours(entries):
     phases = {}
@@ -72,7 +74,6 @@ def calculate_stats_for_hours(entries):
     if total_rows["hours"]["incurred_hours"] > 0:
         total_rows["hours"]["bill_rate_avg"] = total_rows["hours"]["incurred_money"] / total_rows["hours"]["incurred_hours"]
 
-
     stats = {
         "total_rows": total_rows,
         "phases": phases,
@@ -93,6 +94,7 @@ def calculate_stats_for_hours(entries):
     stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"] + stats["no_category_count"]
     return stats
 
+
 def calculate_stats_for_fixed_rows(fixed_invoice_rows):
     total_rows = {}
     phases = {}
@@ -107,12 +109,14 @@ def calculate_stats_for_fixed_rows(fixed_invoice_rows):
         "total_rows": total_rows,
     }
 
+
 def get_aws_entries(aws_accounts, month_start_date, month_end_date):
     aws_entries = {}
     for aws_account in aws_accounts:
         rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date).filter(record_type="AccountTotal")
         aws_entries[aws_account] = rows
     return aws_entries
+
 
 def calculate_stats_for_aws_entries(aws_entries):
     phases = {}
@@ -137,6 +141,32 @@ def calculate_stats_for_aws_entries(aws_entries):
         "total_rows": total_rows,
     }
 
+
+def compare_invoices(a, b):
+    def calc_stats(field_name):
+        field_value = getattr(a, field_name)
+        other_field_value = getattr(b, field_name)
+        diff = (other_field_value or 0) - (field_value or 0)
+        if not field_value:
+            percentage = None
+        else:
+            percentage = diff / field_value * 100
+        return {"diff": diff, "percentage": percentage, "this_value": field_value, "other_value": other_field_value}
+
+    data = {
+        "hours": calc_stats("incurred_hours"),
+        "bill_rate_avg": calc_stats("bill_rate_avg"),
+        "money": calc_stats("incurred_money"),
+    }
+    if abs(data["hours"]["diff"]) > 10 and (not data["hours"]["percentage"] or abs(data["hours"]["percentage"]) > 25):
+        data["remarkable"] = True
+    if abs(data["bill_rate_avg"]["diff"]) > 5 and data["bill_rate_avg"]["this_value"] > 0 and data["bill_rate_avg"]["other_value"] > 0:
+        data["remarkable"] = True
+    if abs(data["money"]["diff"]) > 2000 and (not data["money"]["percentage"] or abs(data["money"]["percentage"]) > 25):
+        data["remarkable"] = True
+    return data
+
+
 def combine_invoice_parts(*combine_stats):
     stats = {}
     for stat in combine_stats:
@@ -147,11 +177,13 @@ def combine_invoice_parts(*combine_stats):
                 stats[k].update(v)
     return stats
 
-def calculate_entry_stats(hour_entries, fixed_invoice_rows=None, aws_entries=None):
+
+def calculate_entry_stats(hour_entries, fixed_invoice_rows, aws_entries=None):
     hour_stats = calculate_stats_for_hours(hour_entries)
     fixed_invoice_stats = calculate_stats_for_fixed_rows(fixed_invoice_rows)
     aws_stats = calculate_stats_for_aws_entries(aws_entries)
     return combine_invoice_parts(hour_stats, fixed_invoice_stats, aws_stats)
+
 
 def calculate_weekly_entry_stats(hour_entries, aws_entries=None):
     hour_stats = calculate_stats_for_hours(hour_entries)

@@ -1,0 +1,3 @@
+{% for entries_week in weeks %}
+    <li><a href="{% url "personweek" person.guid entries_week.1 entries_week.0 %}">{{entries_week.1}} - {{entries_week.0 }}</a></li>
+{% endfor %}

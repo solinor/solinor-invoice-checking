@@ -39,7 +39,7 @@
       <div class="col-md-8">
         {% include "snippets/weekly_report.html" %}
         {% if last_weeks_report %}
-          {% include "snippets/last_week_report.html" %}
+            {% include "snippets/changes_between_reports.html" with month_or_week="week" last_report=last_weeks_report this_report=weekly_report diff_last_report=diff_last_week %}
         {% endif %}
         {% include "snippets/incorrect_data.html" %}
       </div>

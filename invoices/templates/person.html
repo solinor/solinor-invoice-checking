@@ -13,10 +13,10 @@ $('#person-hours a').click(function (e) {
   <li><a href="{% url 'frontpage' %}">Home</a></li>
   <li><a href="{% url 'people' %}">People</a></li>
   <li><a href="{% url 'person_details' person.guid %}">Person: {{ person.first_name }}</a></li>
-  <li class="active">{{ year }}-{{ month }}</li>
+  <li class="active">{{ year }}-{{ report_number }}</li>
 </ol>
 
-<h2>{{ person.display_name }} - {{ year }}-{{ month }}</h2>
+<h2>{{ person.display_name }} - {{ year }}-{{ report_number }}</h2>
 
 
 
@@ -24,13 +24,15 @@ $('#person-hours a').click(function (e) {
   <div class="col-md-12">
   <div class="dropdown" style="display: inline-block">
     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-      Select month
+      Select {{ month_or_week }}
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-      {% for entries_month in months %}
-      <li><a href="{% url "person" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
-      {% endfor %}
+       {% if months %}
+       {% include "snippets/person_hour_dropdown_month.html"%}
+       {%  else %}
+       {% include "snippets/person_hour_dropdown_week.html"%}
+       {%  endif %}
     </ul>
   </div>
     <a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
