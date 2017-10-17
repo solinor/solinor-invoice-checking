@@ -55,7 +55,7 @@ def generate_hours_pdf_for_invoice(request, invoice):
 
 def generate_hours_pdf_for_weekly_report(request, weekly_report):
     weekly_report_data = get_object_or_404(WeeklyReport, weekly_report_id=weekly_report)
-    title = u"%s - %s - %s-%s" % (weekly_report_data.project_m.client, weekly_report_data.project_m.project.name, weekly_report_data.year, weekly_report_data.week)
+    title = u"%s - %s - %s-%s" % (weekly_report_data.project_m.client, weekly_report_data.project_m.name, weekly_report_data.year, weekly_report_data.week)
     title = title.replace(u"\xe4", u"a").replace(u"\xb6", u"o").replace(u"\x84", u"A").replace(u"\x96", u"O").replace(u"\xf6", "o")
 
     entries = HourEntry.objects.filter(project=weekly_report_data.project_m.name, client=weekly_report_data.project_m.client, date__year__gte=weekly_report_data.year, date__week=weekly_report_data.week).filter(incurred_hours__gt=0)

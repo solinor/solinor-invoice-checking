@@ -35,7 +35,7 @@
           <a class="btn btn-info" href="{% url 'weekly_report' recent_weekly_report.weekly_report_id %}" role="button">Weekly report</a>
         {%  endif %}
           <a class="btn btn-info" href="{% url 'invoice_charts' invoice.invoice_id %}" role="button">Charts</a>
-        <a class="btn btn-info" href="{% url 'get_pdf' invoice.invoice_id 'hours' %}" role="button">Download hours</a>
+        <a class="btn btn-info" href="{% url 'get_invoice_pdf' invoice.invoice_id %}" role="button">Download hours</a>
         <a class="btn btn-info" href="{% url 'invoice_hours' invoice.invoice_id %}" role="button">View hours</a>
         {% if invoice.project_m %}
         <a class="btn btn-info" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>

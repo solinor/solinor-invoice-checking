@@ -306,11 +306,11 @@ def queue_update(request):
 
 
 @login_required
-def get_pdf(request, invoice_id, pdf_type):
-    if pdf_type == "hours":
+def get_pdf(request, invoice_id=None, weekly_report_id=None):
+    if invoice_id:
         pdf, title = generate_hours_pdf_for_invoice(request, invoice_id)
-    elif pdf_type == "weekly":
-        pdf, title = generate_hours_pdf_for_weekly_report(request, invoice_id)  # invoice_id is actually weekly_report_id
+    elif weekly_report_id:
+        pdf, title = generate_hours_pdf_for_weekly_report(request, weekly_report_id)
     else:
         return HttpResponseBadRequest("Invalid PDF type")
 

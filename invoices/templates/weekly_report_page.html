@@ -21,7 +21,7 @@
         {% if previous_weekly_reports %}
         <div class="dropdown" style="display: inline-block">
           <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Open another weekly_report
+            Open another weekly report
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
@@ -31,7 +31,7 @@
           </ul>
         </div>
         {% endif %}
-        <a class="btn btn-info" href="{% url 'get_pdf' weekly_report.weekly_report_id 'weekly' %}" role="button">Download hours</a>
+        <a class="btn btn-info" href="{% url 'get_weekly_pdf' weekly_report.weekly_report_id %}" role="button">Download hours</a>
         <a class="btn btn-info" href="{% url 'weekly_report_hours' weekly_report.weekly_report_id %}" role="button">View hours</a>
       </div>
     </div>
