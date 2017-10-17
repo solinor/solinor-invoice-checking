@@ -125,14 +125,6 @@ def update_projects():
                 invoice.save()
                 break
 
-    for report in WeeklyReport.objects.filter(project_m=None):
-        for project in projects:
-            if project.name == report.project and project.client == report.client:
-                logger.info("Updating weekly report %s with project %s", report, project)
-                report.project_m = project
-                report.save()
-                break
-
 
 def get_projects():
     projects_data = {}
@@ -152,7 +144,7 @@ def get_invoices():
 def get_weekly_reports():
     weekly_report_data = {}
     for weekly_report in WeeklyReport.objects.all():
-        weekly_report_key = u"%s-%s %s - %s" % (weekly_report.year, weekly_report.week, weekly_report.client, weekly_report.project)
+        weekly_report_key = u"%s-%s %s - %s" % (weekly_report.year, weekly_report.week, weekly_report.project_m.client, weekly_report.project_m.project)
         weekly_report_data[weekly_report_key] = weekly_report
     return weekly_report_data
 
@@ -194,12 +186,8 @@ class HourEntryUpdate(object):
             return invoice
         else:
             logger.info("Creating a new invoice: %s", invoice_key)
-            invoice, _ = Invoice.objects.update_or_create(
-                year=data["date"].year,
-                month=data["date"].month,
-                client=data["client"],
-                project=data["project"],
-                defaults={"tags": data["project_tags"]})
+            invoice = Invoice(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], tags=data["project_tags"])
+            invoice.save()
             self.invoices_data[invoice_key] = invoice
             return invoice
 
@@ -207,7 +195,7 @@ class HourEntryUpdate(object):
         week_number = data["date"].isocalendar()[1]  # week number, 1-53
         weekly_report_key = u"%s-%s %s - %s" % (data["date"].year, week_number, data["client"], data["project"])
         weekly_report = self.weekly_report_data.get(weekly_report_key)
-        if weekly_report is not None:
+        if weekly_report:
             logger.debug("Weekly report already exists: %s", weekly_report_key)
             if weekly_report.tags != data["project_tags"]:
                 weekly_report.tags = data["project_tags"]
@@ -215,12 +203,13 @@ class HourEntryUpdate(object):
             return weekly_report
         else:
             logger.info("Creating a new weekly report %s", weekly_report_key)
-            weekly_report, _ = WeeklyReport.objects.update_or_create(
-                year=data["date"].year,
-                week=week_number,
-                client=data["client"],
-                project=data["project"],
-                defaults={"tags": data["project_tags"]})
+            projects = Project.objects.filter(name=data["project"], client=data["client"])
+            if not projects:
+                logger.error("No project %s with client %s found, cannot create weekly report", data["project"], data["client"])
+                return
+            project = projects[0]
+            weekly_report = WeeklyReport(year=data["date"].year, week=week_number, project_m=project, tags=data["project_tags"])
+            weekly_report.save()
             self.weekly_report_data[weekly_report_key] = weekly_report
             return weekly_report
 

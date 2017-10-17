@@ -703,7 +703,7 @@ def weekly_report_page(request, weekly_report_id, **_):
     previous_weekly_reports = []
 
     if weekly_report.project_m:
-        previous_weekly_reports = WeeklyReport.objects.filter(project_m=weekly_report.project_m, client=weekly_report.client)
+        previous_weekly_reports = WeeklyReport.objects.filter(project_m=weekly_report.project_m)
 
     context = {
         "today": today,
@@ -725,8 +725,7 @@ def weekly_report_page(request, weekly_report_id, **_):
         previous_weekly_report_year -= 1
     try:
         last_weeks_report = WeeklyReport.objects.get(
-            project=weekly_report.project,
-            client=weekly_report.client,
+            project_m=weekly_report.project_m,
             year=previous_weekly_report_year,
             week=previous_weekly_report_week)
         context["last_weeks_report"] = last_weeks_report

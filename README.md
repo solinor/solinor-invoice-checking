@@ -45,7 +45,7 @@ For local development run
 
 to add static assets to the project.
 
-You can use
+Run commands
 
 `
 ./manage.py update_projects
@@ -57,7 +57,7 @@ and
 ./manage.py update_users
 `
 
-To update the users and projects in the database.
+To update the users and projects in the database before starting backend.
 
 To actually run the program you need to start
 
@@ -66,5 +66,12 @@ To actually run the program you need to start
 `
 
 in order to fetch the data from 10kft with the "Request data update" -button.
+
+Rerun
+`
+./manage.py update_projects
+`
+
+to update invoice projects
 
 For development, to avoid using Google authentication, modify `AUTHENTICATION_BACKENDS` from `invoice_checking/settings.py`.

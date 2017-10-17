@@ -178,8 +178,6 @@ class WeeklyReport(models.Model):
 
     project_m = models.ForeignKey("Project", null=True)
 
-    client = models.CharField(max_length=100)
-    project = models.CharField(max_length=100)
     tags = models.CharField(max_length=1024, null=True, blank=True)
 
     is_approved = models.BooleanField(blank=True, default=False)
@@ -218,7 +216,7 @@ class WeeklyReport(models.Model):
 
     @property
     def full_name(self):
-        return "%s - %s" % (self.client, self.project)
+        return "%s - %s" % (self.project_m.client, self.project_m.name)
 
     def __unicode__(self):
         return u"%s - %s" % (self.full_name, self.date)
@@ -237,8 +235,8 @@ class WeeklyReport(models.Model):
             return self.tags.split(",")
 
     class Meta:
-        unique_together = ("year", "week", "client", "project")
-        ordering = ("-year", "-week", "client", "project")
+        unique_together = ("year", "week", "project_m")
+        ordering = ("-year", "-week", "project_m")
 
 
 class SlackChannel(models.Model):
