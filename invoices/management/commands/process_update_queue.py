@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from invoices.models import DataUpdate
-from invoices.utils import HourEntryUpdate, refresh_stats
+from invoices.utils import HourEntryUpdate, refresh_stats, refresh_weekly_stats
 
 
 class Command(BaseCommand):
@@ -53,6 +53,7 @@ class Command(BaseCommand):
             logger.info("Data update done.")
             logger.info("Update statistics.")
             refresh_stats(start_date, end_date)
+            refresh_weekly_stats(start_date, end_date)
             update_obj.finished_at = timezone.now()
             update_obj.aborted = False
             update_obj.save()

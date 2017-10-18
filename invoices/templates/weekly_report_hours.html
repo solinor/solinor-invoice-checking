@@ -6,14 +6,13 @@
     <ol class="breadcrumb">
       <li><a href="{% url 'frontpage' %}">Home</a></li>
       <li><a href="{% url 'projects_list' %}">Projects</a></li>
-      <li><a href="{% url 'project' invoice.project_m.guid %}">Project</a></li>
-      <li><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
+      <li><a href="{% url 'project' weekly_report.project_m.guid %}">Project</a></li>
+      <li><a href="{% url 'weekly_report' weekly_report.weekly_report_id %}">Weekly report</a></li>
       <li class="active">Hours</li>
     </ol>
 
-    <h2>{{ invoice.full_name }}: {{ invoice.date }}</h2>
-
-    {%  include "snippets/report_hours.html" %}
+    <h2>{{ weekly_report.full_name }}: {{ weekly_report.date }}</h2>
+      {%  include "snippets/report_hours.html" %}
   </div>
 </div>
 {% endblock %}
