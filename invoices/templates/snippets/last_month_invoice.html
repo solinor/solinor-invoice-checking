@@ -1,0 +1,37 @@
+<h2>Changes since last month</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <th></th>
+      <th class="number-column">Hours</th>
+      <th class="number-column">Bill rate</th>
+      <th class="number-column">Money</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Last month</td>
+      <td class="number-column">{{ last_month_invoice.incurred_hours|floatformat:2 }}h</td>
+      <td class="number-column">{{ last_month_invoice.bill_rate_avg|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ last_month_invoice.incurred_money|floatformat:2 }}&euro;</td>
+    </tr>
+    <tr>
+      <td>This month</td>
+      <td class="number-column">{{ invoice.incurred_hours|floatformat:2 }}h</td>
+      <td class="number-column">{{ invoice.bill_rate_avg|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ invoice.incurred_money|floatformat:2 }}&euro;</td>
+    </tr>
+    <tr>
+      <td>Difference</td>
+      <td class="number-column">{{ diff_last_month.hours.diff|floatformat:2 }}h</td>
+      <td class="number-column">{{ diff_last_month.bill_rate_avg.diff|floatformat:2 }}&euro;</td>
+      <td class="number-column">{{ diff_last_month.money.diff|floatformat:2 }}&euro;</td>
+    </tr>
+    <tr>
+      <td>Diff %</td>
+      <td class="number-column">{{ diff_last_month.hours.percentage|floatformat:2 }}%</td>
+      <td class="number-column">{{ diff_last_month.bill_rate_avg.percentage|floatformat:2 }}%</td>
+      <td class="number-column">{{ diff_last_month.money.percentage|floatformat:2 }}%</td>
+    </tr>
+  </tbody>
+</table>

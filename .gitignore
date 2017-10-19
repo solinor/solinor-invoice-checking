@@ -4,5 +4,3 @@ staticfiles
 .env
 db.sqlite3
 dev/
-.idea
-wkhtmltopdf
