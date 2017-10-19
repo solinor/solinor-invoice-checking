@@ -52,7 +52,6 @@ class HourEntry(models.Model):
     calculated_has_category = models.BooleanField(blank=True, default=True, verbose_name="Has category")
 
     invoice = models.ForeignKey("Invoice", null=True)
-    weekly_report = models.ForeignKey("WeeklyReport", null=True)
     project_m = models.ForeignKey("Project", null=True)
 
     def update_calculated_fields(self):
@@ -75,7 +74,6 @@ class HourEntry(models.Model):
     class Meta:
         ordering = ("date", "user_id")
         verbose_name_plural = "Hour entries"
-
 
 class Invoice(models.Model):
     INVOICE_STATE_CHOICES = (
@@ -154,6 +152,30 @@ class Invoice(models.Model):
         if self.tags:
             return self.tags.split(",")
 
+    def compare(self, other):
+        def calc_stats(field_name):
+            field_value = getattr(self, field_name)
+            other_field_value = getattr(other, field_name)
+            diff = (other_field_value or 0) - (field_value or 0)
+            if not field_value:
+                percentage = None
+            else:
+                percentage = diff / field_value * 100
+            return {"diff": diff, "percentage": percentage, "this_value": field_value, "other_value": other_field_value}
+
+        data = {
+            "hours": calc_stats("incurred_hours"),
+            "bill_rate_avg": calc_stats("bill_rate_avg"),
+            "money": calc_stats("incurred_money"),
+        }
+        if abs(data["hours"]["diff"]) > 10 and (not data["hours"]["percentage"] or abs(data["hours"]["percentage"]) > 25):
+            data["remarkable"] = True
+        if abs(data["bill_rate_avg"]["diff"]) > 5 and data["bill_rate_avg"]["this_value"] > 0 and data["bill_rate_avg"]["other_value"] > 0:
+            data["remarkable"] = True
+        if abs(data["money"]["diff"]) > 2000 and (not data["money"]["percentage"] or abs(data["money"]["percentage"]) > 25):
+            data["remarkable"] = True
+        return data
+
     def get_fixed_invoice_rows(self):
         fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=self))
         if self.invoice_state not in ("P", "S") and self.project_m:
@@ -163,80 +185,6 @@ class Invoice(models.Model):
     class Meta:
         unique_together = ("year", "month", "client", "project")
         ordering = ("-year", "-month", "client", "project")
-
-
-class WeeklyReport(models.Model):
-    WEEKLY_REPORT_STATE_CHOIOCES = (
-        ("C", "Created"),
-        ("A", "Approved")
-    )
-
-    ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
-    weekly_report_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    year = models.IntegerField()
-    week = models.IntegerField()
-
-    project_m = models.ForeignKey("Project", null=True)
-
-    tags = models.CharField(max_length=1024, null=True, blank=True)
-
-    is_approved = models.BooleanField(blank=True, default=False)
-    has_comments = models.BooleanField(blank=True, default=False)
-    incorrect_entries_count = models.IntegerField(default=0)
-    billable_incorrect_price_count = models.IntegerField(default=0)
-    non_billable_hours_count = models.IntegerField(default=0)
-    non_phase_specific_count = models.IntegerField(default=0)
-    not_approved_hours_count = models.IntegerField(default=0)
-    no_category_count = models.IntegerField(default=0)
-    empty_descriptions_count = models.IntegerField(default=0)
-    bill_rate_avg = models.FloatField(default=0)
-    incurred_hours = models.FloatField(default=0, verbose_name="Incurred hours")
-    incurred_billable_hours = models.FloatField(default=0)
-    billable_percentage = models.FloatField(default=0)
-    incurred_money = models.FloatField(default=0, verbose_name="Incurred money")
-    weekly_report_state = models.CharField(max_length=1, choices=WEEKLY_REPORT_STATE_CHOIOCES, default='C')
-
-    @property
-    def week_start_date(self):
-        return date_utils.week_start_date(self.year, self.week)
-
-    @property
-    def week_end_date(self):
-        return date_utils.week_end_date(self.year, self.week)
-
-    @property
-    def processed_tags(self):
-        if self.tags:
-            return self.tags.split(",")
-        return []
-
-    @property
-    def date(self):
-        return "%s-%02d" % (self.year, self.week)
-
-    @property
-    def full_name(self):
-        return "%s - %s" % (self.project_m.client, self.project_m.name)
-
-    def __unicode__(self):
-        return u"%s - %s" % (self.full_name, self.date)
-
-    def __str__(self):
-        return u"%s - %s" % (self.full_name, self.date)
-
-    def update_state(self, comment):
-        self.weekly_report_state = "C"
-        if comment.checked:
-            self.weekly_report_state = "A"
-        return self.weekly_report_state
-
-    def get_tags(self):
-        if self.tags:
-            return self.tags.split(",")
-
-    class Meta:
-        unique_together = ("year", "week", "project_m")
-        ordering = ("-year", "-week", "project_m")
 
 
 class SlackChannel(models.Model):
@@ -296,7 +244,6 @@ class Project(models.Model):
     starts_at = models.DateField(null=True, blank=True)
     ends_at = models.DateField(null=True, blank=True)
     slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True)
-    enable_weekly_notifications = models.BooleanField(blank=True, default=False)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
     admin_users = models.ManyToManyField("FeetUser", blank=True)
 
@@ -305,6 +252,7 @@ class Project(models.Model):
 
     def __str__(self):
         return u"%s - %s" % (self.client, self.name)
+
 
     class Meta:
         ordering = ("client", "name")
@@ -319,22 +267,6 @@ class Phase(models.Model):
 
     def __str__(self):
         return u"Phase: %s - %s" % (self.project, self.phase_name)
-
-
-class WeeklyReportComments(models.Model):
-    weekly_report = models.ForeignKey("WeeklyReport")
-    timestamp = models.DateTimeField(auto_now_add=True)
-    checked = models.BooleanField(blank=True, default=False)
-    user = models.TextField(max_length=100)
-
-    class Meta:
-        get_latest_by = "timestamp"
-
-    def __unicode__(self):
-        return u"%s - %s - %s" % (self.weekly_report, self.timestamp, self.user)
-
-    def __str__(self):
-        return u"%s - %s - %s" % (self.weekly_report, self.timestamp, self.user)
 
 
 class Comments(models.Model):
@@ -399,6 +331,7 @@ class ProjectFixedEntry(models.Model):
 
     def __str__(self):
         return u"%s - %s - %s" % (self.project, self.description, self.price)
+
 
 
 class AmazonLinkedAccount(models.Model):
