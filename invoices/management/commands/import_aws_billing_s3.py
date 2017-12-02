@@ -23,7 +23,8 @@ class Command(BaseCommand):
             aws_access_key_id=settings.AWS_ACCESS_KEY,
             aws_secret_access_key=settings.AWS_SECRET_KEY,
         )
-        with tempfile.TemporaryFile() as data:
+        with tempfile.NamedTemporaryFile(mode="w+b") as data:
             s3.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-%s-%s.csv" % (year, month), data)
             data.seek(0)
-            import_aws_invoice(data, int(year), int(month))
+            infile = open(data.name, mode="rt")
+            import_aws_invoice(infile, int(year), int(month))
