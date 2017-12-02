@@ -10,7 +10,7 @@ from invoices.models import Project, Invoice, HourEntry
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.template.defaultfilters import floatformat
 from django.utils.html import format_html
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 class HourListTable(tables.Table):

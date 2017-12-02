@@ -23,7 +23,7 @@ class HourEntry(models.Model):
     date = models.DateField(db_index=True)
 
     last_updated_at = models.DateTimeField(db_index=True)
-    user_m = models.ForeignKey("FeetUser", null=True)
+    user_m = models.ForeignKey("FeetUser", null=True, on_delete=models.CASCADE)
     user_id = models.IntegerField()
     user_email = models.CharField(max_length=255)
     user_name = models.CharField(max_length=100, verbose_name="Name")
@@ -51,8 +51,8 @@ class HourEntry(models.Model):
     calculated_has_proper_price = models.BooleanField(blank=True, default=True, verbose_name="Has proper price")
     calculated_has_category = models.BooleanField(blank=True, default=True, verbose_name="Has category")
 
-    invoice = models.ForeignKey("Invoice", null=True)
-    project_m = models.ForeignKey("Project", null=True)
+    invoice = models.ForeignKey("Invoice", null=True, on_delete=models.CASCADE)
+    project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)
 
     def update_calculated_fields(self):
         self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
@@ -88,7 +88,7 @@ class Invoice(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
 
-    project_m = models.ForeignKey("Project", null=True)
+    project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)
 
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
@@ -243,7 +243,7 @@ class Project(models.Model):
     description = models.TextField(null=True, blank=True)
     starts_at = models.DateField(null=True, blank=True)
     ends_at = models.DateField(null=True, blank=True)
-    slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True)
+    slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True, on_delete=models.CASCADE)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
     admin_users = models.ManyToManyField("FeetUser", blank=True)
 
@@ -259,7 +259,7 @@ class Project(models.Model):
 
 
 class Phase(models.Model):
-    project = models.ForeignKey("Project")
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
     phase_name = models.CharField(max_length=100)
 
     def __unicode__(self):
@@ -270,7 +270,7 @@ class Phase(models.Model):
 
 
 class Comments(models.Model):
-    invoice = models.ForeignKey("Invoice")
+    invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     comments = models.TextField(null=True, blank=True)
     checked = models.BooleanField(blank=True, default=False)
@@ -300,7 +300,7 @@ class Comments(models.Model):
 
 
 class InvoiceFixedEntry(models.Model):
-    invoice = models.ForeignKey("Invoice")
+    invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
     price = models.FloatField()
     description = models.CharField(max_length=300)
 
@@ -317,7 +317,7 @@ class InvoiceFixedEntry(models.Model):
 
 
 class ProjectFixedEntry(models.Model):
-    project = models.ForeignKey("Project")
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
     price = models.FloatField()
     description = models.CharField(max_length=300)
 
@@ -363,7 +363,7 @@ class AmazonInvoiceRow(models.Model):
     billing_period_start = models.DateTimeField(null=True, blank=True)
     billing_period_end = models.DateTimeField(null=True, blank=True)
     invoice_date = models.DateTimeField(null=True, blank=True)
-    linked_account = models.ForeignKey("AmazonLinkedAccount")
+    linked_account = models.ForeignKey("AmazonLinkedAccount", on_delete=models.CASCADE)
     product_code = models.CharField(max_length=255)
     usage_type = models.CharField(max_length=255)
     item_description = models.CharField(max_length=1000, null=True, blank=True)
@@ -398,7 +398,7 @@ class DataUpdate(models.Model):
 
 
 class SlackNotification(models.Model):
-    recipient = models.ForeignKey("FeetUser")
+    recipient = models.ForeignKey("FeetUser", on_delete=models.CASCADE)
     message = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
 
@@ -414,7 +414,7 @@ class SlackChat(models.Model):
 
 
 class SlackChatMember(models.Model):
-    slack_chat = models.ForeignKey("SlackChat")
+    slack_chat = models.ForeignKey("SlackChat", on_delete=models.CASCADE)
     member_id = models.CharField(max_length=50)
 
     class Meta:
@@ -428,7 +428,7 @@ def gen_auth_token():
 class AuthToken(models.Model):
     token = models.CharField(max_length=100, primary_key=True, editable=False, default=gen_auth_token)
     valid_until = models.DateTimeField(null=True, blank=True)
-    project = models.ForeignKey("Project")
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
 
     def __unicode__(self):
         return self.token

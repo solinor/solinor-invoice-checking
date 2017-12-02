@@ -126,19 +126,18 @@ AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
 
 SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
 
 if DEBUG:
-    MIDDLEWARE_CLASSES += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
+    MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
     INTERNAL_IPS = ("127.0.0.1",)
 
 ROOT_URLCONF = 'invoice_checking.urls'
