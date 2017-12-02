@@ -56,6 +56,8 @@
                 </td>
             </tr>
               {% for entry in phase_details.entries %}
+              {% if entry.quantity < 0.001 and entry.price < 0.000001 %}
+              {% else %}
               <tr class="item">
                   <td>{{ entry.usage }}
                   {% if entry.description %}<br><small>{{ entry.description }}</small>{% endif %}</td>
@@ -70,6 +72,7 @@
                     {% if not phase.billable %}</s>{% endif %}
                   </td>
               </tr>
+              {% endif %}
               {% endfor %}
             {% endfor %}
 
