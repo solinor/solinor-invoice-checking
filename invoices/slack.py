@@ -5,7 +5,7 @@ import slacker
 from invoices.models import FeetUser, SlackChannel, Project, SlackChat, SlackChatMember
 from django.conf import settings
 from django.db.models import Count, Sum
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
 logger = logging.getLogger(__name__)
