@@ -52,7 +52,7 @@ function drawChart() {
           </thead>
           <tbody>
           {% for aws_account in aws_accounts %}
-            {% if aws_account.pk %}
+            {% if aws_account.pk and aws_account.billing > 0 %}
             <tr>
               <td><a href="{% url "amazon_invoice" aws_account.pk today.year today.month %}">{{ aws_account.name }}</a></td>
               <td>{{ aws_account.has_linked_properties }}</td>
