@@ -2,6 +2,11 @@
 {% load humanize %}
 {% block title %}Amazon invoices - Solinor{% endblock %}
 {% block header %}
+<style>
+.invoices-table .incurred-billing, .invoices-table .linked-projects, .invoices-table .linked-users {
+  text-align: right;
+}
+</style>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 google.charts.load('current', {'packages':['corechart']});
@@ -27,7 +32,19 @@ function drawChart() {
       <li class="active">Amazon Invoices</li>
     </ol>
 
-    <h2>AWS accounts</h2>
+    <h2>AWS accounts: {{ today.year }}-{{ today.month }}</h2>
+
+    <div class="dropdown" style="display: inline-block">
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Select month
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        {% for entries_month in months %}
+        <li><a href="{% url "amazon_overview" %}?year={{ entries_month.year }}&month={{ entries_month.month }}">{{ entries_month }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
 
     <div class="row">
       <div class="col-md-6">
@@ -40,7 +57,7 @@ function drawChart() {
 
     <div class="row">
       <div class="col-md-12">
-        <table class="table">
+        <table class="table invoices-table">
           <thead>
             <tr>
               <th>AWS account</th>
@@ -56,9 +73,9 @@ function drawChart() {
             <tr>
               <td><a href="{% url "amazon_invoice" aws_account.pk today.year today.month %}">{{ aws_account.name }}</a></td>
               <td>{{ aws_account.has_linked_properties }}</td>
-              <td>{{ aws_account.project_set.all.count }}</td>
-              <td>{{ aws_account.feetuser_set.all.count }}</td>
-              <td>{{ aws_account.billing|floatformat:2|intcomma }} USD</td>
+              <td class="linked-projects">{{ aws_account.project_set.all.count }}</td>
+              <td class="linked-users">{{ aws_account.feetuser_set.all.count }}</td>
+              <td class="incurred-billing">{{ aws_account.billing|floatformat:2|intcomma }} USD</td>
             </tr>
             {% endif %}
           {% endfor %}

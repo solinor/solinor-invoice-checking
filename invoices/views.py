@@ -75,8 +75,10 @@ def amazon_overview(request):
         ("Linked accounts", linked_accounts),
         ("Unlinked accounts", AmazonLinkedAccount.objects.all().count() - linked_accounts),
     )
+    months = AmazonInvoiceRow.objects.all().dates("invoice_month", "month", order="DESC")
     context = {
         "today": today,
+        "months": months,
         "aws_accounts": aws_accounts,
         "billing_data_json": json.dumps(billing_data),
         "linking_data_json": json.dumps(linking_data),
