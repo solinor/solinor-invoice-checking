@@ -38,9 +38,16 @@ def validate_auth_token(auth_token):
             raise Http404()
     return token
 
+
 @login_required
 def amazon_overview(request):
-    today = datetime.date.today()
+    if request.GET.get("year") and request.GET.get("month"):
+        try:
+            today = datetime.datetime(int(request.GET.get("year")), int(request.GET.get("month")), 1)
+        except ValueError:
+            raise HttpResponseBadRequest("Invalid year or month")
+    else:
+        today = datetime.date.today()
     aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "feetuser_set")
     linked_accounts = sum([aws_account.has_linked_properties() for aws_account in aws_accounts])
     total_billing = linked_billing = unlinked_billing = employee_billing = project_billing = 0
