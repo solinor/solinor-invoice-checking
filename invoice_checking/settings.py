@@ -126,7 +126,11 @@ AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
 
 SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
 
+REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
+REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
+
 MIDDLEWARE = (
+    'invoice_checking.middleware.DomainRedirectMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
