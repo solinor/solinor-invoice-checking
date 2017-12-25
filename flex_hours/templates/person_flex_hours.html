@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block header %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+ <script type="text/javascript">
+   google.charts.load("current", {packages:["calendar"]});
+   google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  {% include "snippets/calendar_chart.js" with number_header="Flex diff" entries=flex_diff_entries destination_id="flex_diff_calendar" title="Flex saldo diff" %}
+
+}
+ </script>
+ {% endblock %}
+
+{% block content %}
+
+<ol class="breadcrumb">
+  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url 'people' %}">People</a></li>
+  <li><a href="{% url 'person_details' person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="active">Flex hours</li>
+</ol>
+
+
+<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}</h2>
+
+<div class="well">
+Current flex time: <b>{{ flex_hours }}h</b>
+</div>
+
+<div id="flex_diff_calendar" style="width: 100%; height: 350px;"></div>
+
+<h3>Flex time events</h3>
+<ul>
+  {% for event in flex_time_events %}
+    <li>{{ event.date }}{% if event.adjust_by %} - flex time adjusted by {{ event.adjust_by }}h{% endif %}{% if event.set_to %} - flex time set to {{ event.set_to }}h{% endif %}</li>
+  {% endfor %}
+</ul>
+
+<h3>Calculations log</h3>
+
+<ul>
+  {% for event in flex_hour_events %}
+  <li>{{ event.date }} - {{ event.message }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

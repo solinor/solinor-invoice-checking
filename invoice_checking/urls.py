@@ -5,6 +5,7 @@ from django.views.generic.base import RedirectView
 from django.conf import settings
 
 import invoices.views
+import flex_hours.views
 
 
 admin.autodiscover()
@@ -30,6 +31,7 @@ urlpatterns = [
     path('people/charts', invoices.views.people_charts, name='people_charts'),
     path('person/<uuid:user_guid>/<int:year>/<int:month>', invoices.views.person_details_month, name='person'),
     path('person/<uuid:user_guid>', invoices.views.person_details, name='person_details'),
+    path('person/<uuid:user_guid>/flexhours', flex_hours.views.person_flex_hours, name='person_flex_hours'),
     path('queue_update', invoices.views.queue_update, name="queue_update"),
     url(r'^accounts/profile/$', RedirectView.as_view(pattern_name='frontpage', permanent=False)),
     url(r'^accounts/', include('googleauth.urls')),
