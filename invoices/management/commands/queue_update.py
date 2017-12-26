@@ -13,4 +13,4 @@ class Command(BaseCommand):
         start_date = datetime.datetime.now() - datetime.timedelta(days=60)
         end_date = datetime.datetime.now()
         redis_instance = redis.from_url(settings.REDIS)
-        redis_instance.publish("request-refresh", json.dumps({"start_date": start_date.strftime("%Y-%m-%d"), "end_date": end_date.strftime("%Y-%m-%d")}))
+        redis_instance.publish("request-refresh", json.dumps({"type": "data-update", "start_date": start_date.strftime("%Y-%m-%d"), "end_date": end_date.strftime("%Y-%m-%d")}))

@@ -276,7 +276,7 @@ def queue_update(request):
                 return HttpResponseRedirect(return_url)
         except DataUpdate.DoesNotExist:
             pass
-        REDIS.publish("request-refresh", json.dumps({"start_date": start_date.strftime("%Y-%m-%d"), "end_date": end_date.strftime("%Y-%m-%d")}))
+        REDIS.publish("request-refresh", json.dumps({"type": "data-update", "start_date": start_date.strftime("%Y-%m-%d"), "end_date": end_date.strftime("%Y-%m-%d")}))
         update_obj = DataUpdate()
         update_obj.save()
         messages.add_message(request, messages.INFO, 'Update queued. This is normally finished within 10 seconds. Refresh the page to see new data.')
