@@ -1,15 +1,15 @@
 import datetime
 import json
 import logging
-import redis
 
+import redis
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.conf import settings
 
 from invoices.models import DataUpdate
+from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
 from invoices.utils import HourEntryUpdate, refresh_stats
-from invoices.slack import send_unsubmitted_hours_notifications, send_unapproved_hours_notifications
 
 
 def update_10kf_data(logger, data):

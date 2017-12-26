@@ -1,15 +1,16 @@
 import datetime
 import logging
 
+from django.conf import settings
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime as django_parse_datetime
-from django.conf import settings
 
-from invoices.tenkfeet_api import TenkFeetApi
-from invoices.models import HourEntry, Invoice, is_phase_billable, Project, FeetUser
-from invoices.slack import send_slack_notification
+from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
-
+from invoices.models import FeetUser, HourEntry, Invoice, Project, is_phase_billable
+from invoices.slack import send_slack_notification
+from invoices.tenkfeet_api import TenkFeetApi
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name
@@ -23,16 +24,29 @@ STATS_FIELDS = [
     "empty_descriptions_count",
 ]
 
+
+def get_weekend_hours_per_user(start_date, end_date, incurred_hours_threshold):
+    holidays_list = PublicHoliday.objects.filter(date__gte=start_date).filter(date__lte=end_date)
+    holidays = {item.date: item.name for item in holidays_list}
+    hour_markings = HourEntry.objects.filter(date__gte=start_date).filter(date__lte=end_date).filter(Q(date__week_day=1) | Q(date__week_day=7)).order_by("user_m", "date").values("user_m", "date").annotate(sum_hours=Sum("incurred_hours")).filter(sum_hours__gte=incurred_hours_threshold)
+
+
+def get_overly_long_days_per_user(start_date, end_date, incurred_hours_threshold):
+    hour_markings = HourEntry.objects.filter(date__gte=start_date).filter(date__lte=end_date).order_by("user_m", "date").values("user_m", "date").annotate(sum_hours=Sum("incurred_hours")).filter(sum_hours__gte=incurred_hours_threshold)
+
+
 def parse_date(date):
     if date:
         date = date.split("-")
         return datetime.datetime(int(date[0]), int(date[1]), int(date[2])).date()
+
 
 def parse_float(data):
     try:
         return float(data)
     except TypeError:
         return 0
+
 
 def parse_datetime(date):
     if date is None:
@@ -121,6 +135,7 @@ def update_projects():
                 invoice.project_m = project
                 invoice.save()
                 break
+
 
 def get_projects():
     projects_data = {}

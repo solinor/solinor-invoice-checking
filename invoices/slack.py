@@ -1,11 +1,12 @@
-import logging
 import datetime
+import logging
 
 import slacker
-from invoices.models import FeetUser, SlackChannel, Project, SlackChat, SlackChatMember, SlackNotificationBundle
 from django.conf import settings
 from django.db.models import Count, Sum
 from django.urls import reverse
+
+from invoices.models import FeetUser, Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
 logger = logging.getLogger(__name__)
@@ -97,6 +98,7 @@ def refresh_slack_channels():
         SlackChannel.objects.update_or_create(channel_id=channel_id, defaults={
             "name": channel_name,
         })
+
 
 def send_slack_notification(project):
     message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id=%s|%s - %s> (created at %s)""" % (project.project_id, project.client, project.name, project.created_at)

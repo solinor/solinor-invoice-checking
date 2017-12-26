@@ -1,6 +1,6 @@
 import logging
-import requests
 
+import requests
 from django.utils import timezone
 
 

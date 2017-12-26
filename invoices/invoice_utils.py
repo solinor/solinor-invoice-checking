@@ -1,5 +1,6 @@
-from invoices.models import AmazonInvoiceRow
 from invoices.aws_utils import AWS_URLS
+from invoices.models import AmazonInvoiceRow
+
 
 def generate_amazon_invoice_data(linked_account, entries, year, month):
     phases = {}
@@ -24,6 +25,7 @@ def generate_amazon_invoice_data(linked_account, entries, year, month):
         "phases": phases,
         "total_entries": total_entries,
     }
+
 
 def calculate_stats_for_hours(entries):
     phases = {}
@@ -72,7 +74,6 @@ def calculate_stats_for_hours(entries):
     if total_rows["hours"]["incurred_hours"] > 0:
         total_rows["hours"]["bill_rate_avg"] = total_rows["hours"]["incurred_money"] / total_rows["hours"]["incurred_hours"]
 
-
     stats = {
         "total_rows": total_rows,
         "phases": phases,
@@ -93,6 +94,7 @@ def calculate_stats_for_hours(entries):
     stats["incorrect_entries_count"] = stats["billable_incorrect_price_count"] + stats["non_billable_hours_count"] + stats["non_phase_specific_count"] + stats["not_approved_hours_count"] + stats["empty_descriptions_count"] + stats["no_category_count"]
     return stats
 
+
 def calculate_stats_for_fixed_rows(fixed_invoice_rows):
     total_rows = {}
     phases = {}
@@ -107,6 +109,7 @@ def calculate_stats_for_fixed_rows(fixed_invoice_rows):
         "total_rows": total_rows,
     }
 
+
 def get_aws_entries(aws_accounts, month_start_date, month_end_date):
     aws_entries = {}
     for aws_account in aws_accounts:
@@ -114,9 +117,11 @@ def get_aws_entries(aws_accounts, month_start_date, month_end_date):
         aws_entries[aws_account] = rows
     return aws_entries
 
+
 def calculate_stats_for_aws_entries(aws_entries):
     phases = {}
     total_rows = {}
+    # TODO: migrate to defaultdict
     if aws_entries:
         for aws_account, aws_entries_list in aws_entries.items():
             account_key = u"Amazon Web Services"
@@ -137,15 +142,18 @@ def calculate_stats_for_aws_entries(aws_entries):
         "total_rows": total_rows,
     }
 
+
 def combine_invoice_parts(*combine_stats):
     stats = {}
+    # TODO: migrate to defaultdict
     for stat in combine_stats:
-        for k, v in stat.items():
-            if k not in stats:
-                stats[k] = v
+        for key, value in stat.items():
+            if key not in stats:
+                stats[key] = value
             else:
-                stats[k].update(v)
+                stats[key].update(value)
     return stats
+
 
 def calculate_entry_stats(hour_entries, fixed_invoice_rows, aws_entries=None):
     hour_stats = calculate_stats_for_hours(hour_entries)

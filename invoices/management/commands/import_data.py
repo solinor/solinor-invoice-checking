@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from invoices.utils import HourEntryUpdate
 
+
 class Command(BaseCommand):
     help = 'Import data from 10k feet API'
 

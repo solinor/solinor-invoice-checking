@@ -1,32 +1,31 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import datetime
 import json
-import copy
 from collections import defaultdict
 
 import redis
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
-from django.shortcuts import render, get_object_or_404
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
-
 from django_tables2 import RequestConfig
 
-from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount, SlackNotificationBundle
-from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
-from invoices.pdf_utils import generate_hours_pdf_for_invoice
-from invoices.tables import HourListTable, CustomerHoursTable, FrontpageInvoices, ProjectsTable, ProjectDetailsTable
-from invoices.invoice_utils import generate_amazon_invoice_data, calculate_entry_stats, get_aws_entries
 import invoices.date_utils as date_utils
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
+from invoices.filters import CustomerHoursFilter, HourListFilter, InvoiceFilter, ProjectsFilter
+from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
+from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, AuthToken, Comments, DataUpdate, FeetUser,
+                             HourEntry, Invoice, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle)
+from invoices.pdf_utils import generate_hours_pdf_for_invoice
+from invoices.tables import CustomerHoursTable, FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -45,7 +44,7 @@ def amazon_overview(request):
         try:
             today = datetime.datetime(int(request.GET.get("year")), int(request.GET.get("month")), 1)
         except ValueError:
-            raise HttpResponseBadRequest("Invalid year or month")
+            return HttpResponseBadRequest("Invalid year or month")
     else:
         today = datetime.date.today()
     aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "feetuser_set")
@@ -84,6 +83,7 @@ def amazon_overview(request):
         "linking_data_json": json.dumps(linking_data),
     }
     return render(request, "amazon_overview.html", context)
+
 
 @login_required
 def amazon_invoice(request, linked_account_id, year, month):
@@ -132,6 +132,7 @@ def customer_view(request, auth_token):
         "auth_token": auth_token,
     }
     return render(request, "customer_main.html", context)
+
 
 def customer_view_invoice(request, auth_token, year, month):
     token = validate_auth_token(auth_token)
@@ -214,6 +215,7 @@ def person_details(request, user_guid):
 
     return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
 
+
 @login_required
 def person_details_month(request, year, month, user_guid):
     year = int(year)
@@ -252,6 +254,7 @@ def people_list(request):
         if person["billable"]["incurred_hours"] > 0:
             person["bill_rate_avg_billable"] = person["billable"]["incurred_money"] / person["billable"]["incurred_hours"]
     return render(request, "people.html", {"people": people_data, "year": year, "month": month})
+
 
 def parse_date(date_string):
     return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
@@ -323,6 +326,7 @@ def get_pdf(request, invoice_id, pdf_type):
     response = HttpResponse(pdf, content_type="application/pdf")
     response['Content-Disposition'] = u'attachment; filename="Hours for %s.pdf"' % title
     return response
+
 
 @login_required
 def frontpage(request):
@@ -428,6 +432,7 @@ def hours_charts(request):
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
 
+
 @login_required
 def people_charts(request):
     linecharts = []
@@ -451,11 +456,11 @@ def people_hourmarkings(request):
     period_start = today - datetime.timedelta(days=30)
     hour_markings = HourEntry.objects.filter(date__gte=period_start).exclude(user_m=None).values("user_m__guid", "user_name", "date").annotate(hours=Sum("incurred_hours"))
     days = []
-    d = period_start
+    current_day = period_start
     while True:
-        days.append({"date": d, "hours": 0, "weekday": d.strftime("%a")})
-        d += datetime.timedelta(days=1)
-        if d > today:
+        days.append({"date": current_day, "hours": 0, "weekday": current_day.strftime("%a")})
+        current_day += datetime.timedelta(days=1)
+        if current_day > today:
             break
     people = {}
     for hour_marking in hour_markings:
@@ -464,8 +469,8 @@ def people_hourmarkings(request):
             people[guid] = {"name": hour_marking["user_name"],
                             "days": copy.deepcopy(days),
                             "sum_of_hours": 0}
-        for i, d in enumerate(people[guid]["days"]):
-            if d["date"] == hour_marking["date"]:
+        for i, current_day in enumerate(people[guid]["days"]):
+            if current_day["date"] == hour_marking["date"]:
                 people[guid]["days"][i]["hours"] += hour_marking["hours"]
                 people[guid]["sum_of_hours"] += hour_marking["hours"]
     return render(request, "people_hourmarkings.html", {"people": people, "days": days, "today": today})
@@ -483,7 +488,6 @@ def project_charts(request, project_id):
     money_calendar_data = [("new Date(%s, %s, %s)" % (entry["date"].year, entry["date"].month - 1, entry["date"].day), entry["money"]) for entry in entries if entry["money"] > 0]
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
-
 
     entries = HourEntry.objects.filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
@@ -506,12 +510,13 @@ def invoice_charts(request, invoice_id):
         previous_invoices = []
     first_day = datetime.datetime.strptime(request.GET.get("first_day", invoice.month_start_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
     last_day = datetime.datetime.strptime(request.GET.get("last_day", invoice.month_end_date.strftime("%Y-%m-%d")), "%Y-%m-%d")
+
     def get_chart_data(queryset):
-        d = defaultdict(float)
+        data = defaultdict(float)
         for item in queryset:
-            d[item[0]] += item[1]
-        d = sorted(d.items(), key=lambda k: k[0])
-        return [["a", "b"]] + d
+            data[item[0]] += item[1]
+        data = sorted(data.items(), key=lambda k: k[0])
+        return [["a", "b"]] + data
 
     def get_2d_chart_data(queryset):
         def per_person_dict():
@@ -622,7 +627,6 @@ def invoice_page(request, invoice_id, **_):
         latest_comments = Comments.objects.filter(invoice=invoice).latest()
     except Comments.DoesNotExist:
         latest_comments = None
-
 
     previous_invoices = []
     if invoice.project_m:

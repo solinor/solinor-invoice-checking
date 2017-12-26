@@ -1,7 +1,10 @@
-from flex_hours.models import *
-from invoices.models import FeetUser, HourEntry
-from django.http import HttpResponseServerError
 import datetime
+
+from django.http import HttpResponseServerError
+
+from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
+from invoices.models import HourEntry
+
 
 def calculate_flex_saldo(person):
     contracts = WorkContract.objects.all().filter(user=person)
@@ -69,7 +72,6 @@ def calculate_flex_saldo(person):
             message_for_today += "Adding hour markings: %sh. " % plus_hours_today
         elif not contract.flex_enabled and (plus_hours_today or flex_hour_deduct):
             message_for_today += "Flex time is not enabled. Would have been +%sh and -%sh for today." % (plus_hours_today, flex_hour_deduct)
-
 
         if message_for_today:
             flex_hour_events.append({"date": current_day, "message": message_for_today})

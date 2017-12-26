@@ -1,5 +1,7 @@
 import django_filters
-from invoices.models import Invoice, Project, HourEntry
+
+from invoices.models import HourEntry, Invoice, Project
+
 
 class HourListFilter(django_filters.FilterSet):
     class Meta:
@@ -24,6 +26,7 @@ class CustomerHoursFilter(django_filters.FilterSet):
             "notes": ["icontains"],
         }
 
+
 class InvoiceFilter(django_filters.FilterSet):
     class Meta:
         model = Invoice
@@ -35,8 +38,8 @@ class InvoiceFilter(django_filters.FilterSet):
             "client": ["icontains"],
         }
 
-class ProjectsFilter(django_filters.FilterSet):
 
+class ProjectsFilter(django_filters.FilterSet):
     class Meta:
         model = Project
         fields = {

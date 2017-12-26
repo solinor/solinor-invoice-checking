@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render
 
 from flex_hours.utils import calculate_flex_saldo
+from invoices.models import FeetUser
 
 from invoices.models import FeetUser
 

@@ -1,12 +1,11 @@
-from django.conf.urls import include, url
-from django.urls import path
-from django.contrib import admin
-from django.views.generic.base import RedirectView
 from django.conf import settings
+from django.conf.urls import include, url
+from django.contrib import admin
+from django.urls import path
+from django.views.generic.base import RedirectView
 
-import invoices.views
 import flex_hours.views
-
+import invoices.views
 
 admin.autodiscover()
 

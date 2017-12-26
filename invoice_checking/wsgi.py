@@ -8,10 +8,12 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 """
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "invoice_checking.settings")
 
 from django.core.wsgi import get_wsgi_application  # pylint: disable=wrong-import-position
 from whitenoise.django import DjangoWhiteNoise  # pylint: disable=wrong-import-position
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "invoice_checking.settings")
+
 
 application = get_wsgi_application()  # pylint: disable=invalid-name
 application = DjangoWhiteNoise(application)  # pylint: disable=invalid-name

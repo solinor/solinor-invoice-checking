@@ -2,7 +2,7 @@ from django.conf import settings
 from django.http import HttpResponsePermanentRedirect
 
 
-class DomainRedirectMiddleware(object):
+class DomainRedirectMiddleware(object):  # pylint: disable=too-few-public-methods
     def __init__(self, get_response):
         self.get_response = get_response
 

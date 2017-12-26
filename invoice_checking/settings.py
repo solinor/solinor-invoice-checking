@@ -49,7 +49,7 @@ LOGGING = {
 
 os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
 WKHTMLTOPDF_CMD = subprocess.Popen(
-    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], # Note we default to 'wkhtmltopdf' as the binary name
+    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],  # Note we default to 'wkhtmltopdf' as the binary name
     stdout=subprocess.PIPE).communicate()[0].strip()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
