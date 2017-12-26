@@ -132,6 +132,7 @@ REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
 
 MIDDLEWARE = (
     'invoice_checking.middleware.DomainRedirectMiddleware',
+    'sslify.middleware.SSLifyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
