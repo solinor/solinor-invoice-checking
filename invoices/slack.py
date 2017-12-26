@@ -2,13 +2,14 @@ import logging
 import datetime
 
 import slacker
-from invoices.models import FeetUser, SlackChannel, Project, SlackChat, SlackChatMember
+from invoices.models import FeetUser, SlackChannel, Project, SlackChat, SlackChatMember, SlackNotificationBundle
 from django.conf import settings
 from django.db.models import Count, Sum
 from django.urls import reverse
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
 logger = logging.getLogger(__name__)
+
 
 def create_slack_mpim(members_list):
     slack_chat = SlackChat.objects.annotate(users_count=Count("slackchatmember")).filter(users_count=len(members_list))
@@ -32,6 +33,7 @@ def create_slack_mpim(members_list):
         chat_id = slack_chat.chat_id
     return chat_id
 
+
 def send_unsubmitted_hours_notifications():
     today = datetime.date.today()
     for user in FeetUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
@@ -53,6 +55,7 @@ def send_unsubmitted_hours_notifications():
             continue
         logger.info("%s - %s", chat_id, message)
         slack.chat.post_message(chat_id, message)
+    SlackNotificationBundle(notification_type="unsubmitted").save()
 
 
 def send_unapproved_hours_notifications(year, month):
@@ -72,6 +75,8 @@ def send_unapproved_hours_notifications(year, month):
             continue
         logger.info(u"%s %s", message, chat_id)
         slack.chat.post_message(chat_id, message)
+    SlackNotificationBundle(notification_type="unapproved").save()
+
 
 def refresh_slack_users():
     slack_users = slack.users.list().body["members"]

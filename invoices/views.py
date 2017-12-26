@@ -7,20 +7,20 @@ from collections import defaultdict
 
 import redis
 
-
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.urls import reverse
 from django.conf import settings
-from django.utils import timezone
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum, Q
 from django.db.models.functions import TruncMonth
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.utils import timezone
 
 from django_tables2 import RequestConfig
 
-from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount
+from invoices.models import HourEntry, Invoice, Comments, DataUpdate, FeetUser, Project, AuthToken, InvoiceFixedEntry, ProjectFixedEntry, AmazonInvoiceRow, AmazonLinkedAccount, SlackNotificationBundle
 from invoices.filters import InvoiceFilter, ProjectsFilter, CustomerHoursFilter, HourListFilter
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import HourListTable, CustomerHoursTable, FrontpageInvoices, ProjectsTable, ProjectDetailsTable
@@ -255,6 +255,35 @@ def people_list(request):
 
 def parse_date(date_string):
     return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
+
+
+@staff_member_required
+def queue_slack_notification(request):
+    if request.method == "POST":
+        return_url = request.POST.get("back") or reverse("queue_slack_notification")
+        notification_type = request.POST.get("type")
+        if not notification_type:
+            return HttpResponseBadRequest()
+
+        messages.add_message(request, messages.INFO, "Slack notifications for %s queued." % notification_type)
+        return HttpResponseRedirect(return_url)
+
+    notification_history = SlackNotificationBundle.objects.all()
+    last_unsubmitted_notification_at = last_unapproved_notification_at = None
+    for item in notification_history:
+        if not last_unsubmitted_notification_at and item.notification_type == "unsubmitted":
+            last_unsubmitted_notification_at = item.sent_at
+        if not last_unapproved_notification_at and item.notification_type == "unapproved":
+            last_unapproved_notification_at = item.sent_at
+        if last_unapproved_notification_at and last_unsubmitted_notification_at:
+            break
+    context = {
+        "slack_notification_history": notification_history,
+        "last_unsubmitted_notification_at": last_unsubmitted_notification_at,
+        "last_unapproved_notification_at": last_unapproved_notification_at,
+    }
+    return render(request, "slack_notifications.html", context)
+
 
 @login_required
 def queue_update(request):

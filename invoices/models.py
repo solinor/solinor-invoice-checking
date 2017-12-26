@@ -397,6 +397,21 @@ class DataUpdate(models.Model):
         return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)
 
 
+class SlackNotificationBundle(models.Model):
+    notification_type = models.CharField(max_length=50)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "%s - %s" % (self.sent_at, self.notification_type)
+
+    def __unicode__(self):
+        return self.__str__()
+
+    class Meta:
+        get_latest_by = "sent_at"
+        ordering = ("-sent_at", "notification_type")
+
+
 class SlackNotification(models.Model):
     recipient = models.ForeignKey("FeetUser", on_delete=models.CASCADE)
     message = models.TextField()

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<form method="post" action="{% url 'queue_slack_notification' %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="type" value="unsubmitted">
+  <button role="submit" name="Send notifications for unsubmitted hours" class="btn btn-default">Send notifications for unsubmitted hours (last update finished {{ last_unsubmitted_notification_at|naturaltime }})</button>
+</form>
+
+<form method="post" action="{% url 'queue_slack_notification' %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="type" value="unapproved">
+  <button role="submit" name="Send notifications for unapproved hours" class="btn btn-default">Send notifications for unapproved hours (last update finished {{ last_unapproved_notification_at|naturaltime }})</button>
+</form>
+
+
+<h2>History</h2>
+
+<ul>
+  {% for entry in slack_notification_history %}
+  <li>{{ entry }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
