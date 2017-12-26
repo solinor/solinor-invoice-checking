@@ -66,6 +66,7 @@ REDIS = os.environ["REDIS_URL"]
 TENKFEET_AUTH = os.environ["TENKFEET_AUTH"]
 SLACK_BOT_ACCESS_TOKEN = os.environ["SLACK_BOT_ACCESS_TOKEN"]
 
+TAG_MANAGER_CODE = os.environ.get("TAG_MANAGER_CODE")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", False) in ("true", "True", True)
