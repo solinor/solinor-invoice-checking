@@ -58,7 +58,7 @@ class HourEntry(models.Model):
 
     def update_calculated_fields(self):
         self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
-        self.calculated_has_notes = self.notes and self.notes > 0
+        self.calculated_has_notes = self.notes and len(self.notes) > 0
         self.calculated_has_phase = self.phase_name != "[Non Phase Specific]"
         self.calculated_is_approved = self.approved
         self.calculated_has_proper_price = self.bill_rate > 50 and self.bill_rate < 170
