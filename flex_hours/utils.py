@@ -16,7 +16,7 @@ class FlexHourNoContractException(FlexHourException):
 
 def fetch_contract(contracts, current_day):
     for contract in contracts:
-        if contract.start_date <= current_day and (contract.end_date is None or contract.end_date > current_day):
+        if contract.start_date <= current_day and (contract.end_date is None or contract.end_date >= current_day):
             return contract
 
 
