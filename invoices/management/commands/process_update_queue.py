@@ -68,7 +68,7 @@ class Command(BaseCommand):
         pubsub = redis_instance.pubsub(ignore_subscribe_messages=True)
         pubsub.subscribe("request-refresh")
         for entry in pubsub.listen():
-            logger.debug("Received %s from redis queue", entry)
+            logger.info("Received %s from redis queue", entry)
             data = json.loads(entry["data"])
             if data["type"] == "data-update":
                 update_10kf_data(logger, data)
