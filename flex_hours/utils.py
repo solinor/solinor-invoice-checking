@@ -28,44 +28,67 @@ def fetch_first_contract(contracts):
     return first_contract
 
 
+def fetch_last_contract(contracts):
+    last_contract = None
+    for contract in contracts:
+        if not last_contract or last_contract.end_date < contract.end_date:
+            last_contract = contract
+    return last_contract
+
+
+def find_first_process_date(events, contracts):
+    latest_set_to = start_hour_markings_from_date = None
+    for event in events:
+        if event.set_to:
+            if not latest_set_to or latest_set_to.date < event.date:
+                latest_set_to = event.set_to
+                start_hour_markings_from_date = event.date
+    if start_hour_markings_from_date:
+        return start_hour_markings_from_date, float(latest_set_to)
+
+    first_contract = fetch_first_contract(contracts)
+    if not first_contract:
+        raise FlexHourNoContractException("Unable to find the first contract")
+    return first_contract.start_date, 0
+
+def find_last_process_date(hour_markings_list, contracts):
+    today = datetime.date.today()
+    last_hour_marking_day = None
+    if hour_markings_list:
+        last_hour_marking_day = hour_markings_list[-1][0]
+    last_contract = fetch_last_contract(contracts)
+    last_process_day = today
+    if last_hour_marking_day and last_contract:
+        last_process_day = min(max(last_hour_marking_day, last_contract.end_date), today)
+    return last_process_day
+
 def calculate_flex_saldo(person):
     contracts = WorkContract.objects.all().filter(user=person)
     events = FlexTimeCorrection.objects.all().filter(user=person)
     today = datetime.date.today()
 
-    latest_set_to = start_hour_markings_from_date = None
-    for event in events:
-        if event.set_to:
-            if not latest_set_to or latest_set_to.date < event.date:
-                latest_set_to = event
-                start_hour_markings_from_date = event.date
-    if not start_hour_markings_from_date:
-        first_contract = fetch_first_contract(contracts)
-        if not first_contract:
-            raise FlexHourNoContractException("Unable to fetch first contract for %s" % person)
-        start_hour_markings_from_date = first_contract.start_date
+    # Find the first date
+    start_hour_markings_from_date, flex_hours = find_first_process_date(events, contracts)
 
     holidays_list = PublicHoliday.objects.filter(date__gte=start_hour_markings_from_date).filter(date__lte=today)
     holidays = {k.date: k.name for k in holidays_list}
 
-    hour_markings = HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).exclude(leave_type="Flex time Leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
+    hour_markings_list = list(HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).exclude(leave_type="Flex time Leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
+    hour_markings = {k[0]: float(k[1]) for k in hour_markings_list}
+
+    last_process_day = find_last_process_date(hour_markings_list, contracts)
     current_day = start_hour_markings_from_date
     calculation_log = []
     daily_diff_entries = []
-    if latest_set_to:
-        flex_hours = float(latest_set_to.set_to)
-    else:
-        flex_hours = 0
-    while current_day <= today:
+    while current_day <= last_process_day:
         message_for_today = ""
         for event in events:
             if event.date == current_day and event.adjust_by:
                 flex_hours += float(event.adjust_by)
                 calculation_log.append({"date": current_day, "message": "Flex hours manually adjusted by %sh" % event.adjust_by})
         plus_hours_today = flex_hour_deduct = 0
-        for hour_marking_date, incurred_hours in hour_markings:
-            if hour_marking_date == current_day:
-                plus_hours_today += float(incurred_hours)
+        if current_day in hour_markings:
+            plus_hours_today = hour_markings[current_day]
         contract = fetch_contract(contracts, current_day)
         if not contract:
             raise FlexHourNoContractException("Hour markings for %s for %s, but no contract." % (current_day, person))
@@ -97,7 +120,7 @@ def calculate_flex_saldo(person):
         "flex_time_events": events,
         "flex_hours": flex_hours,
         "calculation_log": calculation_log,
-        "hour_markings": hour_markings,
+        "hour_markings": hour_markings_list,
         "daily_diff_entries": daily_diff_entries,
     }
     return context
