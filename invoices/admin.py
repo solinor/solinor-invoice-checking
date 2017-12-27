@@ -1,18 +1,11 @@
 from django.contrib import admin
 
-from invoices.models import AuthToken, FeetUser, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackChannel
+from invoices.models import InvoiceFixedEntry, Project, ProjectFixedEntry, SlackChannel, TenkfUser
 
 
 class DeleteNotAllowedModelAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
-
-
-class AuthTokenAdmin(admin.ModelAdmin):
-    pass
-
-
-admin.site.register(AuthToken, AuthTokenAdmin)
 
 
 class ProjectFixedEntryAdmin(admin.ModelAdmin):
@@ -52,4 +45,4 @@ class UserAdmin(DeleteNotAllowedModelAdmin):
     search_fields = ("first_name", "last_name", "email")
 
 
-admin.site.register(FeetUser, UserAdmin)
+admin.site.register(TenkfUser, UserAdmin)

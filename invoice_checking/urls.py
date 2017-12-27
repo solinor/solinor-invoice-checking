@@ -10,10 +10,6 @@ import invoices.views
 admin.autodiscover()
 
 urlpatterns = [
-    path('customer/<uuid:auth_token>', invoices.views.customer_view, name='customer'),
-    path('customer/<uuid:auth_token>/hours/<int:year>/<int:month>', invoices.views.customer_view_hours, name='customer_hours'),
-    path('customer/<uuid:auth_token>/invoice/<int:year>/<int:month>', invoices.views.customer_view_invoice, name='customer_invoice'),
-
     path('projects', invoices.views.projects_list, name='projects_list'),
     path('project/<uuid:project_id>', invoices.views.project_details, name='project'),
     path('project/<uuid:project_id>/charts', invoices.views.project_charts, name='project_charts'),

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from flex_hours.utils import FlexHourException, calculate_flex_saldo
-from invoices.models import FeetUser
+from invoices.models import TenkfUser
 
 
 class Command(BaseCommand):
@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         users = []
-        for user in FeetUser.objects.all():
+        for user in TenkfUser.objects.all():
             try:
                 flex_info = calculate_flex_saldo(user)
             except FlexHourException as error:

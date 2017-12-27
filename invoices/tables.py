@@ -39,22 +39,6 @@ class HourListTable(tables.Table):
         return u"%s€/h" % intcomma(floatformat(value, 2))
 
 
-class CustomerHoursTable(tables.Table):
-    class Meta:
-        model = HourEntry
-        fields = ("date", "user_name", "category", "phase_name", "notes", "incurred_hours", "bill_rate", "incurred_money")
-        attrs = {"class": "table table-striped table-hover hours-table"}
-
-    def render_incurred_hours(self, value):
-        return u"%sh" % intcomma(floatformat(value, 2))
-
-    def render_incurred_money(self, value):
-        return u"%s€" % intcomma(floatformat(value, 2))
-
-    def render_bill_rate(self, value):
-        return u"%s€/h" % intcomma(floatformat(value, 2))
-
-
 class FrontpageInvoices(tables.Table):
     invoice_state = tables.Column(verbose_name="State")
     incorrect_entries_count = tables.Column(verbose_name="Issues")
