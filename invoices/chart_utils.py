@@ -30,7 +30,6 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
             diff = 0
         data.append((entry["1m"]["user_name"], "All", entry["1m"]["hours"], diff))
 
-
     entries_for_past_month = queryset.exclude(client="[none]").exclude(client="").filter(date__gte=month_ago, date__lte=today).order_by("project", "user_name").values("project", "user_name").annotate(hours=Sum(sum_by)).values("user_name", "project", "hours")
     entries_before_past_month = queryset.exclude(client="[none]").exclude(client="").filter(date__lte=month_ago, date__gte=two_months_ago).order_by("project", "user_name").values("project", "user_name").annotate(hours=Sum(sum_by)).values("user_name", "project", "hours")
 
@@ -51,9 +50,7 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
             diff = 0
         data.append((u"%s - %s" % (entry["1m"]["project"], entry["1m"]["user_name"]), entry["1m"]["user_name"], entry["1m"]["hours"], diff))
 
-
     return (u"hours_treemap-%s-%s" % (sum_by, title), u"%s for past 30 days" % title, json.dumps(data))
-
 
 
 def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours"):

@@ -1,9 +1,9 @@
-import json
 import datetime
-import redis
+import json
 
-from django.core.management.base import BaseCommand
+import redis
 from django.conf import settings
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

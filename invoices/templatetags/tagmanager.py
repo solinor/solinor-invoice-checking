@@ -2,7 +2,6 @@ from django import template
 from django.conf import settings
 from django.template.loader import render_to_string
 
-
 register = template.Library()
 
 
@@ -13,12 +12,11 @@ class FormatTagManagerCode(template.Node):
     def render(self, context):
         if self.tag_manager_code:
             return render_to_string("snippets/tag_manager.html", {"tag_manager_code": settings.TAG_MANAGER_CODE})
-        else:
-            return ""
+        return ""
 
 
 @register.tag
-def tag_manager_snippet(parser, token):
+def tag_manager_snippet(parser, token):  # pylint: disable=unused-argument
     if not settings.TAG_MANAGER_CODE:
         return FormatTagManagerCode(None)
     return FormatTagManagerCode(settings.TAG_MANAGER_CODE)

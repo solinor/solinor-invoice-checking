@@ -1,10 +1,10 @@
 import pdfkit
-
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 
-from invoices.models import Invoice, HourEntry
+from invoices.models import HourEntry, Invoice
+
 
 def generate_pdf(title, content):
     pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
@@ -26,8 +26,9 @@ def generate_pdf(title, content):
     return pdfkit.from_string(content,
                               False,
                               options=wk_options,
-                              configuration=pdfkit_config,
-                             )
+                              configuration=pdfkit_config
+                              )
+
 
 def generate_hours_pdf_for_invoice(request, invoice):
     invoice_data = get_object_or_404(Invoice, invoice_id=invoice)

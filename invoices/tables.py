@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
-try:
-    from urllib import quote as url_quote
-except ImportError:
-    from urllib.parse import quote as url_quote
+# pylint: disable=too-few-public-methods
+
+from urllib.parse import quote as url_quote
 
 import django_tables2 as tables
-from invoices.models import Project, Invoice, HourEntry
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.template.defaultfilters import floatformat
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
+
+from invoices.models import HourEntry, Invoice, Project
 
 
 class HourListTable(tables.Table):
@@ -22,14 +22,12 @@ class HourListTable(tables.Table):
     def render_user_name(self, value, record):
         if record.user_m:
             return format_html('<a href="%s">%s</a>' % (reverse("person", args=[record.user_m.guid, record.date.year, record.date.month]), value))
-        else:
-            return value
+        return value
 
     def render_project(self, value, record):
         if record.project_m:
             return format_html('<a href="%s">%s</a>' % (reverse("project", args=[record.project_m.guid]), value))
-        else:
-            return value
+        return value
 
     def render_incurred_hours(self, value):
         return u"%sh" % intcomma(floatformat(value, 2))
@@ -86,6 +84,7 @@ class FrontpageInvoices(tables.Table):
 
     def render_billable_percentage(self, value):
         return u"%s%%" % floatformat(value * 100, 0)
+
 
 class ProjectsTable(tables.Table):
     class Meta:

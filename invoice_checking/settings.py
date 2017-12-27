@@ -49,7 +49,7 @@ LOGGING = {
 
 os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
 WKHTMLTOPDF_CMD = subprocess.Popen(
-    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], # Note we default to 'wkhtmltopdf' as the binary name
+    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],  # Note we default to 'wkhtmltopdf' as the binary name
     stdout=subprocess.PIPE).communicate()[0].strip()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -121,6 +121,7 @@ GOOGLEAUTH_GROUPS = []
 
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "True", "true")
 
 AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
 AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]

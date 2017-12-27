@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
-import uuid
 import time
+import uuid
+
 from django.db import models
+
 import invoices.date_utils as date_utils
 
 
@@ -56,17 +58,11 @@ class HourEntry(models.Model):
 
     def update_calculated_fields(self):
         self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
-        if self.notes:
-            self.calculated_has_notes = len(self.notes) > 0
-        else:
-            self.calculated_has_notes = False
+        self.calculated_has_notes = self.notes and self.notes > 0
         self.calculated_has_phase = self.phase_name != "[Non Phase Specific]"
         self.calculated_is_approved = self.approved
         self.calculated_has_proper_price = self.bill_rate > 50 and self.bill_rate < 170
         self.calculated_has_category = self.category != "No category" and self.category != "[none]"
-
-    def __unicode__(self):
-        return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
 
     def __str__(self):
         return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
@@ -74,6 +70,7 @@ class HourEntry(models.Model):
     class Meta:
         ordering = ("date", "user_id")
         verbose_name_plural = "Hour entries"
+
 
 class Invoice(models.Model):
     INVOICE_STATE_CHOICES = (
@@ -132,9 +129,6 @@ class Invoice(models.Model):
     def full_name(self):
         return "%s - %s" % (self.client, self.project)
 
-    def __unicode__(self):
-        return u"%s - %s" % (self.full_name, self.date)
-
     def __str__(self):
         return u"%s - %s" % (self.full_name, self.date)
 
@@ -192,9 +186,6 @@ class SlackChannel(models.Model):
     name = models.CharField(max_length=1000)
     new_project_notification = models.BooleanField(blank=True, default=False)
 
-    def __unicode__(self):
-        return self.name
-
     def __str__(self):
         return self.name
 
@@ -222,9 +213,6 @@ class FeetUser(models.Model):
     slack_id = models.CharField(max_length=50, null=True, blank=True)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
 
-    def __unicode__(self):
-        return u"%s %s" % (self.first_name, self.last_name)
-
     def __str__(self):
         return "%s %s" % (self.first_name, self.last_name)
 
@@ -247,12 +235,8 @@ class Project(models.Model):
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
     admin_users = models.ManyToManyField("FeetUser", blank=True)
 
-    def __unicode__(self):
-        return u"%s - %s" % (self.client, self.name)
-
     def __str__(self):
         return u"%s - %s" % (self.client, self.name)
-
 
     class Meta:
         ordering = ("client", "name")
@@ -261,9 +245,6 @@ class Project(models.Model):
 class Phase(models.Model):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     phase_name = models.CharField(max_length=100)
-
-    def __unicode__(self):
-        return u"Phase: %s - %s" % (self.project, self.phase_name)
 
     def __str__(self):
         return u"Phase: %s - %s" % (self.project, self.phase_name)
@@ -292,9 +273,6 @@ class Comments(models.Model):
     class Meta:
         get_latest_by = "timestamp"
 
-    def __unicode__(self):
-        return u"%s - %s - %s" % (self.invoice, self.timestamp, self.user)
-
     def __str__(self):
         return u"%s - %s - %s" % (self.invoice, self.timestamp, self.user)
 
@@ -308,9 +286,6 @@ class InvoiceFixedEntry(models.Model):
         unique_together = ("invoice", "description")
         verbose_name_plural = "Fixed invoice entries"
         verbose_name = "Fixed invoice entry"
-
-    def __unicode__(self):
-        return u"%s - %s - %s" % (self.invoice, self.description, self.price)
 
     def __str__(self):
         return u"%s - %s - %s" % (self.invoice, self.description, self.price)
@@ -326,12 +301,8 @@ class ProjectFixedEntry(models.Model):
         verbose_name_plural = "Fixed project entries"
         verbose_name = "Fixed project entry"
 
-    def __unicode__(self):
-        return u"%s - %s - %s" % (self.project, self.description, self.price)
-
     def __str__(self):
         return u"%s - %s - %s" % (self.project, self.description, self.price)
-
 
 
 class AmazonLinkedAccount(models.Model):
@@ -349,9 +320,6 @@ class AmazonLinkedAccount(models.Model):
 
     class Meta:
         ordering = ("name", "linked_account_id")
-
-    def __unicode__(self):
-        return self.name
 
     def __str__(self):
         return self.name
@@ -374,9 +342,6 @@ class AmazonInvoiceRow(models.Model):
     currency = models.CharField(max_length=3)
     invoice_month = models.DateField(null=True)
 
-    def __unicode__(self):
-        return u"%s - %s - %s - %s" % (self.linked_account.name, self.product_code, self.usage_type, self.total_cost)
-
     def __str__(self):
         return u"%s - %s - %s - %s" % (self.linked_account.name, self.product_code, self.usage_type, self.total_cost)
 
@@ -390,9 +355,6 @@ class DataUpdate(models.Model):
     class Meta:
         get_latest_by = "created_at"
 
-    def __unicode__(self):
-        return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)
-
     def __str__(self):
         return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)
 
@@ -404,9 +366,6 @@ class SlackNotificationBundle(models.Model):
     def __str__(self):
         return "%s - %s" % (self.sent_at, self.notification_type)
 
-    def __unicode__(self):
-        return self.__str__()
-
     class Meta:
         get_latest_by = "sent_at"
         ordering = ("-sent_at", "notification_type")
@@ -416,9 +375,6 @@ class SlackNotification(models.Model):
     recipient = models.ForeignKey("FeetUser", on_delete=models.CASCADE)
     message = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
-
-    def __unicode__(self):
-        return u"%s - %s (%s)" % (self.recipient, self.message, self.sent_at)
 
     def __str__(self):
         return u"%s - %s (%s)" % (self.recipient, self.message, self.sent_at)
@@ -444,9 +400,6 @@ class AuthToken(models.Model):
     token = models.CharField(max_length=100, primary_key=True, editable=False, default=gen_auth_token)
     valid_until = models.DateTimeField(null=True, blank=True)
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
-
-    def __unicode__(self):
-        return self.token
 
     def __str__(self):
         return self.token

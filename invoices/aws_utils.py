@@ -1,7 +1,9 @@
 import csv
 import datetime
-from invoices.models import AmazonLinkedAccount, AmazonInvoiceRow, Invoice
+
 import pytz
+
+from invoices.models import AmazonInvoiceRow, AmazonLinkedAccount, Invoice
 
 AWS_URLS = {
     "OCBPremiumSupport": "https://aws.amazon.com/premiumsupport/",
@@ -33,17 +35,20 @@ AWS_URLS = {
     "AWSCodeCommit": "https://aws.amazon.com/codecommit/",
 }
 
+
 def parse_aws_invoice(f):
     reader = csv.reader(f)
     header = next(reader)
     for line in reader:
         yield dict(zip(header, line))
 
+
 def parse_date_record(d):
     if d == "":
         return None
     unaware = datetime.datetime.strptime(d, "%Y/%m/%d %H:%M:%S")
     return pytz.utc.localize(unaware)
+
 
 def import_aws_invoice(f, year, month):
     invoice_month = datetime.date(year, month, 1)
