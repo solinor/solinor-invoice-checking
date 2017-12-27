@@ -51,6 +51,7 @@ def find_first_process_date(events, contracts):
         raise FlexHourNoContractException("Unable to find the first contract")
     return first_contract.start_date, 0
 
+
 def find_last_process_date(hour_markings_list, contracts):
     today = datetime.date.today()
     last_hour_marking_day = None
@@ -61,6 +62,7 @@ def find_last_process_date(hour_markings_list, contracts):
     if last_hour_marking_day and last_contract:
         last_process_day = min(max(last_hour_marking_day, last_contract.end_date), today)
     return last_process_day
+
 
 def calculate_flex_saldo(person):
     contracts = WorkContract.objects.all().filter(user=person)
