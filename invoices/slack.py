@@ -8,8 +8,8 @@ from django.urls import reverse
 
 from invoices.models import FeetUser, Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle
 
-slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
-logger = logging.getLogger(__name__)
+slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
+logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
 
 
 def create_slack_mpim(members_list):

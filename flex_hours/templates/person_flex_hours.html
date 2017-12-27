@@ -6,7 +6,7 @@
    google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  {% include "snippets/calendar_chart.js" with number_header="Flex diff" entries=flex_diff_entries destination_id="flex_diff_calendar" title="Flex saldo diff" %}
+  {% include "snippets/calendar_chart.js" with number_header="Flex diff" entries=daily_diff_entries destination_id="flex_diff_calendar" title="Flex saldo diff" %}
 
 }
  </script>
@@ -40,7 +40,7 @@ Current flex time: <b>{{ flex_hours|floatformat }}h</b>
 <h3>Calculations log</h3>
 
 <ul>
-  {% for event in flex_hour_events %}
+  {% for event in calculation_log %}
   <li>{{ event.date }} - {{ event.message }}</li>
   {% endfor %}
 </ul>

@@ -121,6 +121,7 @@ GOOGLEAUTH_GROUPS = []
 
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "True", "true")
 
 AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
 AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
