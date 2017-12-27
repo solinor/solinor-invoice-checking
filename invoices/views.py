@@ -267,6 +267,7 @@ def queue_slack_notification(request):
         notification_type = request.POST.get("type")
         if not notification_type:
             return HttpResponseBadRequest()
+        REDIS.publish("request-refresh", json.dumps({"type": "slack-%s-notification" % notification_type}))
 
         messages.add_message(request, messages.INFO, "Slack notifications for %s queued." % notification_type)
         return HttpResponseRedirect(return_url)
