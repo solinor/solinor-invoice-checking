@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Count, Sum
 from django.urls import reverse
 
-from invoices.models import TenkfUser, Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle
+from invoices.models import Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle, TenkfUser
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
 logger = logging.getLogger(__name__)  # pylint:disable=invalid-name

@@ -20,22 +20,14 @@ from django_tables2 import RequestConfig
 
 import invoices.date_utils as date_utils
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
-from invoices.filters import CustomerHoursFilter, HourListFilter, InvoiceFilter, ProjectsFilter
+from invoices.filters import HourListFilter, InvoiceFilter, ProjectsFilter
 from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
-from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, AuthToken, Comments, DataUpdate, TenkfUser,
-                             HourEntry, Invoice, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle)
+from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, DataUpdate, HourEntry, Invoice,
+                             InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
-from invoices.tables import CustomerHoursTable, FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
+from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
 
 REDIS = redis.from_url(settings.REDIS)
-
-
-def validate_auth_token(auth_token):
-    token = get_object_or_404(AuthToken, token=auth_token)
-    if token.valid_until:
-        if token.valid_until > timezone.now():
-            raise Http404()
-    return token
 
 
 @login_required
@@ -121,70 +113,6 @@ def hours_list(request):
     }
 
     return render(request, "all_hours.html", context=context)
-
-
-def customer_view(request, auth_token):
-    token = validate_auth_token(auth_token)
-    invoices = Invoice.objects.filter(project_m=token.project).filter(incurred_hours__gt=0)
-    context = {
-        "project": token.project,
-        "invoices": invoices,
-        "auth_token": auth_token,
-    }
-    return render(request, "customer_main.html", context)
-
-
-def customer_view_invoice(request, auth_token, year, month):
-    token = validate_auth_token(auth_token)
-    year = int(year)
-    month = int(month)
-    invoice = get_object_or_404(Invoice, year=year, month=month, project_m=token.project)
-    hours = HourEntry.objects.filter(project_m=token.project).filter(incurred_hours__gt=0).filter(date__year=year, date__month=month).order_by("date")
-    fixed_invoice_rows = list(InvoiceFixedEntry.objects.filter(invoice=invoice))
-    if invoice.invoice_state not in ("P", "S"):
-        fixed_invoice_rows.append(list(ProjectFixedEntry.objects.filter(project=token.project)))
-    invoice_data = calculate_entry_stats(hours, invoice.get_fixed_invoice_rows())
-
-    today = datetime.date.today()
-
-    context = {
-        "project": token.project,
-        "invoice": invoice,
-        "auth_token": auth_token,
-        "month": month,
-        "year": year,
-        "due_date": "Invoice preview",
-        "today": "Invoice preview",
-        "customer_preview": True,
-        "current_month": year == today.year and month == today.month,
-    }
-    context.update(invoice_data)
-    return render(request, "customer_invoice.html", context)
-
-
-def customer_view_hours(request, auth_token, year, month):
-    token = validate_auth_token(auth_token)
-    year = int(year)
-    month = int(month)
-    hours = HourEntry.objects.filter(project_m=token.project).filter(incurred_hours__gt=0).filter(date__year=year, date__month=month).order_by("date")
-    filters = CustomerHoursFilter(request.GET, queryset=hours)
-    table = CustomerHoursTable(filters.qs)
-    RequestConfig(request, paginate={
-        'per_page': 250
-    }).configure(table)
-
-    today = datetime.date.today()
-
-    context = {
-        "project": token.project,
-        "auth_token": auth_token,
-        "year": year,
-        "month": month,
-        "table": table,
-        "filters": filters,
-        "current_month": year == today.year and month == today.month,
-    }
-    return render(request, "customer_hours.html", context)
 
 
 @login_required

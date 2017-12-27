@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_datetime as django_parse_datetime
 
 from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
-from invoices.models import TenkfUser, HourEntry, Invoice, Project, is_phase_billable
+from invoices.models import HourEntry, Invoice, Project, TenkfUser, is_phase_billable
 from invoices.slack import send_slack_notification
 from invoices.tenkfeet_api import TenkFeetApi
 

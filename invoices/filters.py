@@ -18,15 +18,6 @@ class HourListFilter(django_filters.FilterSet):
         }
 
 
-class CustomerHoursFilter(django_filters.FilterSet):
-    class Meta:
-        model = HourEntry
-        fields = {
-            "user_name": ["icontains"],
-            "notes": ["icontains"],
-        }
-
-
 class InvoiceFilter(django_filters.FilterSet):
     class Meta:
         model = Invoice

@@ -371,15 +371,6 @@ class SlackNotificationBundle(models.Model):
         ordering = ("-sent_at", "notification_type")
 
 
-class SlackNotification(models.Model):
-    recipient = models.ForeignKey("TenkfUser", on_delete=models.CASCADE)
-    message = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return u"%s - %s (%s)" % (self.recipient, self.message, self.sent_at)
-
-
 class SlackChat(models.Model):
     chat_id = models.CharField(max_length=50, primary_key=True, editable=False)
 
@@ -390,16 +381,3 @@ class SlackChatMember(models.Model):
 
     class Meta:
         unique_together = (("slack_chat", "member_id"),)
-
-
-def gen_auth_token():
-    return "%s-%s-%s" % (time.time(), str(uuid.uuid4()), str(uuid.uuid4()))
-
-
-class AuthToken(models.Model):
-    token = models.CharField(max_length=100, primary_key=True, editable=False, default=gen_auth_token)
-    valid_until = models.DateTimeField(null=True, blank=True)
-    project = models.ForeignKey("Project", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.token
