@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 
 from flex_hours.utils import calculate_flex_saldo
 
+from invoices.models import FeetUser
+
 
 @login_required
 def person_flex_hours(request, user_guid):
