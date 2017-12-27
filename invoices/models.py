@@ -25,7 +25,7 @@ class HourEntry(models.Model):
     date = models.DateField(db_index=True)
 
     last_updated_at = models.DateTimeField(db_index=True)
-    user_m = models.ForeignKey("FeetUser", null=True, on_delete=models.CASCADE)
+    user_m = models.ForeignKey("TenkfUser", null=True, on_delete=models.CASCADE)
     user_id = models.IntegerField()
     user_email = models.CharField(max_length=255)
     user_name = models.CharField(max_length=100, verbose_name="Name")
@@ -193,7 +193,7 @@ class SlackChannel(models.Model):
         ordering = ("name",)
 
 
-class FeetUser(models.Model):
+class TenkfUser(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
     user_id = models.IntegerField(editable=False)
     first_name = models.CharField(max_length=100, null=True, blank=True)
@@ -233,7 +233,7 @@ class Project(models.Model):
     ends_at = models.DateField(null=True, blank=True)
     slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True, on_delete=models.CASCADE)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
-    admin_users = models.ManyToManyField("FeetUser", blank=True)
+    admin_users = models.ManyToManyField("TenkfUser", blank=True)
 
     def __str__(self):
         return u"%s - %s" % (self.client, self.name)
@@ -310,7 +310,7 @@ class AmazonLinkedAccount(models.Model):
     name = models.CharField(max_length=255)
 
     def has_linked_properties(self):
-        return self.project_set.all().count() > 0 or self.feetuser_set.all().count() > 0
+        return self.project_set.all().count() > 0 or self.tenkfuser_set.all().count() > 0
 
     def billing_for_month(self, year, month):
         account_total = self.amazoninvoicerow_set.filter(invoice_month__year=year, invoice_month__month=month).filter(record_type="AccountTotal")
@@ -372,7 +372,7 @@ class SlackNotificationBundle(models.Model):
 
 
 class SlackNotification(models.Model):
-    recipient = models.ForeignKey("FeetUser", on_delete=models.CASCADE)
+    recipient = models.ForeignKey("TenkfUser", on_delete=models.CASCADE)
     message = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
 

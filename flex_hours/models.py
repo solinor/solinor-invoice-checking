@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 from django.db import models
 
-from invoices.models import FeetUser
+from invoices.models import TenkfUser
 
 
 class WorkContract(models.Model):
-    user = models.ForeignKey(FeetUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(TenkfUser, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     flex_enabled = models.BooleanField(blank=True, default=True)
@@ -21,7 +21,7 @@ class WorkContract(models.Model):
 
 
 class FlexTimeCorrection(models.Model):
-    user = models.ForeignKey(FeetUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(TenkfUser, on_delete=models.CASCADE)
     date = models.DateField()
     adjust_by = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     set_to = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)

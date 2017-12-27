@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_datetime as django_parse_datetime
 
 from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
-from invoices.models import FeetUser, HourEntry, Invoice, Project, is_phase_billable
+from invoices.models import TenkfUser, HourEntry, Invoice, Project, is_phase_billable
 from invoices.slack import send_slack_notification
 from invoices.tenkfeet_api import TenkFeetApi
 
@@ -77,7 +77,7 @@ def update_users():
             "archived_at": user["archived_at"],
             "thumbnail": user["thumbnail"],
         }
-        user_obj, _ = FeetUser.objects.update_or_create(guid=user["guid"], defaults=user_fields)
+        user_obj, _ = TenkfUser.objects.update_or_create(guid=user["guid"], defaults=user_fields)
         updated_objects = HourEntry.objects.filter(user_email=user_email).filter(user_m=None).update(user_m=user_obj)
         logger.debug("Updated %s to %s entries", user_email, updated_objects)
         total_updated += updated_objects
@@ -116,7 +116,7 @@ def update_projects():
                     first_name, last_name = tag_value.split(" ", 1)
                 except ValueError:
                     logger.info("Invalid tag: %s for %s", tag, project["id"])
-                matching_users = FeetUser.objects.filter(first_name=first_name, last_name=last_name)
+                matching_users = TenkfUser.objects.filter(first_name=first_name, last_name=last_name)
                 logger.debug("Matched %s to tag %s; first_name=%s, last_name=%s", matching_users, tag, first_name, last_name)
                 user_cache[tag_value] = matching_users
 
@@ -154,7 +154,7 @@ def get_invoices():
 
 def get_users():
     users = {}
-    for user in FeetUser.objects.all():
+    for user in TenkfUser.objects.all():
         users[user.email] = user
     return users
 

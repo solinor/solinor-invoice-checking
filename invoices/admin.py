@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from invoices.models import AuthToken, FeetUser, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackChannel
+from invoices.models import AuthToken, TenkfUser, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackChannel
 
 
 class DeleteNotAllowedModelAdmin(admin.ModelAdmin):
@@ -52,4 +52,4 @@ class UserAdmin(DeleteNotAllowedModelAdmin):
     search_fields = ("first_name", "last_name", "email")
 
 
-admin.site.register(FeetUser, UserAdmin)
+admin.site.register(TenkfUser, UserAdmin)

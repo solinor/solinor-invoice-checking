@@ -22,7 +22,7 @@ import invoices.date_utils as date_utils
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
 from invoices.filters import CustomerHoursFilter, HourListFilter, InvoiceFilter, ProjectsFilter
 from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
-from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, AuthToken, Comments, DataUpdate, FeetUser,
+from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, AuthToken, Comments, DataUpdate, TenkfUser,
                              HourEntry, Invoice, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle)
 from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import CustomerHoursTable, FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
@@ -47,7 +47,7 @@ def amazon_overview(request):
             return HttpResponseBadRequest("Invalid year or month")
     else:
         today = datetime.date.today()
-    aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "feetuser_set")
+    aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "tenkfuser_set")
     linked_accounts = sum([aws_account.has_linked_properties() for aws_account in aws_accounts])
     total_billing = linked_billing = unlinked_billing = employee_billing = project_billing = 0
 
@@ -59,7 +59,7 @@ def amazon_overview(request):
             linked_billing += aws_account.billing
             if aws_account.project_set.all().count() > 0:
                 project_billing += aws_account.billing
-            if aws_account.feetuser_set.all().count() > 0:
+            if aws_account.tenkfuser_set.all().count() > 0:
                 employee_billing += aws_account.billing
         else:
             unlinked_billing += aws_account.billing
@@ -94,7 +94,7 @@ def amazon_invoice(request, linked_account_id, year, month):
     invoice_data = generate_amazon_invoice_data(linked_account, invoice_rows, year, month)
     months = AmazonInvoiceRow.objects.filter(linked_account=linked_account).dates("invoice_month", "month", order="DESC")
     linked_projects = linked_account.project_set.all()
-    linked_users = linked_account.feetuser_set.all()
+    linked_users = linked_account.tenkfuser_set.all()
     context = {"year": year, "month": month, "months": months, "linked_account": linked_account, "linked_users": linked_users, "linked_projects": linked_projects}
     context.update(invoice_data)
 
@@ -189,7 +189,7 @@ def customer_view_hours(request, auth_token, year, month):
 
 @login_required
 def person_details(request, user_guid):
-    person = get_object_or_404(FeetUser, guid=user_guid)
+    person = get_object_or_404(TenkfUser, guid=user_guid)
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(day=1, month=1)
     entries = person.hourentry_set
     filters = request.GET.get("filters", "").split(",")
@@ -220,7 +220,7 @@ def person_details(request, user_guid):
 def person_details_month(request, year, month, user_guid):
     year = int(year)
     month = int(month)
-    person = get_object_or_404(FeetUser, guid=user_guid)
+    person = get_object_or_404(TenkfUser, guid=user_guid)
     entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
     months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
@@ -232,7 +232,7 @@ def people_list(request):
     year = int(request.GET.get("year", now.year))
     month = int(request.GET.get("month", now.month))
     people_data = {}
-    for person in FeetUser.objects.filter(archived=False):
+    for person in TenkfUser.objects.filter(archived=False):
         people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "person": person, "issues": 0}
     for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
         if entry.user_email not in people_data:

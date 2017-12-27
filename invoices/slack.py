@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Count, Sum
 from django.urls import reverse
 
-from invoices.models import FeetUser, Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle
+from invoices.models import TenkfUser, Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
 logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
@@ -37,7 +37,7 @@ def create_slack_mpim(members_list):
 
 def send_unsubmitted_hours_notifications():
     today = datetime.date.today()
-    for user in FeetUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
+    for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
         message = """<https://solinor-finance.herokuapp.com%s|You> have *unsubmitted hours*: %s hour markings with total of %s hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""" % (reverse("person", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).order_by("date")
         for unsubmitted_hour in unsubmitted_hours:
@@ -85,7 +85,7 @@ def refresh_slack_users():
         email = member.get("profile", {}).get("email")
         if not email:
             continue
-        FeetUser.objects.filter(email__iexact=email).update(slack_id=member.get("id"))
+        TenkfUser.objects.filter(email__iexact=email).update(slack_id=member.get("id"))
 
 
 def refresh_slack_channels():
