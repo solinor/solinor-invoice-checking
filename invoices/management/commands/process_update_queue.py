@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from invoices.models import DataUpdate
+from invoices.models import DataUpdate, SlackNotificationBundle
 from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
 from invoices.utils import HourEntryUpdate, refresh_stats
 
@@ -49,12 +49,24 @@ def update_10kf_data(logger, data):
     logger.info("Statistics updated.")
 
 
+def time_since_last_slack_notification(notification_type):
+    try:
+        last_notification = SlackNotificationBundle.objects.filter(notification_type=notification_type).latest()
+    except SlackNotificationBundle.DoesNotExist:
+        return datetime.timedelta(days=365)
+    return timezone.now() - last_notification
+
+
 def slack_unapproved_notifications(logger, data):
+    if time_since_last_slack_notification("unapproved") < datetime.timedelta(hours=12):
+        logger.error("Skip sending unapproved slack notifications - last notification sent too recently.")
     today = datetime.date.today()
     send_unapproved_hours_notifications(today.year, today.month)
 
 
 def slack_unsubmitted_notifications(logger, data):
+    if time_since_last_slack_notification("unsubmitted") < datetime.timedelta(hours=12):
+        logger.error("Skip sending unsubmitted slack notifications - last notification sent too recently.")
     send_unsubmitted_hours_notifications()
 
 
