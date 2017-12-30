@@ -381,3 +381,7 @@ class SlackChatMember(models.Model):
 
     class Meta:
         unique_together = (("slack_chat", "member_id"),)
+
+
+def gen_auth_token():
+    return ""
