@@ -4,7 +4,7 @@ import logging
 from django.conf import settings
 from django.db.models import Q, Sum
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime as django_parse_datetime
+from django.utils.dateparse import parse_date as parse_date_django
 
 from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
@@ -37,8 +37,7 @@ def get_overly_long_days_per_user(start_date, end_date, incurred_hours_threshold
 
 def parse_date(date):
     if date:
-        date = date.split("-")
-        return datetime.datetime(int(date[0]), int(date[1]), int(date[2])).date()
+        return parse_date_django(date)
 
 
 def parse_float(data):
@@ -46,12 +45,6 @@ def parse_float(data):
         return float(data)
     except TypeError:
         return 0
-
-
-def parse_datetime(date):
-    if date is None:
-        return None
-    return django_parse_datetime(date)
 
 
 def update_users():
@@ -68,12 +61,12 @@ def update_users():
             "display_name": user["display_name"],
             "email": user_email,
             "billable": user["billable"],
-            "hire_date": parse_date(user["hire_date"]),
-            "termination_date": parse_date(user["termination_date"]),
+            "hire_date": user["hire_date"],
+            "termination_date": user["termination_date"],
             "mobile_phone": user["mobile_phone"],
             "invitation_pending": user["invitation_pending"],
             "billability_target": user["billability_target"],
-            "created_at": parse_datetime(user["created_at"]),
+            "created_at": user["created_at"],
             "archived_at": user["archived_at"],
             "thumbnail": user["thumbnail"],
         }
@@ -97,11 +90,11 @@ def update_projects():
             "parent_id": project["parent_id"],
             "phase_name": project["phase_name"],
             "archived": project["archived"],
-            "created_at": parse_datetime(project["created_at"]),
-            "archived_at": parse_datetime(project["archived_at"]),
+            "created_at": project["created_at"],
+            "archived_at": project["archived_at"],
             "description": project["description"],
-            "starts_at": parse_date(project["starts_at"]),
-            "ends_at": parse_date(project["ends_at"]),
+            "starts_at": project["starts_at"],
+            "ends_at": project["ends_at"],
         }
         project_obj, created = Project.objects.update_or_create(guid=project["guid"],
                                                                 defaults=project_fields)
@@ -198,7 +191,7 @@ class HourEntryUpdate(object):
     def update(self):
         self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
         now = timezone.now()
-        tenkfeet_entries = tenkfeet_api.fetch_hour_entries(now, self.start_date, self.end_date)
+        tenkfeet_entries = tenkfeet_api.fetch_hour_entries(self.start_date, self.end_date)
         entries = []
 
         for entry in tenkfeet_entries:
