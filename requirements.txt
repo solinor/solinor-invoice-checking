@@ -1,5 +1,6 @@
 boto3==1.4.8
 dj-database-url==0.4.2
+django-csp==3.3
 django-filter==1.1.0
 django-tables2==1.16.0
 Django==2.0.0
