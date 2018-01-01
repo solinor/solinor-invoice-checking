@@ -110,6 +110,7 @@ GOOGLEAUTH_USE_HTTPS = os.environ.get("GOOGLEAUTH_USE_HTTPS", True) in (True, "T
 # restrict to the given Google Apps domain, default None
 GOOGLEAUTH_APPS_DOMAIN = os.environ["GOOGLEAUTH_APPS_DOMAIN"]
 
+SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))
 # get user's name, default True (extra HTTP request)
 GOOGLEAUTH_GET_PROFILE = True
 
