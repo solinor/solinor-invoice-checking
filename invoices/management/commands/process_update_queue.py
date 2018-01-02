@@ -54,7 +54,7 @@ def time_since_last_slack_notification(notification_type):
         last_notification = SlackNotificationBundle.objects.filter(notification_type=notification_type).latest()
     except SlackNotificationBundle.DoesNotExist:
         return datetime.timedelta(days=365)
-    return timezone.now() - last_notification
+    return timezone.now() - last_notification.sent_at
 
 
 def slack_unapproved_notifications(logger, data):
