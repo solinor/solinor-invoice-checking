@@ -35,8 +35,8 @@
         <a class="btn btn-info" href="{% url 'get_pdf' invoice.invoice_id 'hours' %}" role="button">Download hours</a>
         <a class="btn btn-info" href="{% url 'invoice_hours' invoice.invoice_id %}" role="button">View hours</a>
         {% if invoice.project_m %}
-        <a class="btn btn-info" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>
-        <a class="btn btn-info" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
+        <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>
+        <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
         {% endif %}
         {% if recent_invoice %}
         <form method="post" action="{% url 'queue_update' %}" class="form-inline" style="display: inline-block">

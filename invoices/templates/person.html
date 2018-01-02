@@ -33,7 +33,7 @@ $('#person-hours a').click(function (e) {
       {% endfor %}
     </ul>
   </div>
-    <a href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
+    <a rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
     {% if person.amazon_account %}
     {% for account in person.amazon_account.all %}
     <a href="{% url "amazon_invoice" account.linked_account_id year month %}" role="button" class="btn btn-info">Amazon: {{ account.name }}</a>
