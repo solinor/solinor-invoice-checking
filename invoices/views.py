@@ -33,6 +33,7 @@ REDIS = redis.from_url(settings.REDIS)
 
 @login_required
 def amazon_overview(request):
+    # TODO: this is really inefficient, as it is making a separate DB query for every single Amazon account
     if request.GET.get("year") and request.GET.get("month"):
         try:
             today = datetime.datetime(int(request.GET.get("year")), int(request.GET.get("month")), 1)
