@@ -61,10 +61,10 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: change this before deploying to production!
-SECRET_KEY = os.environ["SECRET_KEY"]
-REDIS = os.environ["REDIS_URL"]
-TENKFEET_AUTH = os.environ["TENKFEET_AUTH"]
-SLACK_BOT_ACCESS_TOKEN = os.environ["SLACK_BOT_ACCESS_TOKEN"]
+SECRET_KEY = os.environ.get("SECRET_KEY", "this-is-very-unsafe")
+REDIS = os.environ.get("REDIS_URL")
+TENKFEET_AUTH = os.environ.get("TENKFEET_AUTH")
+SLACK_BOT_ACCESS_TOKEN = os.environ.get("SLACK_BOT_ACCESS_TOKEN")
 
 TAG_MANAGER_CODE = os.environ.get("TAG_MANAGER_CODE")
 
@@ -97,19 +97,19 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # client ID from the Google Developer Console
-GOOGLEAUTH_CLIENT_ID = os.environ["GOOGLEAUTH_CLIENT_ID"]
+GOOGLEAUTH_CLIENT_ID = os.environ.get("GOOGLEAUTH_CLIENT_ID")
 
 # client secret from the Google Developer Console
-GOOGLEAUTH_CLIENT_SECRET = os.environ["GOOGLEAUTH_CLIENT_SECRET"]
+GOOGLEAUTH_CLIENT_SECRET = os.environ.get("GOOGLEAUTH_CLIENT_SECRET")
 
 # your app's domain, used to construct callback URLs
-GOOGLEAUTH_CALLBACK_DOMAIN = os.environ["GOOGLEAUTH_CALLBACK_DOMAIN"]
+GOOGLEAUTH_CALLBACK_DOMAIN = os.environ.get("GOOGLEAUTH_CALLBACK_DOMAIN")
 
 # callback URL uses HTTPS (your side, not Google), default True
 GOOGLEAUTH_USE_HTTPS = os.environ.get("GOOGLEAUTH_USE_HTTPS", True) in (True, "True", "true")
 
 # restrict to the given Google Apps domain, default None
-GOOGLEAUTH_APPS_DOMAIN = os.environ["GOOGLEAUTH_APPS_DOMAIN"]
+GOOGLEAUTH_APPS_DOMAIN = os.environ.get("GOOGLEAUTH_APPS_DOMAIN")
 
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))
 # get user's name, default True (extra HTTP request)
@@ -129,8 +129,8 @@ SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "Tru
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 
-AWS_SECRET_KEY = os.environ["AWS_SECRET_KEY"]
-AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
+AWS_SECRET_KEY = os.environ.get("AWS_SECRET_KEY")
+AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
 
 SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
 
