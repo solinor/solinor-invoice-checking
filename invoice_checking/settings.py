@@ -86,6 +86,7 @@ INSTALLED_APPS = (
     'django_tables2',
     'invoices',
     'flex_hours',
+    'compressor',
 )
 
 if DEBUG:
@@ -244,6 +245,12 @@ ALLOWED_HOSTS = ['*']
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATIC_URL = '/static/'
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
