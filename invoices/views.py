@@ -269,11 +269,10 @@ def frontpage(request):
     }).configure(table)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
     try:
-        last_update_finished_at = parse_datetime(REDIS.get("last-data-update"))
-        if not last_update_finished_at:
-            last_update_finished_at = "?"
+        last_update_finished_at = REDIS.get("last-data-update").decode()
     except TypeError:
         last_update_finished_at = "?"
+    last_update_finished_at = parse_datetime(last_update_finished_at) or "?"
     context = {
         "invoices": table,
         "filters": filters,
