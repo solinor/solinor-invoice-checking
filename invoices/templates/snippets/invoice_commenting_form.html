@@ -3,7 +3,7 @@
   <h3>Team lead</h3>
   <table>
     <tr>
-      <td style="padding-right: 15px"><input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}></td>
+      <td class="invoice-check"><input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}></td>
       <td><label for="invoiceChecked">I have checked this invoice, and I approve this (with comments I can put below)</label></td>
     </tr>
     {% if non_phase_specific_count > 0 %}
@@ -58,7 +58,7 @@
   </div>
   <table>
     <tr>
-      <td style="padding-right: 15px"><input type="checkbox" id="invoiceSentToCustomer" name="invoiceSentToCustomer" {% if form_data.invoice_sent_to_customer %}checked="checked"{% endif %} ></td>
+      <td class="invoice-check"><input type="checkbox" id="invoiceSentToCustomer" name="invoiceSentToCustomer" {% if form_data.invoice_sent_to_customer %}checked="checked"{% endif %} ></td>
       <td><label for="invoiceSentToCustomer">Invoice sent to customer (official, not the preview).</label></td>
     </tr>
   </table>

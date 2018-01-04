@@ -2,13 +2,6 @@
 {% load humanize %}
 {% load django_tables2 %}
 {% block title %}{{ project.client }} - {{ project.name }} - Invoices{% endblock %}
-{% block header %}
-<style>
-
-.invoice-table .incurred_hours, .invoice-table .incurred_money, .invoice-table .bill_rate_avg, .invoice-table .incorrect_entries_count, .billable_percentage {
-  text-align: right;
-}
-</style>{% endblock %}
 {% block content %}
 
 <ol class="breadcrumb">
@@ -19,7 +12,7 @@
 
 <h2>{{ project.client }} - {{ project.name}} </h2>
 
-<div class="row" style="padding-bottom: 1em">
+<div class="row top-buttons-row">
   <div class="col-md-12">
     <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/viewproject?id={{ project.project_id }}" role="button">View project in 10000ft</a>
     <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/editproject?id={{ project.project_id }}" role="button">Edit project in 10000ft</a>

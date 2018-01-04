@@ -2,11 +2,6 @@
 {% load humanize %}
 {% block title %}Amazon invoices - Solinor{% endblock %}
 {% block header %}
-<style>
-.invoices-table .incurred-billing, .invoices-table .linked-projects, .invoices-table .linked-users {
-  text-align: right;
-}
-</style>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 google.charts.load('current', {'packages':['corechart']});
@@ -34,7 +29,7 @@ function drawChart() {
 
     <h2>AWS accounts: {{ today.year }}-{{ today.month }}</h2>
 
-    <div class="dropdown" style="display: inline-block">
+    <div class="dropdown top-bar-dropdown">
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select month
         <span class="caret"></span>

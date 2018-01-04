@@ -11,9 +11,44 @@ h2 {
 .form-inline .form-group {
   padding-right: 2em;
 }
+.form-inline {
+  display: inline-block;
+}
 .nowrap-column {
   white-space: nowrap;
 }
 .strikethrough {
   text-decoration: line-through;
+}
+.hours-table .incurred_hours, .hours-table .incurred_money, .hours-table .bill_rate {
+  text-align: right;
+}
+.invoices-table .incurred-billing, .invoices-table .linked-projects, .invoices-table .linked-users, .invoices-table .incurred_hours, .invoices-table .incurred_money, .invoices-table .bill_rate_avg, .invoices-table .incorrect_entries_count, .invoices-table .billable_percentage {
+  text-align: right;
+}
+.projects-table .incurred_hours, .projects-table .incurred_money {
+  text-align: right;
+}
+
+#flex_diff_calendar {
+   width: 100%;
+   height: 350px;
+}
+
+.top-buttons-row {
+  margin-bottom: 1em;
+}
+
+.top-bar-dropdown {
+  display: inline-block;
+}
+.piechart {
+  height: 250px;
+}
+.invoice-logo {
+   width:100%;
+   max-width:300px;
+}
+.invoice-check {
+  padding-right: 15px;
 }
