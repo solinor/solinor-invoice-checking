@@ -1,5 +1,12 @@
 {% for treemap in treemap_charts %}
-var data = google.visualization.arrayToDataTable({{ treemap.2|safe }});
+var data = google.visualization.arrayToDataTable(
+  [
+  {% for item in treemap.2 %}
+  {% if forloop.first %} ["{{ item.0 }}", "{{ item.1 }}", "{{ item.2 }}", "{{ item.3 }}"],
+  {% else %} ["{{ item.0 }}", {% if item.1 == None %}null{% else %}"{{ item.1 }}"{% endif %}, {{ item.2|floatformat:1 }}, {{ item.3|floatformat:1 }}]{% if not forloop.last %},{% endif %}
+{% endif %}{% endfor %}
+  ]
+)
 var options = {
  title: '{{ treemap.1 }}',
  minColor: '#f00',
