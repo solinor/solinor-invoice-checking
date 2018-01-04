@@ -38,10 +38,10 @@ function drawChart() {
 
 <h2>Invoice charts for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
 
-<div class="row" style="margin-bottom: 1em">
+<div class="row top-buttons-row">
   <div class="col-md-12">
     {% if previous_invoices %}
-    <div class="dropdown" style="display: inline-block">
+    <div class="dropdown top-bar-dropdown">
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Open another invoice
         <span class="caret"></span>
@@ -62,19 +62,19 @@ function drawChart() {
 <h3>General</h3>
 <div class="row">
   <div class="col-md-6">
-    <div id="per_category_hours" style="height: 250px"></div>
+    <div id="per_category_hours" class="piechart"></div>
   </div>
   <div class="col-md-6">
-    <div id="per_category_billing" style="height: 250px"></div>
+    <div id="per_category_billing" class="piechart"></div>
   </div>
 </div>
 
 <div class="row">
   <div class="col-md-6">
-    <div id="per_person_hours" style="height: 250px"></div>
+    <div id="per_person_hours" class="piechart"></div>
   </div>
   <div class="col-md-6">
-    <div id="per_person_billing" style="height: 250px"></div>
+    <div id="per_person_billing" class="piechart"></div>
   </div>
 </div>
 
@@ -83,7 +83,7 @@ function drawChart() {
 <div class="row">
   {% for item in per_person_categories_data %}
   <div class="col-md-6">
-    <div id="per_person_categories_{{ item.0 }}" style="height: 250px"></div>
+    <div id="per_person_categories_{{ item.0 }}" class="piechart"></div>
   </div>
   {% endfor %}
 </div>

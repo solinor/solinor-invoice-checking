@@ -1,9 +1,5 @@
 {% extends "base.html" %}
 
-{% block header %}
-<link href="/static/css/invoice_page.css" rel="stylesheet">
-{% endblock %}
-
 {% block title %}{{ invoice.full_name }} - {{ invoice.date }} - Solinor{% endblock %}
 
 
@@ -16,10 +12,10 @@
     </ol>
 
     <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
-    <div class="row" style="padding-bottom: 1em">
+    <div class="row top-buttons-row">
       <div class="col-md-12">
         {% if previous_invoices %}
-        <div class="dropdown" style="display: inline-block">
+        <div class="dropdown top-bar-dropdown">
           <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             Open another invoice
             <span class="caret"></span>
@@ -39,7 +35,7 @@
         <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
         {% endif %}
         {% if recent_invoice %}
-        <form method="post" action="{% url 'queue_update' %}" class="form-inline" style="display: inline-block">
+        <form method="post" action="{% url 'queue_update' %}" class="form-inline">
           {% csrf_token %}
           <input type="hidden" name="back" value="{{ request.get_full_path }}">
           <input type="hidden" name="start_date" value="{{ invoice.month_start_date }}">

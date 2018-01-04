@@ -1,9 +1,5 @@
 {% extends "base.html" %}
 
-{% block header %}
-<link href="/static/css/invoice_page.css" rel="stylesheet">
-{% endblock %}
-
 {% block title %}Amazon invoice: {{ linked_account.name }} - Solinor{% endblock %}
 
 {% block content %}
@@ -15,7 +11,7 @@
 
     <h2>Amazon invoice details for {{ linked_account.name }}</h2>
 
-    <div class="dropdown" style="display: inline-block">
+    <div class="dropdown top-bar-dropdown">
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select month
         <span class="caret"></span>
@@ -37,10 +33,10 @@
     {% endfor %}
     {% endif %}
 
-    <div class="row" style="padding-bottom: 1em">
+    <div class="row top-buttons-row">
       <div class="col-md-12">
         {% if previous_invoices %}
-        <div class="dropdown" style="display: inline-block">
+        <div class="dropdown top-bar-dropdown">
           <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             Open another invoice
             <span class="caret"></span>
