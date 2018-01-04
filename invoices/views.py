@@ -16,6 +16,7 @@ from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpRespo
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django_tables2 import RequestConfig
 
 import invoices.date_utils as date_utils
@@ -268,8 +269,10 @@ def frontpage(request):
     }).configure(table)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
     try:
-        last_update_finished_at = DataUpdate.objects.exclude(finished_at=None).latest("finished_at").finished_at
-    except DataUpdate.DoesNotExist:
+        last_update_finished_at = parse_datetime(REDIS.get("last-data-update"))
+        if not last_update_finished_at:
+            last_update_finished_at = "?"
+    except TypeError:
         last_update_finished_at = "?"
     context = {
         "invoices": table,

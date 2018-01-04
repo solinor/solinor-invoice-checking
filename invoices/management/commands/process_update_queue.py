@@ -12,7 +12,7 @@ from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted
 from invoices.utils import HourEntryUpdate, refresh_stats
 
 
-def update_10kf_data(logger, data):
+def update_10kf_data(logger, data, redis_instance):
     now = timezone.now()
     try:
         latest_run = DataUpdate.objects.exclude(finished_at=None).latest("finished_at")
@@ -46,6 +46,7 @@ def update_10kf_data(logger, data):
     update_obj.finished_at = timezone.now()
     update_obj.aborted = False
     update_obj.save()
+    redis_instance.set("last-data-update", str(timezone.now()))
     logger.info("Statistics updated.")
 
 
@@ -83,7 +84,7 @@ class Command(BaseCommand):
             logger.info("Received %s from redis queue", entry)
             data = json.loads(entry["data"])
             if data["type"] == "data-update":
-                update_10kf_data(logger, data)
+                update_10kf_data(logger, data, redis_instance)
             elif data["type"] == "slack-unsubmitted-notification":
                 slack_unsubmitted_notifications(logger, data)
             elif data["type"] == "slack-unapproved-notification":
