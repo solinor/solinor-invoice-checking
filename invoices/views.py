@@ -12,7 +12,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
@@ -85,7 +85,7 @@ def amazon_invoice(request, linked_account_id, year, month):
     month = int(month)
     linked_account = get_object_or_404(AmazonLinkedAccount, linked_account_id=linked_account_id)
     invoice_rows = AmazonInvoiceRow.objects.filter(linked_account=linked_account).filter(invoice_month__year=year, invoice_month__month=month)
-    invoice_data = generate_amazon_invoice_data(linked_account, invoice_rows, year, month)
+    invoice_data = generate_amazon_invoice_data(invoice_rows)
     months = AmazonInvoiceRow.objects.filter(linked_account=linked_account).dates("invoice_month", "month", order="DESC")
     linked_projects = linked_account.project_set.all()
     linked_users = linked_account.tenkfuser_set.all()

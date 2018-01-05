@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import time
 import uuid
 
 from django.db import models

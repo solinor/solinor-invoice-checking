@@ -1,5 +1,4 @@
 import datetime
-import json
 
 from django.db.models import Sum
 

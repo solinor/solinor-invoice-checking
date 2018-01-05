@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_date as parse_date_django
@@ -244,14 +245,14 @@ class HourEntryUpdate(object):
             entry.update_calculated_fields()
             entries.append(entry)
 
-        # TODO: this add and remove process should be atomic.
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
         # Note: this does not call .save() for entries.
-        HourEntry.objects.bulk_create(entries)
-        logger.info("All 10k entries added.")
-        logger.info("Deleting old 10k entries.")
-        HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, last_updated_at__lt=now).delete()
-        logger.info("All old 10k entries deleted.")
+        with transaction.atomic():
+            HourEntry.objects.bulk_create(entries)
+            logger.info("All 10k entries added.")
+            logger.info("Deleting old 10k entries.")
+            HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, last_updated_at__lt=now).delete()
+            logger.info("All old 10k entries deleted.")
         return (self.first_entry, self.last_entry)
 
 

@@ -2,7 +2,7 @@ from invoices.aws_utils import AWS_URLS
 from invoices.models import AmazonInvoiceRow
 
 
-def generate_amazon_invoice_data(linked_account, entries, year, month):
+def generate_amazon_invoice_data(entries):
     phases = {}
     total_rows = {"aws": {"incurred_money": 0, "currency": "USD", "description": "Total", "priority": 2}}
     total_entries = 0
