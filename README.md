@@ -8,11 +8,17 @@ To contribute to this project, fork on GitHub, commit your appropriately documen
 
 This service is tightly integrated with 10000ft hour reporting service. Pull requests for making this more generic will be rejected.
 
-### Pylint
+### Code checks
 
-Install pylint and pylint-django
+Install `pycodestyle`, `pylint` and `isort`. Exact versions can be checked from `.travis.yml`
 
-Run pylint with `pylint --load-plugins pylint_django invoice_checking invoices --disable line-too-long --disable missing-docstring`. Do not add any new warnings or errors.
+Run
+
+```
+./run_pylint.sh
+./run_isort.sh
+./run_pycodestyle.sh
+```
 
 ## Setting up the environment
 
@@ -27,9 +33,23 @@ GOOGLEAUTH_USE_HTTPS="True"
 SECRET_KEY="long-random-generated-string"
 TENKFEET_AUTH="10000ft-api-token"
 REDIS_URL="url-to-redis-instance"
-# optional, defaults to sqlite:
+# optional, defaults to sqlite. Do note that sqlite does not support all SQL operations used, so not all pages will work properly. PostgreSQL recommended.
 DATABASE_URL="database-url"
 SECURE_SSL_REDIRECT="False"  # For local development - disable automatic redirect to https
+SLACK_BOT_ACCESS_TOKEN="slack-bot-token"
+AWS_SECRET_KEY="aws-secret-key"
+AWS_ACCESS_KEY="aws-access-key"
 ```
 
-For development, to avoid using Google authentication, modify `AUTHENTICATION_BACKENDS` from `invoice_checking/settings.py`.
+## Local development
+
+For local development:
+
+1. Collect static files: `./manage.py collectstatic && ./manage.py compress --force`
+2. Update 10000ft projects and users: `./manage.py update_projects && ./manage.py update_users`
+3. Start background worker: `./manage.py process_update_queue`, in order to actually fetch data from 10000ft with the "Request data update" button.
+4. Start the server with `./manage.py runserver` and navigate to http://localhost:8000
+
+If you are starting with empty database, after first hours refresh from 10000ft, run `./manage.py update_projects` to link hours to projects.
+
+If you want to avoid using Google authentication, remove `googleauth.backends.GoogleAuthBackend` from `AUTHENTICATION_BACKENDS` list from `invoice_checking/settings.py`.

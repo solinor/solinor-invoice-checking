@@ -15,62 +15,56 @@ import sys
 
 import dj_database_url
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout,
-            'formatter': 'verbose',
-            'level': 'DEBUG',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-        },
-        'invoices': {
-            'handlers': ['console'],
-            'level': os.getenv('INVOICES_LOG_LEVEL', 'INFO'),
-            'propagate': True,
-        }
-    },
-}
-
 os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
-WKHTMLTOPDF_CMD = subprocess.Popen(
-    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],  # Note we default to 'wkhtmltopdf' as the binary name
-    stdout=subprocess.PIPE).communicate()[0].strip()
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
+########################################################
+# Settings configured with environment variables
+########################################################
 
-# SECURITY WARNING: change this before deploying to production!
+# Required for working system.
+# Everything is configured with os.environ.get instead of failing for missing values
+# to make `manage.py` work properly in CI.
 SECRET_KEY = os.environ.get("SECRET_KEY", "this-is-very-unsafe")
 REDIS = os.environ.get("REDIS_URL")
 TENKFEET_AUTH = os.environ.get("TENKFEET_AUTH")
 SLACK_BOT_ACCESS_TOKEN = os.environ.get("SLACK_BOT_ACCESS_TOKEN")
+# client ID from the Google Developer Console
+GOOGLEAUTH_CLIENT_ID = os.environ.get("GOOGLEAUTH_CLIENT_ID")
+# client secret from the Google Developer Console
+GOOGLEAUTH_CLIENT_SECRET = os.environ.get("GOOGLEAUTH_CLIENT_SECRET")
+# your app's domain, used to construct callback URLs
+GOOGLEAUTH_CALLBACK_DOMAIN = os.environ.get("GOOGLEAUTH_CALLBACK_DOMAIN")
+# callback URL uses HTTPS (your side, not Google), default True
+GOOGLEAUTH_USE_HTTPS = os.environ.get("GOOGLEAUTH_USE_HTTPS", True) in (True, "True", "true")
+# restrict to the given Google Apps domain, default None
+GOOGLEAUTH_APPS_DOMAIN = os.environ.get("GOOGLEAUTH_APPS_DOMAIN")
 
-TAG_MANAGER_CODE = os.environ.get("TAG_MANAGER_CODE")
+AWS_SECRET_KEY = os.environ.get("AWS_SECRET_KEY")
+AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
+
+# Optional settings:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", False) in ("true", "True", True)
 
+TAG_MANAGER_CODE = os.environ.get("TAG_MANAGER_CODE")  # Google tag manager
+RUM_CODE = os.environ.get("RUM_CODE")  # Pingdom RUM
+
+SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_HSTS_SECONDS
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")  # https://docs.djangoproject.com/en/2.0/ref/settings/#secure-ssl-redirect
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_PROXY_SSL_HEADER
+SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "True", "true")
+SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SESSION_COOKIE_SECURE
+CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#csrf-cookie-secure
+
+SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
+
+REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
+REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
 
 # Application definition
 
@@ -96,23 +90,6 @@ AUTHENTICATION_BACKENDS = (
     'googleauth.backends.GoogleAuthBackend',
 )
 
-# client ID from the Google Developer Console
-GOOGLEAUTH_CLIENT_ID = os.environ.get("GOOGLEAUTH_CLIENT_ID")
-
-# client secret from the Google Developer Console
-GOOGLEAUTH_CLIENT_SECRET = os.environ.get("GOOGLEAUTH_CLIENT_SECRET")
-
-# your app's domain, used to construct callback URLs
-GOOGLEAUTH_CALLBACK_DOMAIN = os.environ.get("GOOGLEAUTH_CALLBACK_DOMAIN")
-
-# callback URL uses HTTPS (your side, not Google), default True
-GOOGLEAUTH_USE_HTTPS = os.environ.get("GOOGLEAUTH_USE_HTTPS", True) in (True, "True", "true")
-
-# restrict to the given Google Apps domain, default None
-GOOGLEAUTH_APPS_DOMAIN = os.environ.get("GOOGLEAUTH_APPS_DOMAIN")
-
-SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))
-# get user's name, default True (extra HTTP request)
 GOOGLEAUTH_GET_PROFILE = True
 
 # sets value of user.is_staff for new users, default False
@@ -121,21 +98,9 @@ GOOGLEAUTH_IS_STAFF = False
 # list of default group names to assign to new users
 GOOGLEAUTH_GROUPS = []
 
-RUM_CODE = os.environ.get("RUM_CODE")
-
-SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "True", "true")
-SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
-CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
-
-AWS_SECRET_KEY = os.environ.get("AWS_SECRET_KEY")
-AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
-
-SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
-
-REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
-REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
+WKHTMLTOPDF_CMD = subprocess.Popen(
+    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],  # Note we default to 'wkhtmltopdf' as the binary name
+    stdout=subprocess.PIPE).communicate()[0].strip()
 
 CSP_DEFAULT_SRC = ("'none'",)
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.gstatic.com", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://stats.g.doubleclick.net", "https://ajax.googleapis.com", "https://rum-static.pingdom.net")  # thanks to google charts, unsafe-eval is required
@@ -188,7 +153,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'invoice_checking.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
@@ -216,6 +180,38 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'verbose',
+            'level': 'DEBUG',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+        'invoices': {
+            'handlers': ['console'],
+            'level': os.getenv('INVOICES_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        }
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
