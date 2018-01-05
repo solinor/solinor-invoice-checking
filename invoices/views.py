@@ -21,11 +21,11 @@ from django_tables2 import RequestConfig
 
 import invoices.date_utils as date_utils
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
+from invoices.file_gen_utils import generate_hours_pdf_for_invoice, generate_hours_xls_for_invoice
 from invoices.filters import HourListFilter, InvoiceFilter, ProjectsFilter
 from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
 from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, DataUpdate, HourEntry, Invoice,
                              InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
-from invoices.pdf_utils import generate_hours_pdf_for_invoice
 from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
 
 REDIS = redis.from_url(settings.REDIS)
@@ -245,6 +245,18 @@ def queue_update(request):
         messages.add_message(request, messages.INFO, 'Update queued. This is normally finished within 10 seconds. Refresh the page to see new data.')
         return HttpResponseRedirect(return_url)
     return HttpResponseBadRequest()
+
+
+@login_required
+def get_xls(request, invoice_id, xls_type):
+    if xls_type == "hours":
+        xls, title = generate_hours_xls_for_invoice(request, invoice_id)
+    else:
+        return HttpResponseBadRequest("Invalid XLS type")
+
+    response = HttpResponse(xls, content_type="application/vnd.ms-excel")
+    response['Content-Disposition'] = u'attachment; filename="Hours for %s.xlsx"' % title
+    return response
 
 
 @login_required

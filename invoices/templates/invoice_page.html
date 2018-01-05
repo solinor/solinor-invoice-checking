@@ -28,7 +28,16 @@
         </div>
         {% endif %}
         <a class="btn btn-info" href="{% url 'invoice_charts' invoice.invoice_id %}" role="button">Charts</a>
-        <a class="btn btn-info" href="{% url 'get_pdf' invoice.invoice_id 'hours' %}" role="button">Download hours</a>
+        <div class="dropdown top-bar-dropdown">
+          <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Hours <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+            <li><a href="{% url "get_pdf" invoice.invoice_id 'hours' %}">PDF</a></li>
+            <li><a href="{% url "get_xls" invoice.invoice_id 'hours' %}">XLS</a></li>
+          </ul>
+        </div>
         <a class="btn btn-info" href="{% url 'invoice_hours' invoice.invoice_id %}" role="button">View hours</a>
         {% if invoice.project_m %}
         <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>

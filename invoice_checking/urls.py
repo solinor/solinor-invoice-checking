@@ -16,6 +16,7 @@ urlpatterns = [
     path('invoice/<uuid:invoice_id>/hours', invoices.views.invoice_hours, name='invoice_hours'),
     path('invoice/<uuid:invoice_id>/charts', invoices.views.invoice_charts, name='invoice_charts'),
     path('invoice/<uuid:invoice_id>/pdf/<slug:pdf_type>', invoices.views.get_pdf, name="get_pdf"),
+    path('invoice/<uuid:invoice_id>/xls/<slug:xls_type>', invoices.views.get_xls, name="get_xls"),
     path('invoice/<uuid:invoice_id>', invoices.views.invoice_page, name="invoice"),
     path('amazon_invoice/<int:linked_account_id>/<int:year>/<int:month>', invoices.views.amazon_invoice, name="amazon_invoice"),
     path('amazon', invoices.views.amazon_overview, name="amazon_overview"),
