@@ -53,7 +53,7 @@ def update_users():
     tenkfeet_users = tenkfeet_api.fetch_users()
     total_updated = 0
     for user in tenkfeet_users:
-        user_email = user["email"]
+        user_email = user["email"].lower()
         user_fields = {
             "user_id": user["id"],
             "first_name": user["first_name"],
@@ -72,7 +72,7 @@ def update_users():
             "thumbnail": user["thumbnail"],
         }
         user_obj, _ = TenkfUser.objects.update_or_create(guid=user["guid"], defaults=user_fields)
-        updated_objects = HourEntry.objects.filter(user_email=user_email).filter(user_m=None).update(user_m=user_obj)
+        updated_objects = HourEntry.objects.filter(user_email__iexact=user_email).filter(user_m=None).update(user_m=user_obj)
         logger.debug("Updated %s to %s entries", user_email, updated_objects)
         total_updated += updated_objects
     logger.info("Updated %s hour entries and %s users", total_updated, len(tenkfeet_users))
@@ -216,7 +216,7 @@ class HourEntryUpdate(object):
                 "billable": entry[21] in ("1", 1),
                 "approved": entry[52] == "Approved",
                 "status": entry[52],
-                "user_email": entry[29],
+                "user_email": entry[29].lower(),
                 "project_tags": entry[34],
                 "last_updated_at": now,
                 "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
