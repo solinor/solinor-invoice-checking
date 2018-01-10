@@ -125,6 +125,7 @@ def calculate_flex_saldo(person):
             else:
                 message = " Also, %s hours as leave markings."
                 flex_hours += leave_hours
+                plus_hours_today += leave_hours
             message_for_today += message % leave_hours
 
         if message_for_today:
