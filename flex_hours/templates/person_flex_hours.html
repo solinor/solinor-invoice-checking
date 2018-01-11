@@ -12,6 +12,8 @@ function drawChart() {
  </script>
  {% endblock %}
 
+{% block title %}{% if flex_hours %}{{ flex_hours|floatformat }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
+
 {% block content %}
 
 <ol class="breadcrumb">
