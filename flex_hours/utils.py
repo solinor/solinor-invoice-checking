@@ -124,13 +124,15 @@ def calculate_flex_saldo(person):
                 message = " Also, %s hours as leave markings, not counted for public holidays."
             else:
                 message = " Also, %s hours as leave markings."
-                flex_hours += leave_hours
-                plus_hours_today += leave_hours
+                if contract.flex_enabled:
+                    flex_hours += leave_hours
+                    plus_hours_today += leave_hours
             message_for_today += message % leave_hours
 
         if message_for_today:
             calculation_log.append({"date": current_day, "message": message_for_today})
-        daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct))
+        if contract.flex_enabled:
+            daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct))
         current_day += datetime.timedelta(days=1)
     context = {
         "person": person,
