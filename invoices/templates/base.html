@@ -53,6 +53,9 @@
             </ul>
           </li>
           <li><a href="{% url "amazon_overview" %}">Amazon</a></li>
+          {% if tenkf_user %}
+          <li><a href="{% url "person_flex_hours" tenkf_user.guid %}">Flex <span class="label label-default">New</span></a></li>
+          {% endif %}
           {% endif %}
           {% block navbar_items %}{% endblock %}
         </ul>

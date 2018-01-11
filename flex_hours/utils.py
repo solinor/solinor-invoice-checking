@@ -134,6 +134,7 @@ def calculate_flex_saldo(person):
         if contract.flex_enabled:
             daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct))
         current_day += datetime.timedelta(days=1)
+    calculation_log.reverse()
     context = {
         "person": person,
         "contracts": contracts,

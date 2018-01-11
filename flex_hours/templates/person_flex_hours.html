@@ -22,18 +22,21 @@ function drawChart() {
 </ol>
 
 
-<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}</h2>
-
-<div class="well">
-Current flex time: <b>{{ flex_hours|floatformat }}h</b>
-</div>
+<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if flex_hours %}{{ flex_hours|floatformat }}h{% endif %}</h2>
 
 <div id="flex_diff_calendar"></div>
 
-<h3>Flex time events</h3>
+<h3>Contracts <small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
+<ul>
+  {% for contract in contracts %}
+  <li>{{ contract.start_date }} - {{ contract.end_date }} - {% if contract.flex_enabled %}Flex time in use.{% else %}Flex time not in use.{% endif %}{% if contract.worktime_percent %} Working with {{ contract.worktime_percent }}% contract.{%endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_workcontract_change" contract.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
+  {% endfor %}
+</ul>
+
+<h3>Flex time events <small><a href="{% url "admin:flex_hours_flextimecorrection_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
 <ul>
   {% for event in flex_time_events %}
-    <li>{{ event.date }}{% if event.adjust_by %} - flex time adjusted by {{ event.adjust_by|floatformat }}h{% endif %}{% if event.set_to %} - flex time set to {{ event.set_to|floatformat }}h{% endif %}</li>
+    <li>{{ event.date }}{% if event.adjust_by %} - flex time adjusted by {{ event.adjust_by|floatformat }}h{% endif %}{% if event.set_to %} - flex time set to {{ event.set_to|floatformat }}h{% endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_flextimecorrection_change" event.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
   {% endfor %}
 </ul>
 
