@@ -62,7 +62,7 @@ SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#csrf-cookie-secure
 
 SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
-
+DOMAIN = os.environ.get("DOMAIN")
 REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
 REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
 
