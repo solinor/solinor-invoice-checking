@@ -130,6 +130,7 @@ def calculate_flex_saldo(person):
             message_for_today += message % leave_hours
 
         if message_for_today:
+            message_for_today += " Flex saldo: %sh." % flex_hours
             calculation_log.append({"date": current_day, "message": message_for_today})
         if contract.flex_enabled:
             daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct))

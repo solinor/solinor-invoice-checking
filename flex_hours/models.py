@@ -29,11 +29,11 @@ class FlexTimeCorrection(models.Model):
     def __str__(self):
         message = "%s - %s: " % (self.user, self.date)
         if self.adjust_by:
-            message += "adjust by %s" % self.adjust_by
+            message += "adjust by %sh" % self.adjust_by
         if self.set_to is not None:
             if self.adjust_by:
                 message += " and"
-            message += "set to %s" % self.set_to
+            message += "set to %sh" % self.set_to
         return message
 
     class Meta:
