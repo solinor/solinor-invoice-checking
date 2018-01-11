@@ -27,7 +27,14 @@ class FlexTimeCorrection(models.Model):
     set_to = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
-        return u"%s - %s: adjust by %s or set to %s" % (self.user, self.date, self.adjust_by, self.set_to)
+        message = "%s - %s: " % (self.user, self.date)
+        if self.adjust_by:
+            message += "adjust by %s" % self.adjust_by
+        if self.set_to is not None:
+            if self.adjust_by:
+                message += " and"
+            message += "set to %s" % self.set_to
+        return message
 
     class Meta:
         ordering = ("date", "user",)
