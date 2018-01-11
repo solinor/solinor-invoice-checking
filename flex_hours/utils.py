@@ -85,53 +85,50 @@ def calculate_flex_saldo(person):
     calculation_log = []
     daily_diff_entries = []
     while current_day <= last_process_day:
+        day_entry = {"date": current_day, "day_type": "Weekday"}
+        flex_hour_deduct = 0
         is_weekend = is_holiday = False
-        message_for_today = ""
         for event in events:
             if event.date == current_day and event.adjust_by:
                 flex_hours += float(event.adjust_by)
-                calculation_log.append({"date": current_day, "message": "Flex hours manually adjusted by %sh" % event.adjust_by})
+                calculation_log.append({
+                    "date": current_day,
+                    "sum": float(event.adjust_by),
+                    "flex_hours": flex_hours,
+                })
         plus_hours_today = flex_hour_deduct = 0
         if current_day in hour_markings:
             plus_hours_today = hour_markings[current_day]
         contract = fetch_contract(contracts, current_day)
+        day_entry["flex_enabled"] = contract.flex_enabled
+        day_entry["worktime_percent"] = contract.worktime_percent
         if not contract:
             raise FlexHourNoContractException("Hour markings for %s for %s, but no contract." % (current_day, person))
 
         if 0 < current_day.isoweekday() < 6:
             if current_day in holidays:
                 is_holiday = True
-                message_for_today += "Public holiday: %s. " % holidays[current_day]
-            else:
-                flex_hour_deduct = (float(contract.worktime_percent or 100) / 100) * 7.5
-                if contract.flex_enabled:
+                day_entry["day_type"] = "Public holiday: %s" % holidays[current_day]
+            elif contract.flex_enabled:
+                    flex_hour_deduct = (float(contract.worktime_percent or 100) / 100) * 7.5
+                    day_entry["expected_hours_today"] = flex_hour_deduct
                     flex_hours -= flex_hour_deduct
-                    message_for_today += "Deducting normal workday: -7.5 * %s%% = -%sh. " % (contract.worktime_percent or 100, flex_hour_deduct)
-        elif plus_hours_today:
+        else:
             is_weekend = True
-            message_for_today += "Weekend. "
+            day_entry["day_type"] = "Weekend"
 
         if contract.flex_enabled and plus_hours_today:
             flex_hours += plus_hours_today
-            message_for_today += "Adding hour markings: %sh. " % plus_hours_today
-        elif not contract.flex_enabled and (plus_hours_today or flex_hour_deduct):
-            message_for_today += "Flex time is not enabled. Would have been +%sh and -%sh for today." % (plus_hours_today, flex_hour_deduct)
+            day_entry["worktime"] = plus_hours_today
         if current_day in leave_markings:
             leave_hours = leave_markings[current_day]
-            if is_weekend:
-                message = " Also, %s hours as leave markings, not counted for weekend."
-            elif is_holiday:
-                message = " Also, %s hours as leave markings, not counted for public holidays."
-            else:
-                message = " Also, %s hours as leave markings."
-                if contract.flex_enabled:
-                    flex_hours += leave_hours
-                    plus_hours_today += leave_hours
-            message_for_today += message % leave_hours
-
-        if message_for_today:
-            message_for_today += " Flex saldo: %sh." % flex_hours
-            calculation_log.append({"date": current_day, "message": message_for_today})
+            if contract.flex_enabled and not is_weekend and not is_holiday:
+                flex_hours += leave_hours
+                plus_hours_today += leave_hours
+                day_entry["leave"] = leave_hours
+        day_entry["flex_hours"] = flex_hours
+        day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0)
+        calculation_log.append(day_entry)
         if contract.flex_enabled:
             daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct))
         current_day += datetime.timedelta(days=1)

@@ -42,9 +42,30 @@ function drawChart() {
 
 <h3>Calculations log</h3>
 
-<ul>
+<table class="table table-condensed">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Day type</th>
+      <th>Full workday</th>
+      <th>Leaves</th>
+      <th>Worktime</th>
+      <th>&Sigma;</th>
+      <th>Cumulative</th>
+    </tr>
+  </thead>
   {% for event in calculation_log %}
-  <li>{{ event.date }} - {{ event.message }}</li>
+  {% if event.sum or event.worktime or event.leave_hours %}
+  <tr>
+    <td>{{ event.date }}</td>
+    <td>{{ event.day_type }}</td>
+    <td>{% if event.day_type == "Weekday" %}{% if event.worktime_percent == 100 %}-{{ event.expected_hours_today }}h{% else %}{% if event.worktime_percent %}{{ event.worktime_percent }}%{% elif event.flex_enabled %}100%{% endif %} {% if event.day_type == "Weekday" %} * -7.5h = -{{ event.expected_hours_today }}h{% else %} * 0h = 0h{% endif %}{% endif %}{% endif %}</td>
+    <td>{% if event.leave_hours %}{{ event.leave_hours }}h{% endif %}</td>
+    <td>{% if event.worktime %}{{ event.worktime }}h{% endif %}</td>
+    <td>{% if event.sum %}{{ event.sum }}h{% endif %}</td>
+    <td>{{ event.flex_hours }}h</td>
+  </tr>
+  {% endif %}
   {% endfor %}
-</ul>
+</table>
 {% endblock %}
