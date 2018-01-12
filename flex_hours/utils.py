@@ -130,7 +130,7 @@ def calculate_flex_saldo(person):
         day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0)
         calculation_log.append(day_entry)
         if contract.flex_enabled:
-            daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct))
+            daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "%s (%s): %sh" % (current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
         current_day += datetime.timedelta(days=1)
     calculation_log.reverse()
     context = {
