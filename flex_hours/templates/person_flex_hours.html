@@ -6,7 +6,7 @@
    google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  {% include "snippets/calendar_chart.js" with number_header="Flex diff" entries=daily_diff_entries destination_id="flex_diff_calendar" title="Flex saldo diff" %}
+  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff_entries destination_id="flex_diff_calendar" title="Flex saldo diff" %}
 }
  </script>
  {% endblock %}
@@ -41,6 +41,35 @@ function drawChart() {
   {% endfor %}
 </ul>
 
+<h3>Summary</h3>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Month</th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Amount of leaves (sick leaves, annual holidays etc.) during this month.">Leave hours</span></th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Amount of working hours (excluding leaves) this month.">Worktime</span></th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Overtime hours. Not counted to your flex saldo, as overtime hours are paid separately.">Overtime</span></th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Amount of hours you should work in this month to have no changes in your flex saldo.">Working time</span></th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Change in flex saldo this month.">Diff</span></th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Total amount of flex saldo, including past months.">Cumulative</span></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for row in summary %}
+  <tr>
+    <td>{{ row.month|date:"Y-m" }}</td>
+    <td class="number-column">{% if row.leave %}+{{ row.leave|floatformat:"2" }}{% endif %}</td>
+    <td class="number-column">+{{ row.worktime|floatformat:"2" }}</td>
+    <td class="number-column">{% if row.overtime %}({{ row.overtime|floatformat:"2"}}h){% endif %}</td>
+    <td class="number-column">-{{ row.expected_worktime|floatformat:"2" }}</td>
+    <td class="number-column">{{ row.diff|floatformat:"2" }}</td>
+    <td class="number-column">{{ row.flex_hours|floatformat:"2" }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
 <h3>Calculations log</h3>
 
 <table class="table table-condensed">
@@ -48,25 +77,29 @@ function drawChart() {
     <tr>
       <th>Date</th>
       <th>Day type</th>
-      <th>Full workday</th>
-      <th>Leaves</th>
-      <th>Worktime</th>
-      <th>&Sigma;</th>
-      <th>Cumulative</th>
+      <th class="number-column">Full workday</th>
+      <th class="number-column">Leaves</th>
+      <th class="number-column">Worktime</th>
+      <th class="number-column">Overtime</th>
+      <th class="number-column">&Sigma;</th>
+      <th class="number-column">Cumulative</th>
     </tr>
   </thead>
+  <tbody>
   {% for event in calculation_log %}
   {% if event.sum or event.worktime or event.leave_hours %}
   <tr>
     <td>{{ event.date }}</td>
     <td>{{ event.day_type }}</td>
-    <td>{% if event.day_type == "Weekday" %}{% if event.worktime_percent == 100 %}-{{ event.expected_hours_today }}h{% else %}{% if event.worktime_percent %}{{ event.worktime_percent }}%{% elif event.flex_enabled %}100%{% endif %} {% if event.day_type == "Weekday" %} * -7.5h = -{{ event.expected_hours_today }}h{% else %} * 0h = 0h{% endif %}{% endif %}{% endif %}</td>
-    <td>{% if event.leave_hours %}{{ event.leave_hours }}h{% endif %}</td>
-    <td>{% if event.worktime %}{{ event.worktime }}h{% endif %}</td>
-    <td>{% if event.sum or event.sum == 0 %}{{ event.sum }}h{% endif %}</td>
-    <td>{{ event.flex_hours }}h</td>
+    <td class="number-column">{% if event.day_type == "Weekday" %}{% if event.worktime_percent == 100 %}-{{ event.expected_hours_today|floatformat:"2" }}h{% else %}{% if event.worktime_percent %}{{ event.worktime_percent }}%{% elif event.flex_enabled %}100%{% endif %} {% if event.day_type == "Weekday" %} * -7.5h = -{{ event.expected_hours_today|floatformat:"2" }}h{% else %} * 0h = 0h{% endif %}{% endif %}{% endif %}</td>
+    <td class="number-column">{% if event.leave %}{{ event.leave|floatformat:"2" }}h{% endif %}</td>
+    <td class="number-column">{% if event.worktime %}{{ event.worktime|floatformat:"2" }}h{% endif %}</td>
+    <td class="number-column">{% if event.overtime %}({{ event.overtime|floatformat:"2" }}h){% endif %}</td>
+    <td class="number-column">{% if event.sum or event.sum == 0 %}{{ event.sum|floatformat:"2" }}h{% endif %}</td>
+    <td class="number-column">{{ event.flex_hours|floatformat:"2" }}h</td>
   </tr>
   {% endif %}
   {% endfor %}
+</tbody>
 </table>
 {% endblock %}

@@ -75,16 +75,29 @@ def calculate_flex_saldo(person):
     holidays_list = PublicHoliday.objects.filter(date__gte=start_hour_markings_from_date).filter(date__lte=today)
     holidays = {k.date: k.name for k in holidays_list}
 
-    hour_markings_list = list(HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).filter(leave_type="[project]").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
-    leave_markings_list = list(HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).exclude(leave_type="Flex time Leave").exclude(leave_type="[project]").exclude(leave_type="Unpaid leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
+    base_query = HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today)
+
+    hour_markings_list = list(base_query.exclude(phase_name__icontains="overtime").filter(leave_type="[project]").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
+    leave_markings_list = base_query.exclude(leave_type="Flex time Leave").exclude(leave_type="[project]").exclude(leave_type="Unpaid leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
+    overtime_hours_list = base_query.filter(phase_name__icontains="overtime").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
     hour_markings = {k[0]: float(k[1]) for k in hour_markings_list}
     leave_markings = {k[0]: float(k[1]) for k in leave_markings_list}
+    overtime_markings = {k[0]: float(k[1]) for k in overtime_hours_list}
 
     last_process_day = find_last_process_date(hour_markings_list, contracts)
     current_day = start_hour_markings_from_date
     calculation_log = []
     daily_diff_entries = []
+    per_month_stats = []
+    month_entry = {}
+    years = set()
     while current_day <= last_process_day:
+        if month_entry.get("month") is None:
+            month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "flex_hours": 0, "overtime": 0}
+        if month_entry["month"].strftime("%Y-%m") != current_day.strftime("%Y-%m"):
+            per_month_stats.append(month_entry)
+            month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "flex_hours": 0, "overtime": 0}
+            years.add(current_day.strftime("%Y"))
         day_entry = {"date": current_day, "day_type": "Weekday"}
         flex_hour_deduct = 0
         is_weekend = is_holiday = False
@@ -113,6 +126,8 @@ def calculate_flex_saldo(person):
                     flex_hour_deduct = (float(contract.worktime_percent or 100) / 100) * 7.5
                     day_entry["expected_hours_today"] = flex_hour_deduct
                     flex_hours -= flex_hour_deduct
+                    month_entry["expected_worktime"] += flex_hour_deduct
+                    month_entry["diff"] -= flex_hour_deduct
         else:
             is_weekend = True
             day_entry["day_type"] = "Weekend"
@@ -120,19 +135,30 @@ def calculate_flex_saldo(person):
         if contract.flex_enabled and plus_hours_today:
             flex_hours += plus_hours_today
             day_entry["worktime"] = plus_hours_today
+            month_entry["worktime"] += plus_hours_today
+            month_entry["diff"] += plus_hours_today
         if current_day in leave_markings:
             leave_hours = leave_markings[current_day]
             if contract.flex_enabled and not is_weekend and not is_holiday:
                 flex_hours += leave_hours
                 plus_hours_today += leave_hours
                 day_entry["leave"] = leave_hours
+                month_entry["leave"] += leave_hours
+                month_entry["diff"] += leave_hours
+        if current_day in overtime_markings:
+            month_entry["overtime"] += overtime_markings[current_day]
+            day_entry["overtime"] = overtime_markings[current_day]
         day_entry["flex_hours"] = flex_hours
+        month_entry["flex_hours"] = flex_hours
         day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0)
         calculation_log.append(day_entry)
         if contract.flex_enabled:
             daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "%s (%s): %sh" % (current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
         current_day += datetime.timedelta(days=1)
     calculation_log.reverse()
+    if month_entry.get("month"):
+        per_month_stats.append(month_entry)
+    per_month_stats.reverse()
     context = {
         "person": person,
         "contracts": contracts,
@@ -141,5 +167,7 @@ def calculate_flex_saldo(person):
         "calculation_log": calculation_log,
         "hour_markings": hour_markings_list,
         "daily_diff_entries": daily_diff_entries,
+        "summary": per_month_stats,
+        "calendar_height": min(3, len(years)) * 175,
     }
     return context
