@@ -5,3 +5,4 @@ staticfiles
 db.sqlite3
 dev/
 dev3/
+backups/
