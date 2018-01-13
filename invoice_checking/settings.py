@@ -228,6 +228,9 @@ SHORT_DATE_FORMAT = "Y-m-d"
 DATETIME_FORMAT = "Y-m-d H:i"
 SHORT_DATETIME_FORMAT = "Y-m-d H:i"
 
+handler404 = 'invoices.views.handler404'
+handler500 = 'invoices.views.handler500'
+
 # Update database configuration with $DATABASE_URL.
 DATABASES['default'].update(dj_database_url.config(conn_max_age=500))
 

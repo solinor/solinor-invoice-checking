@@ -31,6 +31,18 @@ from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTabl
 REDIS = redis.from_url(settings.REDIS)
 
 
+def handler404(request):
+    response = render(request, '404.html')
+    response.status_code = 404
+    return response
+
+
+def handler500(request):
+    response = render(request, '500.html')
+    response.status_code = 500
+    return response
+
+
 @login_required
 def amazon_overview(request):
     # TODO: this is really inefficient, as it is making a separate DB query for every single Amazon account
