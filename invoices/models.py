@@ -51,6 +51,7 @@ class HourEntry(models.Model):
     calculated_is_approved = models.BooleanField(blank=True, default=True, verbose_name="Is approved")
     calculated_has_proper_price = models.BooleanField(blank=True, default=True, verbose_name="Has proper price")
     calculated_has_category = models.BooleanField(blank=True, default=True, verbose_name="Has category")
+    calculated_is_overtime = models.BooleanField(blank=True, default=False, verbose_name="Is overtime")
 
     invoice = models.ForeignKey("Invoice", null=True, on_delete=models.CASCADE)
     project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)
@@ -62,6 +63,7 @@ class HourEntry(models.Model):
         self.calculated_is_approved = self.approved
         self.calculated_has_proper_price = self.bill_rate > 50 and self.bill_rate < 170
         self.calculated_has_category = self.category != "No category" and self.category != "[none]"
+        self.calculated_is_overtime = "overtime" in self.phase_name.lower()
 
     def __str__(self):
         return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)

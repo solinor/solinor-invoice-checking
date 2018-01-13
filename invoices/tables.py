@@ -17,7 +17,7 @@ class HourListTable(tables.Table):
     class Meta:
         model = HourEntry
         attrs = {"class": "table table-striped table-hover hours-table"}
-        fields = ("date", "user_name", "client", "project", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_billable", "calculated_has_notes", "calculated_has_phase", "calculated_is_approved", "calculated_has_proper_price", "calculated_has_category")
+        fields = ("date", "user_name", "client", "project", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_billable", "calculated_has_notes", "calculated_has_phase", "calculated_is_approved", "calculated_has_proper_price", "calculated_has_category", "calculated_is_overtime")
 
     def render_user_name(self, value, record):
         if record.user_m:

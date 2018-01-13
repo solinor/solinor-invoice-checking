@@ -14,6 +14,7 @@ class HourListFilter(django_filters.FilterSet):
             "calculated_is_approved": ["exact"],
             "calculated_has_category": ["exact"],
             "calculated_has_proper_price": ["exact"],
+            "calculated_is_overtime": ["exact"],
             "date": ["gte", "lte"],
         }
 
