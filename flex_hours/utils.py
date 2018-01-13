@@ -39,8 +39,8 @@ def fetch_last_contract(contracts):
 def find_first_process_date(events, contracts):
     latest_set_to = start_hour_markings_from_date = None
     for event in events:
-        if event.set_to:
-            if not latest_set_to or latest_set_to.date < event.date:
+        if event.set_to is not None:
+            if not latest_set_to or start_hour_markings_from_date < event.date:
                 latest_set_to = event.set_to
                 start_hour_markings_from_date = event.date
     if start_hour_markings_from_date:
