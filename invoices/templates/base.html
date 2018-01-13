@@ -23,6 +23,7 @@
     <script src="{% static 'js/jquery.1.12.4.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     {% endcompress %}
+    <script src="{% static 'js/header_flex_hours.js' %}"></script>
     {% block header %}{% endblock %}
 </head>
 
@@ -53,9 +54,7 @@
             </ul>
           </li>
           <li><a href="{% url "amazon_overview" %}">Amazon</a></li>
-          {% if tenkf_user %}
-          <li><a href="{% url "person_flex_hours" tenkf_user.guid %}">Flex <span class="label label-default">New</span></a></li>
-          {% endif %}
+          <li><a href="{% url "your_flex_hours" %}">Flex <span class="label label-default" id="flex_hours_count">New</span></a></li>
           {% endif %}
           {% block navbar_items %}{% endblock %}
         </ul>

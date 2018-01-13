@@ -28,6 +28,7 @@ urlpatterns = [
     path('person/<uuid:user_guid>/<int:year>/<int:month>', invoices.views.person_details_month, name='person'),
     path('person/<uuid:user_guid>', invoices.views.person_details, name='person_details'),
     path('person/<uuid:user_guid>/flexhours', flex_hours.views.person_flex_hours, name='person_flex_hours'),
+    path('your/flexhours', flex_hours.views.your_flex_hours, name='your_flex_hours'),
     path('queue_update', invoices.views.queue_update, name="queue_update"),
     path('queue_slack_notification', invoices.views.queue_slack_notification, name="queue_slack_notification"),
     url(r'^accounts/profile/$', RedirectView.as_view(pattern_name='frontpage', permanent=False)),
