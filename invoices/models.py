@@ -214,6 +214,10 @@ class TenkfUser(models.Model):
     slack_id = models.CharField(max_length=50, null=True, blank=True)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
 
+    @property
+    def full_name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
     def __str__(self):
         return "%s %s" % (self.first_name, self.last_name)
 
