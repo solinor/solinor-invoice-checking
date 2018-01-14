@@ -21,7 +21,7 @@ class HourListTable(tables.Table):
 
     def render_user_name(self, value, record):
         if record.user_m:
-            return format_html("<a href='%s'>%s</a>" % (reverse("person", args=[record.user_m.guid, record.date.year, record.date.month]), value))
+            return format_html("<a href='%s'>%s</a>" % (reverse("person_month", args=[record.user_m.guid, record.date.year, record.date.month]), value))
         return value
 
     def render_project(self, value, record):

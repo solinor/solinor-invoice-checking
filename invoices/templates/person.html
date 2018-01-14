@@ -11,7 +11,7 @@ $("#person-hours a").click(function (e) {
 {% block content %}
 <ol class="breadcrumb">
   <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "people" %}">People</a></li>
+  <li><a href="{% url "users_list" %}">People</a></li>
   <li><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
   <li class="active">{{ year }}-{{ month }}</li>
 </ol>
@@ -29,7 +29,7 @@ $("#person-hours a").click(function (e) {
     </button>
     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
       {% for entries_month in months %}
-      <li><a href="{% url "person" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+      <li><a href="{% url "person_month" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
       {% endfor %}
     </ul>
   </div>

@@ -24,7 +24,7 @@
     </div>
     {% if linked_users %}
     {% for linked_user in linked_users %}
-      <a href="{% url "person" linked_user.guid year month %}" role="button" class="btn btn-info">User: {{ linked_user.display_name }}</a>
+      <a href="{% url "person_month" linked_user.guid year month %}" role="button" class="btn btn-info">User: {{ linked_user.display_name }}</a>
     {% endfor %}
     {% endif %}
     {% if linked_projects %}

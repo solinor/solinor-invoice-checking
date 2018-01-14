@@ -108,12 +108,12 @@ def amazon_invoice(request, linked_account_id, year, month):
 
 
 @login_required
-def hours_list(request):
+def hours_browser(request):
     if not request.GET:
         today = datetime.date.today()
         month_start_date = date_utils.month_start_date(today.year, today.month)
         month_end_date = date_utils.month_end_date(today.year, today.month)
-        return HttpResponseRedirect("%s?date__gte=%s&date__lte=%s" % (reverse("hours_list"), month_start_date, month_end_date))
+        return HttpResponseRedirect("%s?date__gte=%s&date__lte=%s" % (reverse("hours_browser"), month_start_date, month_end_date))
     hours = HourEntry.objects.filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
@@ -169,7 +169,7 @@ def person_details_month(request, year, month, user_guid):
 
 
 @login_required
-def people_list(request):
+def users_list(request):
     now = timezone.now()
     year = int(request.GET.get("year", now.year))
     month = int(request.GET.get("month", now.month))
@@ -260,7 +260,7 @@ def queue_update(request):
 
 
 @login_required
-def get_xls(request, invoice_id, xls_type):
+def get_invoice_xls(request, invoice_id, xls_type):
     if xls_type == "hours":
         xls, title = generate_hours_xls_for_invoice(request, invoice_id)
     else:
@@ -272,7 +272,7 @@ def get_xls(request, invoice_id, xls_type):
 
 
 @login_required
-def get_pdf(request, invoice_id, pdf_type):
+def get_invoice_pdf(request, invoice_id, pdf_type):
     if pdf_type == "hours":
         pdf, title = generate_hours_pdf_for_invoice(request, invoice_id)
     else:
@@ -390,7 +390,7 @@ def hours_charts(request):
 
 
 @login_required
-def people_charts(request):
+def users_charts(request):
     linecharts = []
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
@@ -407,7 +407,7 @@ def people_charts(request):
 
 
 @login_required
-def people_hourmarkings(request):
+def hours_overview(request):
     today = datetime.date.today()
     period_start = today - datetime.timedelta(days=30)
     hour_markings = HourEntry.objects.filter(date__gte=period_start).exclude(user_m=None).values("user_m__guid", "user_name", "date").annotate(hours=Sum("incurred_hours"))
