@@ -25,6 +25,9 @@ function drawChart() {
 
 <h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if flex_hours %}{{ flex_hours|floatformat }}h{% endif %}</h2>
 
+<div class="alert alert-info" role="alert"><strong>Tip:</strong> today is not included in flex hours calculations. If you want to know your flex saldo including today, you have to add it manually. <abbr title=""><small><span data-toggle="tooltip" data-placement="top" title="This way, if you mark your hours daily, you will know your exact balance, instead of 'on the morning it is -7.5h'.">Why?</span></small></abbr></div>
+
+
 <div id="flex_diff_calendar"></div>
 
 <h3>Contracts <small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
