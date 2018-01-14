@@ -65,6 +65,7 @@ SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS
 DOMAIN = os.environ.get("DOMAIN")
 REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
 REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
+CSP_ENABLED = os.environ.get("CSP_ENABLED", True) in (True, "true", "True")
 
 # Application definition
 
@@ -118,7 +119,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 MIDDLEWARE = (
     'invoice_checking.middleware.DomainRedirectMiddleware',
-    'csp.middleware.CSPMiddleware',
     'sslify.middleware.SSLifyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -128,6 +128,10 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+if CSP_ENABLED:
+    MIDDLEWARE += ('csp.middleware.CSPMiddleware',)
+
 
 if DEBUG:
     MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
