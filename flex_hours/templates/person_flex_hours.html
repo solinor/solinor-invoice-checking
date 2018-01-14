@@ -61,7 +61,7 @@ function drawChart() {
   <tbody>
   {% for row in summary %}
   <tr>
-    <td>{{ row.month|date:"Y-m" }}</td>
+    <td><a href="{% url 'person' person.guid row.month.year row.month.month %}">{{ row.month|date:"Y-m" }}</a></td>
     <td class="number-column">{% if row.leave %}+{{ row.leave|floatformat:"2" }}{% endif %}</td>
     <td class="number-column">+{{ row.worktime|floatformat:"2" }}</td>
     <td class="number-column">{% if row.overtime %}({{ row.overtime|floatformat:"2"}}h){% endif %}</td>
