@@ -5,7 +5,7 @@
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url 'frontpage' %}">Home</a></li>
+  <li><a href="{% url "frontpage" %}">Home</a></li>
   <li class="active">Hours</li>
 </ol>
 
@@ -13,8 +13,8 @@
 
 <div class="row top-buttons-row">
   <div class="col-md-12">
-    <a class="btn btn-info" href="{% url 'people_charts' %}">Charts for people</a>
-    <a class="btn btn-info" href="{% url 'hours_charts' %}">Charts for hours</a>
+    <a class="btn btn-info" href="{% url "people_charts" %}">Charts for people</a>
+    <a class="btn btn-info" href="{% url "hours_charts" %}">Charts for hours</a>
   </div>
 </div>
 

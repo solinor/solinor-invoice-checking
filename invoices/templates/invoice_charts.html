@@ -3,21 +3,21 @@
 {% block header %}
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
-google.charts.load('current', {'packages':['corechart']});
+google.charts.load("current", {"packages":["corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
   {% for chart_name, chart_data in charts.items %}
     var {{ chart_name }}_data = google.visualization.arrayToDataTable({{ chart_data.json_data|safe }});
-    var {{ chart_name }}_options = { title: '{{ chart_data.title }}' };
-    var {{ chart_name }}_chart = new google.visualization.PieChart(document.getElementById('{{ chart_name }}'));
+    var {{ chart_name }}_options = { title: "{{ chart_data.title }}" };
+    var {{ chart_name }}_chart = new google.visualization.PieChart(document.getElementById("{{ chart_name }}"));
     {{ chart_name }}_chart.draw({{ chart_name }}_data, {{ chart_name }}_options);
   {% endfor %}
 
   {% for item in per_person_categories_data %}
     var per_person_categories_data_{{ item.0 }} = google.visualization.arrayToDataTable({{ item.2|safe }});
-    var per_person_categories_options_{{ item.0 }} = { title: 'Categories for {{ item.1 }}' };
-    var per_person_categories_chart_{{ item.0 }} = new google.visualization.PieChart(document.getElementById('per_person_categories_{{ item.0 }}'));
+    var per_person_categories_options_{{ item.0 }} = { title: "Categories for {{ item.1 }}" };
+    var per_person_categories_chart_{{ item.0 }} = new google.visualization.PieChart(document.getElementById("per_person_categories_{{ item.0 }}"));
     per_person_categories_chart_{{ item.0 }}.draw(per_person_categories_data_{{ item.0 }}, per_person_categories_options_{{ item.0 }});
   {% endfor %}
 
@@ -29,10 +29,10 @@ function drawChart() {
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url 'frontpage' %}">Home</a></li>
-  <li><a href="{% url 'projects_list' %}">Projects</a></li>
-  <li>{% if invoice.project_m %}<a href="{% url 'project' invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
-  <li><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
+  <li><a href="{% url "frontpage" %}">Home</a></li>
+  <li><a href="{% url "projects_list" %}">Projects</a></li>
+  <li>{% if invoice.project_m %}<a href="{% url "project" invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+  <li><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
   <li class="active">Charts</li>
 </ol>
 
@@ -54,7 +54,7 @@ function drawChart() {
     </div>
     {% endif %}
     {% if invoice.project_m %}
-    <a class="btn btn-info" href="{% url 'project_charts' invoice.project_m.guid %}">Project charts</a>
+    <a class="btn btn-info" href="{% url "project_charts" invoice.project_m.guid %}">Project charts</a>
     {% endif %}
   </div>
 </div>

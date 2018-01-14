@@ -4,11 +4,11 @@
 {% block title %}Finance - Solinor{% endblock %}
 {% block content %}
 <ol class="breadcrumb">
-  <li class="active"><a href="{% url 'frontpage' %}">Home</a></li>
+  <li class="active"><a href="{% url "frontpage" %}">Home</a></li>
 </ol>
 
 <span class="text-right">
-<form method="post" action="{% url 'queue_update' %}">
+<form method="post" action="{% url "queue_update" %}">
   {% csrf_token %}
   <input type="hidden" name="back" value="{{ request.get_full_path }}">
   <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>

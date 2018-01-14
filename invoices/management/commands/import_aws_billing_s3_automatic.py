@@ -10,10 +10,10 @@ from invoices.aws_utils import import_aws_invoice
 
 
 class Command(BaseCommand):
-    help = 'Import AWS billing CSV from S3'
+    help = "Import AWS billing CSV from S3"
 
     def handle(self, *args, **options):
-        s3_client = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
+        s3_client = boto3.client("s3", aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
         today = timezone.now()
         fetch_months = [today]
         if today.day < 5:

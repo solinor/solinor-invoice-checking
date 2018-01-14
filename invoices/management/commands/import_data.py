@@ -7,7 +7,7 @@ from invoices.utils import HourEntryUpdate
 
 
 class Command(BaseCommand):
-    help = 'Import data from 10k feet API'
+    help = "Import data from 10k feet API"
 
     def handle(self, *args, **options):
         now = timezone.now()

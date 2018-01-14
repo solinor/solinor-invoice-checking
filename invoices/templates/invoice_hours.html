@@ -4,12 +4,12 @@
 <div class="row">
   <div class="col-md-12">
     <ol class="breadcrumb">
-      <li><a href="{% url 'frontpage' %}">Home</a></li>
-      <li><a href="{% url 'projects_list' %}">Projects</a></li>
+      <li><a href="{% url "frontpage" %}">Home</a></li>
+      <li><a href="{% url "projects_list" %}">Projects</a></li>
       {% if invoice.project_m.guid %}
-      <li><a href="{% url 'project' invoice.project_m.guid %}">Project</a></li>
+      <li><a href="{% url "project" invoice.project_m.guid %}">Project</a></li>
       {% endif %}
-      <li><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
+      <li><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
       <li class="active">Hours</li>
     </ol>
 

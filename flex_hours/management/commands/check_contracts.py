@@ -12,7 +12,7 @@ from invoices.models import HourEntry, TenkfUser
 
 
 class Command(BaseCommand):
-    help = 'Check contract information'
+    help = "Check contract information"
 
     def handle(self, *args, **options):
         errors = []

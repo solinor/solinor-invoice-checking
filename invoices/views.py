@@ -32,13 +32,13 @@ REDIS = redis.from_url(settings.REDIS)
 
 
 def handler404(request):
-    response = render(request, '404.html')
+    response = render(request, "404.html")
     response.status_code = 404
     return response
 
 
 def handler500(request):
-    response = render(request, '500.html')
+    response = render(request, "500.html")
     response.status_code = 500
     return response
 
@@ -118,7 +118,7 @@ def hours_list(request):
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
     RequestConfig(request, paginate={
-        'per_page': 250
+        "per_page": 250
     }).configure(table)
 
     context = {
@@ -242,19 +242,19 @@ def queue_update(request):
             last_update_at = DataUpdate.objects.exclude(aborted=True).exclude(finished_at=None).latest("finished_at")
             finished = now - last_update_at.finished_at
             if finished < datetime.timedelta(seconds=15):
-                messages.add_message(request, messages.WARNING, 'Data was just updated. Please try again later.')
+                messages.add_message(request, messages.WARNING, "Data was just updated. Please try again later.")
                 return HttpResponseRedirect(return_url)
 
             running = DataUpdate.objects.exclude(aborted=True).filter(finished_at=None).exclude(started_at=None)
             if running.count() > 0 and now - running.latest().created_at < datetime.timedelta(minutes=10):
-                messages.add_message(request, messages.WARNING, 'Update is currently running. Please try again later.')
+                messages.add_message(request, messages.WARNING, "Update is currently running. Please try again later.")
                 return HttpResponseRedirect(return_url)
         except DataUpdate.DoesNotExist:
             pass
         REDIS.publish("request-refresh", json.dumps({"type": "data-update", "start_date": start_date.strftime("%Y-%m-%d"), "end_date": end_date.strftime("%Y-%m-%d")}))
         update_obj = DataUpdate()
         update_obj.save()
-        messages.add_message(request, messages.INFO, 'Update queued. This is normally finished within 10 seconds. Refresh the page to see new data.')
+        messages.add_message(request, messages.INFO, "Update queued. This is normally finished within 10 seconds. Refresh the page to see new data.")
         return HttpResponseRedirect(return_url)
     return HttpResponseBadRequest()
 
@@ -267,7 +267,7 @@ def get_xls(request, invoice_id, xls_type):
         return HttpResponseBadRequest("Invalid XLS type")
 
     response = HttpResponse(xls, content_type="application/vnd.ms-excel")
-    response['Content-Disposition'] = u'attachment; filename="Hours for %s.xlsx"' % title
+    response["Content-Disposition"] = u"attachment; filename='Hours for %s.xlsx'" % title
     return response
 
 
@@ -279,7 +279,7 @@ def get_pdf(request, invoice_id, pdf_type):
         return HttpResponseBadRequest("Invalid PDF type")
 
     response = HttpResponse(pdf, content_type="application/pdf")
-    response['Content-Disposition'] = u'attachment; filename="Hours for %s.pdf"' % title
+    response["Content-Disposition"] = u"attachment; filename='Hours for %s.pdf'" % title
     return response
 
 
@@ -290,7 +290,7 @@ def frontpage(request):
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={
-        'per_page': 100
+        "per_page": 100
     }).configure(table)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
     try:
@@ -331,7 +331,7 @@ def projects_list(request):
     filters = ProjectsFilter(request.GET, queryset=projects)
     table = ProjectsTable(filters.qs)
     RequestConfig(request, paginate={
-        'per_page': 250
+        "per_page": 250
     }).configure(table)
     context = {
         "projects": table,
@@ -347,7 +347,7 @@ def project_details(request, project_id):
     filters = ProjectsFilter(request.GET, queryset=invoices)
     table = ProjectDetailsTable(filters.qs)
     RequestConfig(request, paginate={
-        'per_page': 250
+        "per_page": 250
     }).configure(table)
     context = {
         "invoices": table,
@@ -560,7 +560,7 @@ def invoice_page(request, invoice_id, **_):
         invoice_sent_earlier = invoice.invoice_state in ("P", "S")
         invoice.update_state(comment)
         invoice.save()
-        messages.add_message(request, messages.INFO, 'Saved.')
+        messages.add_message(request, messages.INFO, "Saved.")
         if not invoice_sent_earlier and invoice.invoice_state in ("P", "S") and invoice.project_m:
             for project_fixed_entry in ProjectFixedEntry.objects.filter(project=invoice.project_m):
                 if InvoiceFixedEntry.objects.filter(invoice=invoice, price=project_fixed_entry.price, description=project_fixed_entry.description).count() == 0:
