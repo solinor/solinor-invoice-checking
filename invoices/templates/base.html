@@ -52,6 +52,9 @@
               <li><a href="{% url "hours_browser" %}">Browser</a></li>
               <li><a href="{% url "users_charts" %}">Charts (people)</a></li>
               <li><a href="{% url "hours_charts" %}">Charts (hours/projects)</a></li>
+              {% if request.user.is_staff %}
+              <li><a href="{% url "hours_sickleaves" %}">Sick leaves</a></li>
+              {% endif %}
             </ul>
           </li>
           <li><a href="{% url "amazon_overview" %}">Amazon</a></li>
