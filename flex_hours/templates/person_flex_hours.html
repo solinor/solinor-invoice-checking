@@ -99,13 +99,17 @@ function drawChart() {
         {% if event.worktime_percent != 100 and event.worktime_percent %}
          {{ event.worktime_percent }}% *
         {% endif %}
-        -7.5h
+        {% if event.expected_hours_today == 7.5 %}
+          7.5h
+        {% else %}
+          -7.5h
+        {% endif %}
       {% endif %}
       {% if event.unpaid_leaves %}
         + {{ event.unpaid_leaves|floatformat:2 }}h
       {% endif %}
 
-      {% if event.unpaid_leaves or event.day_type == "Weekday" %}
+      {% if event.day_type == "Weekday" and event.expected_hours_today != 7.5 or event.unpaid_leaves %}
         = {{ event.expected_hours_today|floatformat:"2" }}h
       {% endif %}
     </td>
