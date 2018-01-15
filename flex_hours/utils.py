@@ -134,25 +134,29 @@ def calculate_flex_saldo(person):
         else:
             is_weekend = True
             day_entry["day_type"] = "Weekend"
-        if current_day in unpaid_leave_markings:
-            day_entry["unpaid_leaves"] = unpaid_leave_markings[current_day]
-            day_entry["expected_hours_today"] -= unpaid_leave_markings[current_day]
-            month_entry["expected_worktime"] -= unpaid_leave_markings[current_day]
 
-        if contract.flex_enabled and plus_hours_today:
-            day_entry["worktime"] = plus_hours_today
-            month_entry["worktime"] += plus_hours_today
-            month_entry["diff"] += plus_hours_today
-        if current_day in leave_markings:
-            leave_hours = leave_markings[current_day]
-            if contract.flex_enabled and not is_weekend and not is_holiday:
+        if contract.flex_enabled:
+            if current_day in unpaid_leave_markings:
+                day_entry["unpaid_leaves"] = unpaid_leave_markings[current_day]
+                day_entry["expected_hours_today"] -= unpaid_leave_markings[current_day]
+                month_entry["expected_worktime"] -= unpaid_leave_markings[current_day]
+
+            if plus_hours_today:
+                day_entry["worktime"] = plus_hours_today
+                month_entry["worktime"] += plus_hours_today
+                month_entry["diff"] += plus_hours_today
+
+            if current_day in leave_markings and not is_weekend and not is_holiday:
+                leave_hours = leave_markings[current_day]
                 plus_hours_today += leave_hours
                 day_entry["leave"] = leave_hours
                 month_entry["leave"] += leave_hours
                 month_entry["diff"] += leave_hours
-        if current_day in overtime_markings and contract.flex_enabled:
-            month_entry["overtime"] += overtime_markings[current_day]
-            day_entry["overtime"] = overtime_markings[current_day]
+
+            if current_day in overtime_markings:
+                month_entry["overtime"] += overtime_markings[current_day]
+                day_entry["overtime"] = overtime_markings[current_day]
+
         day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0) + day_entry.get("unpaid_leaves", 0)
 
         flex_hours += day_entry["sum"]
