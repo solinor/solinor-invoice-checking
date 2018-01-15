@@ -14,15 +14,16 @@ from invoices.utils import HourEntryUpdate, refresh_stats
 
 def update_10kf_data(logger, data, redis_instance):
     now = timezone.now()
-    try:
-        latest_run = DataUpdate.objects.exclude(finished_at=None).latest("finished_at")
-        if now - latest_run.finished_at < datetime.timedelta(seconds=10):
-            logger.info("Latest run was finished recently. Skip this data update.")
-            latest_run.aborted = True
-            latest_run.save()
-            return
-    except DataUpdate.DoesNotExist:
-        pass
+    if not data.get("force", False):
+        try:
+            latest_run = DataUpdate.objects.exclude(finished_at=None).latest("finished_at")
+            if now - latest_run.finished_at < datetime.timedelta(seconds=10):
+                logger.info("Latest run was finished recently. Skip this data update.")
+                latest_run.aborted = True
+                latest_run.save()
+                return
+        except DataUpdate.DoesNotExist:
+            pass
     update_obj = DataUpdate.objects.filter(started_at=None).filter(aborted=False)
     obj_count = update_obj.count()
     if obj_count > 1:
@@ -72,7 +73,7 @@ def slack_unsubmitted_notifications(logger):
 
 
 class Command(BaseCommand):
-    help = 'Import data from 10k feet API'
+    help = "Import data from 10k feet API"
 
     def handle(self, *args, **options):
         logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
