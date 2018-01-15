@@ -9,7 +9,7 @@ from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
 class WorkContractAdmin(admin.ModelAdmin):
     fields = ("user", "start_date", "end_date", "flex_enabled", "worktime_percent")
     list_display = ("user", "start_date", "end_date", "flex_enabled", "worktime_percent")
-    search_fields = ("user",)
+    search_fields = ("user__first_name", "user__last_name", "user__email")
 
 
 admin.site.register(WorkContract, WorkContractAdmin)
@@ -18,7 +18,7 @@ admin.site.register(WorkContract, WorkContractAdmin)
 class FlexTimeCorrectionAdmin(admin.ModelAdmin):
     fields = ("user", "date", "adjust_by", "set_to")
     list_display = ("user", "date", "adjust_by", "set_to")
-    search_fields = ("user",)
+    search_fields = ("user__first_name", "user__last_name", "user__email")
 
 
 admin.site.register(FlexTimeCorrection, FlexTimeCorrectionAdmin)
