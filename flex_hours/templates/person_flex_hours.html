@@ -80,21 +80,35 @@ function drawChart() {
     <tr>
       <th>Date</th>
       <th>Day type</th>
-      <th class="number-column">Full workday</th>
-      <th class="number-column">Leaves</th>
-      <th class="number-column">Worktime</th>
-      <th class="number-column">Overtime</th>
+      <th class="number-column">- Full workday</th>
+      <th class="number-column">+ Leaves</th>
+      <th class="number-column">+ Worktime</th>
+      <th class="number-column">(Overtime)</th>
       <th class="number-column">&Sigma;</th>
       <th class="number-column">Cumulative</th>
     </tr>
   </thead>
   <tbody>
   {% for event in calculation_log %}
-  {% if event.sum or event.worktime or event.leave_hours %}
+  {% if event.sum or event.worktime or event.leave %}
   <tr>
     <td><a href="{% url "hours_browser" %}?user_name__icontains={{ person.full_name }}&date__gte={{ event.date }}&date__lte={{ event.date }}">{{ event.date }}</a></td>
     <td>{{ event.day_type }}</td>
-    <td class="number-column">{% if event.day_type == "Weekday" %}{% if event.worktime_percent == 100 %}-{{ event.expected_hours_today|floatformat:"2" }}h{% else %}{% if event.worktime_percent %}{{ event.worktime_percent }}%{% elif event.flex_enabled %}100%{% endif %} {% if event.day_type == "Weekday" %} * -7.5h = -{{ event.expected_hours_today|floatformat:"2" }}h{% else %} * 0h = 0h{% endif %}{% endif %}{% endif %}</td>
+    <td class="number-column">
+      {% if event.day_type == "Weekday" %}
+        {% if event.worktime_percent != 100 and event.worktime_percent %}
+         {{ event.worktime_percent }}% *
+        {% endif %}
+        -7.5h
+      {% endif %}
+      {% if event.unpaid_leaves %}
+        + {{ event.unpaid_leaves|floatformat:2 }}h
+      {% endif %}
+
+      {% if event.unpaid_leaves or event.day_type == "Weekday" %}
+        = {{ event.expected_hours_today|floatformat:"2" }}h
+      {% endif %}
+    </td>
     <td class="number-column">{% if event.leave %}{{ event.leave|floatformat:"2" }}h{% endif %}</td>
     <td class="number-column">{% if event.worktime %}{{ event.worktime|floatformat:"2" }}h{% endif %}</td>
     <td class="number-column">{% if event.overtime %}({{ event.overtime|floatformat:"2" }}h){% endif %}</td>
