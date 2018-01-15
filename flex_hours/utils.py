@@ -116,10 +116,11 @@ def calculate_flex_saldo(person):
         if current_day in hour_markings:
             plus_hours_today = hour_markings[current_day]
         contract = fetch_contract(contracts, current_day)
-        day_entry["flex_enabled"] = contract.flex_enabled
-        day_entry["worktime_percent"] = contract.worktime_percent
         if not contract:
             raise FlexHourNoContractException("Hour markings for %s for %s, but no contract." % (current_day, person))
+
+        day_entry["flex_enabled"] = contract.flex_enabled
+        day_entry["worktime_percent"] = contract.worktime_percent
 
         if 0 < current_day.isoweekday() < 6:
             if current_day in holidays:
@@ -149,7 +150,7 @@ def calculate_flex_saldo(person):
                 day_entry["leave"] = leave_hours
                 month_entry["leave"] += leave_hours
                 month_entry["diff"] += leave_hours
-        if current_day in overtime_markings:
+        if current_day in overtime_markings and contract.flex_enabled:
             month_entry["overtime"] += overtime_markings[current_day]
             day_entry["overtime"] = overtime_markings[current_day]
         day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0) + day_entry.get("unpaid_leaves", 0)
