@@ -106,7 +106,7 @@ class Invoice(models.Model):
     incurred_billable_hours = models.FloatField(default=0)
     billable_percentage = models.FloatField(default=0)
     incurred_money = models.FloatField(default=0, verbose_name="Incurred money")
-    invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default='C')
+    invoice_state = models.CharField(max_length=1, choices=INVOICE_STATE_CHOICES, default="C")
 
     @property
     def month_start_date(self):

@@ -4,17 +4,17 @@
 {% block header %}
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
-google.charts.load('current', {'packages':['corechart']});
+google.charts.load("current", {"packages":["corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
   var billing_data = google.visualization.arrayToDataTable({{ billing_data_json|safe }});
-  var billing_options = { title: 'Billing' };
-  var billing_chart = new google.visualization.PieChart(document.getElementById('billing_distribution_chart'));
+  var billing_options = { title: "Billing" };
+  var billing_chart = new google.visualization.PieChart(document.getElementById("billing_distribution_chart"));
 
   var linking_data = google.visualization.arrayToDataTable({{ linking_data_json|safe }});
-  var linking_options = { title: 'Linking' };
-  var linking_chart = new google.visualization.PieChart(document.getElementById('linking_distribution_chart'));
+  var linking_options = { title: "Linking" };
+  var linking_chart = new google.visualization.PieChart(document.getElementById("linking_distribution_chart"));
 
   linking_chart.draw(linking_data, linking_options);
   billing_chart.draw(billing_data, billing_options);
@@ -23,7 +23,7 @@ function drawChart() {
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
-      <li><a href="{% url 'frontpage' %}">Home</a></li>
+      <li><a href="{% url "frontpage" %}">Home</a></li>
       <li class="active">Amazon Invoices</li>
     </ol>
 

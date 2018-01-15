@@ -12,7 +12,7 @@ from invoices.models import TenkfUser
 
 
 def get_flex_hours_for_user(request, person):
-    json_responses = "application/json" in request.META.get('HTTP_ACCEPT')
+    json_responses = "application/json" in request.META.get("HTTP_ACCEPT")
     try:
         context = calculate_flex_saldo(person)
     except FlexHourException as error:

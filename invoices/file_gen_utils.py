@@ -16,11 +16,11 @@ def generate_hours_xls_for_invoice(request, invoice_id):
 
     entries = HourEntry.objects.filter(project=invoice.project, client=invoice.client, date__year__gte=invoice.year, date__month=invoice.month).filter(incurred_hours__gt=0)
     with tempfile.TemporaryDirectory() as dirname:
-        filename = dirname + '/hourlist.xlsx'
+        filename = dirname + "/hourlist.xlsx"
         workbook = xlsxwriter.Workbook(filename)
-        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd', 'align': 'left'})
-        bold = workbook.add_format({'bold': True})
-        money = workbook.add_format({'num_format': '# ##0.00€'})
+        date_format = workbook.add_format({"num_format": "yyyy-mm-dd", "align": "left"})
+        bold = workbook.add_format({"bold": True})
+        money = workbook.add_format({"num_format": "# ##0.00€"})
         worksheet = workbook.add_worksheet()
         worksheet.write("A1", "Date", bold)
         worksheet.write("B1", "Person", bold)
@@ -53,19 +53,19 @@ def generate_hours_xls_for_invoice(request, invoice_id):
 def generate_pdf(title, content):
     pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
     wk_options = {
-        'page-size': 'a4',
-        'orientation': 'landscape',
-        'title': title,
+        "page-size": "a4",
+        "orientation": "landscape",
+        "title": title,
         # In order to specify command-line options that are simple toggles
         # using this dict format, we give the option the value None
-        'no-outline': None,
-        'disable-javascript': None,
-        'encoding': 'UTF-8',
-        'margin-left': '0.2cm',
-        'margin-right': '0.2cm',
-        'margin-top': '0.3cm',
-        'margin-bottom': '0.3cm',
-        'lowquality': None,
+        "no-outline": None,
+        "disable-javascript": None,
+        "encoding": "UTF-8",
+        "margin-left": "0.2cm",
+        "margin-right": "0.2cm",
+        "margin-top": "0.3cm",
+        "margin-bottom": "0.3cm",
+        "lowquality": None,
     }
     return pdfkit.from_string(content,
                               False,
@@ -88,5 +88,5 @@ def generate_hours_pdf_for_invoice(request, invoice):
     context = {"phases": phases}
 
     # We can generate the pdf from a url, file or, as shown here, a string
-    content = render_to_string('pdf_template.html', context=context, request=request)
+    content = render_to_string("pdf_template.html", context=context, request=request)
     return generate_pdf(title, content), title

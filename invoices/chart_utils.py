@@ -53,7 +53,7 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
 
 
 def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours"):
-    data = [['Project', 'Client', title, 'Diff from last month'], ["All", None, 0, 0]]
+    data = [["Project", "Client", title, "Diff from last month"], ["All", None, 0, 0]]
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)
     two_months_ago = month_ago - datetime.timedelta(days=30)

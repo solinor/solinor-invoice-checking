@@ -19,74 +19,74 @@ class TenkFeetApi(object):
     NONETYPE = type(None)
 
     USERS_SCHEMA = schema.Schema([{
-        'account_owner': bool,
-        'archived': bool,
-        'archived_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'billability_target': float,
-        'billable': bool,
-        'billrate': float,
-        'created_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'deleted': bool,
-        'deleted_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'discipline': schema.Or(str, NONETYPE),
-        'display_name': str,
-        'email': schema.And(str, schema.Use(str.lower), schema.Regex(r"[a-z0-9-_\.]+@[a-z0-9-_\.]+")),
-        'employee_number': schema.Or(str, NONETYPE),
-        'first_name': str,
-        'guid': str,  # Can be validated
-        'has_login': bool,
-        'hire_date': schema.Or(schema.Use(parse_date), NONETYPE),
-        'id': int,
-        'invitation_pending': bool,
-        'last_name': str,
-        'location': schema.Or(str, NONETYPE),
-        'login_type': schema.Or(str, NONETYPE),
-        'mobile_phone': schema.Or(str, NONETYPE),
-        'office_phone': schema.Or(str, NONETYPE),
-        'role': schema.Or(str, NONETYPE),
-        'termination_date': schema.Or(schema.Use(parse_date), NONETYPE),
-        'thumbnail': schema.Or(str, NONETYPE),  # URL - can be validated
-        'type': str,
-        'updated_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'user_settings': int,
-        'user_type_id': int
+        "account_owner": bool,
+        "archived": bool,
+        "archived_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "billability_target": float,
+        "billable": bool,
+        "billrate": float,
+        "created_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "deleted": bool,
+        "deleted_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "discipline": schema.Or(str, NONETYPE),
+        "display_name": str,
+        "email": schema.And(str, schema.Use(str.lower), schema.Regex(r"[a-z0-9-_\.]+@[a-z0-9-_\.]+")),
+        "employee_number": schema.Or(str, NONETYPE),
+        "first_name": str,
+        "guid": str,  # Can be validated
+        "has_login": bool,
+        "hire_date": schema.Or(schema.Use(parse_date), NONETYPE),
+        "id": int,
+        "invitation_pending": bool,
+        "last_name": str,
+        "location": schema.Or(str, NONETYPE),
+        "login_type": schema.Or(str, NONETYPE),
+        "mobile_phone": schema.Or(str, NONETYPE),
+        "office_phone": schema.Or(str, NONETYPE),
+        "role": schema.Or(str, NONETYPE),
+        "termination_date": schema.Or(schema.Use(parse_date), NONETYPE),
+        "thumbnail": schema.Or(str, NONETYPE),  # URL - can be validated
+        "type": str,
+        "updated_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "user_settings": int,
+        "user_type_id": int
     }])
 
     PROJECTS_SCHEMA = schema.Schema([{
-        'archived': bool,
-        'archived_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'client': schema.Or(str, NONETYPE),
-        'created_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'deleted_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'description': schema.Or(str, NONETYPE),
-        'ends_at': schema.Or(schema.Use(parse_date), NONETYPE),
-        'guid': str,  # should be validated
-        'has_pending_updates': bool,
-        'id': int,
-        'name': str,
-        'parent_id': schema.Or(int, NONETYPE),
-        'phase_name': schema.Or(str, NONETYPE),
-        'project_code': str,
-        'project_state': str,
-        'secureurl': schema.Or(str, NONETYPE),  # should be validated
-        'secureurl_expiration': schema.Or(str, NONETYPE),  # should be parsed
-        'settings': int,
-        'starts_at': schema.Or(schema.Use(parse_date), NONETYPE),
-        'tags': {
-            'data': [{'id': int, 'value': str}],
-            'paging': {
-                'next': schema.Or(str, NONETYPE),
-                'page': int,
-                'per_page': int,
-                'previous': schema.Or(str, NONETYPE),
-                'self': str,
+        "archived": bool,
+        "archived_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "client": schema.Or(str, NONETYPE),
+        "created_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "deleted_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "description": schema.Or(str, NONETYPE),
+        "ends_at": schema.Or(schema.Use(parse_date), NONETYPE),
+        "guid": str,  # should be validated
+        "has_pending_updates": bool,
+        "id": int,
+        "name": str,
+        "parent_id": schema.Or(int, NONETYPE),
+        "phase_name": schema.Or(str, NONETYPE),
+        "project_code": str,
+        "project_state": str,
+        "secureurl": schema.Or(str, NONETYPE),  # should be validated
+        "secureurl_expiration": schema.Or(str, NONETYPE),  # should be parsed
+        "settings": int,
+        "starts_at": schema.Or(schema.Use(parse_date), NONETYPE),
+        "tags": {
+            "data": [{"id": int, "value": str}],
+            "paging": {
+                "next": schema.Or(str, NONETYPE),
+                "page": int,
+                "per_page": int,
+                "previous": schema.Or(str, NONETYPE),
+                "self": str,
             },
         },
-        'thumbnail': schema.Or(str, NONETYPE),
-        'timeentry_lockout': int,
-        'type': str,
-        'updated_at': schema.Or(schema.Use(parse_datetime), NONETYPE),
-        'use_parent_bill_rates': bool
+        "thumbnail": schema.Or(str, NONETYPE),
+        "timeentry_lockout": int,
+        "type": str,
+        "updated_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "use_parent_bill_rates": bool
     }])
 
     HOUR_ENTRIES_SCHEMA = schema.Schema([

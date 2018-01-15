@@ -5,9 +5,9 @@
 {% block content %}
 
 <ol class="breadcrumb">
-  <li><a href="{% url 'frontpage' %}">Home</a></li>
-  <li><a href="{% url 'projects_list' %}">Projects</a></li>
-  <li class="active"><a href="{% url 'project' project.guid %}">Project</a></li>
+  <li><a href="{% url "frontpage" %}">Home</a></li>
+  <li><a href="{% url "projects_list" %}">Projects</a></li>
+  <li class="active"><a href="{% url "project" project.guid %}">Project</a></li>
 </ol>
 
 <h2>{{ project.client }} - {{ project.name}} </h2>
@@ -16,7 +16,7 @@
   <div class="col-md-12">
     <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/viewproject?id={{ project.project_id }}" role="button">View project in 10000ft</a>
     <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/editproject?id={{ project.project_id }}" role="button">Edit project in 10000ft</a>
-    <a class="btn btn-info" href="{% url 'project_charts' project.guid %}" role="button">Charts</a>
+    <a class="btn btn-info" href="{% url "project_charts" project.guid %}" role="button">Charts</a>
   </div>
 </div>
 

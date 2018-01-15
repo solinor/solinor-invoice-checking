@@ -21,12 +21,12 @@ class HourListTable(tables.Table):
 
     def render_user_name(self, value, record):
         if record.user_m:
-            return format_html('<a href="%s">%s</a>' % (reverse("person", args=[record.user_m.guid, record.date.year, record.date.month]), value))
+            return format_html("<a href='%s'>%s</a>" % (reverse("person_month", args=[record.user_m.guid, record.date.year, record.date.month]), value))
         return value
 
     def render_project(self, value, record):
         if record.project_m:
-            return format_html('<a href="%s">%s</a>' % (reverse("project", args=[record.project_m.guid]), value))
+            return format_html("<a href='%s'>%s</a>" % (reverse("project", args=[record.project_m.guid]), value))
         return value
 
     def render_incurred_hours(self, value):
@@ -52,10 +52,10 @@ class FrontpageInvoices(tables.Table):
         fields = ("full_name", "date", "processed_tags", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
 
     def render_full_name(self, value, record):
-        return format_html('<a href="%s">%s</a>' % (reverse("invoice", args=[record.invoice_id]), value))
+        return format_html("<a href='%s'>%s</a>" % (reverse("invoice", args=[record.invoice_id]), value))
 
     def render_processed_tags(self, value):
-        return format_html(" ".join(['<span class="label label-default">%s</span> ' % tag for tag in value]))
+        return format_html(" ".join(["<span class='label label-default'>%s</span> " % tag for tag in value]))
 
     def render_incurred_hours(self, value):
         return u"%sh" % intcomma(floatformat(value, 0))
@@ -77,7 +77,7 @@ class ProjectsTable(tables.Table):
         fields = ("client", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
 
     def render_name(self, value, record):
-        return format_html(u"<a href='%s'>%s</a>" % (reverse('project', args=[record.guid]), value))
+        return format_html(u"<a href='%s'>%s</a>" % (reverse("project", args=[record.guid]), value))
 
     def render_client(self, value):
         return format_html(u"<a href='?client__icontains=%s'>%s</a>" % (url_quote(value.encode("utf8")), value))
@@ -89,7 +89,7 @@ class ProjectsTable(tables.Table):
         return u"%s€" % intcomma(floatformat(value, 0))
 
     def render_admin_users(self, value):
-        return format_html(u" ".join([u'<span class="label label-default">%s %s</span>' % (a.first_name, a.last_name) for a in value.all()]))
+        return format_html(u" ".join([u"<span class='label label-default'>%s %s</span>" % (a.first_name, a.last_name) for a in value.all()]))
 
     def render_guid(self, value):
         return format_html(u"<a href='%s'>Details</a>" % reverse("project", args=[value]))
@@ -105,7 +105,7 @@ class ProjectDetailsTable(tables.Table):
         fields = ("date", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage", "invoice_id")
 
     def render_invoice_id(self, value):
-        return format_html('<a href="%s">Invoice</a>, <a href="%s">hours</a>' % (reverse("invoice", args=[value]), reverse("invoice_hours", args=[value])))
+        return format_html("<a href='%s'>Invoice</a>, <a href='%s'>hours</a>" % (reverse("invoice", args=[value]), reverse("invoice_hours", args=[value])))
 
     def render_bill_rate_avg(self, value):
         return u"%s€/h" % intcomma(floatformat(value, 2))

@@ -72,7 +72,7 @@ def slack_unsubmitted_notifications(logger):
 
 
 class Command(BaseCommand):
-    help = 'Import data from 10k feet API'
+    help = "Import data from 10k feet API"
 
     def handle(self, *args, **options):
         logger = logging.getLogger(__name__)  # pylint: disable=invalid-name

@@ -17,7 +17,7 @@ def generate_amazon_invoice_data(entries):
         phases[entry.product_code]["entries"].append({"price": entry.total_cost, "currency": entry.currency, "decimals": 6, "quantity": entry.usage_quantity, "description": entry.item_description, "usage": entry.usage_type})
         total_rows["aws"]["incurred_money"] += entry.total_cost
     for phase in phases.values():
-        phase["entries"] = sorted(phase["entries"], key=lambda k: k['usage'])
+        phase["entries"] = sorted(phase["entries"], key=lambda k: k["usage"])
     total_rows = sorted(total_rows.values(), key=lambda k: "%s-%s" % (k["priority"], k["description"]))
     phases = sorted(phases.values(), key=lambda k: k["name"])
     return {

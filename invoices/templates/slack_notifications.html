@@ -3,14 +3,14 @@
 
 {% block content %}
 
-<form method="post" action="{% url 'queue_slack_notification' %}">
+<form method="post" action="{% url "queue_slack_notification" %}">
   {% csrf_token %}
   <input type="hidden" name="back" value="{{ request.get_full_path }}">
   <input type="hidden" name="type" value="unsubmitted">
   <button role="submit" name="Send notifications for unsubmitted hours" class="btn btn-default">Send notifications for unsubmitted hours (last update finished {{ last_unsubmitted_notification_at|naturaltime }})</button>
 </form>
 
-<form method="post" action="{% url 'queue_slack_notification' %}">
+<form method="post" action="{% url "queue_slack_notification" %}">
   {% csrf_token %}
   <input type="hidden" name="back" value="{{ request.get_full_path }}">
   <input type="hidden" name="type" value="unapproved">

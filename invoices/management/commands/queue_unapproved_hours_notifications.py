@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Queue notifications for team leads with unapproved hours'
+    help = "Queue notifications for team leads with unapproved hours"
 
     def handle(self, *args, **options):
         redis_client = redis.from_url(settings.REDIS)

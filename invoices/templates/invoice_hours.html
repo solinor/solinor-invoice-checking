@@ -4,12 +4,12 @@
 <div class="row">
   <div class="col-md-12">
     <ol class="breadcrumb">
-      <li><a href="{% url 'frontpage' %}">Home</a></li>
-      <li><a href="{% url 'projects_list' %}">Projects</a></li>
+      <li><a href="{% url "frontpage" %}">Home</a></li>
+      <li><a href="{% url "projects_list" %}">Projects</a></li>
       {% if invoice.project_m.guid %}
-      <li><a href="{% url 'project' invoice.project_m.guid %}">Project</a></li>
+      <li><a href="{% url "project" invoice.project_m.guid %}">Project</a></li>
       {% endif %}
-      <li><a href="{% url 'invoice' invoice.invoice_id %}">Invoice</a></li>
+      <li><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
       <li class="active">Hours</li>
     </ol>
 
@@ -32,7 +32,7 @@
         {% for entry in entries %}
         <tr>
           <td class="nowrap-column">{{ entry.date }}</td>
-          <td class="nowrap-column">{% if entry.user_m %}<a href="{% url "person" entry.user_m.guid entry.date.year entry.date.month %}">{{ entry.user_name }}</a>{% else %}{{ entry.user_name }}{% endif %}</td>
+          <td class="nowrap-column">{% if entry.user_m %}<a href="{% url "person_month" entry.user_m.guid entry.date.year entry.date.month %}">{{ entry.user_name }}</a>{% else %}{{ entry.user_name }}{% endif %}</td>
           <td class="nowrap-column">{{ entry.phase_name }}</td>
           <td class="nowrap-column">{{ entry.category }}</td>
           <td>{{ entry.calculated_is_billable }}</td>

@@ -5,7 +5,7 @@ from invoices.models import TenkfUser
 
 
 class Command(BaseCommand):
-    help = 'Report flex saldo for everyone'
+    help = "Report flex saldo for everyone"
 
     def handle(self, *args, **options):
         users = []

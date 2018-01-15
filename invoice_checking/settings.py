@@ -15,7 +15,7 @@ import sys
 
 import dj_database_url
 
-os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
+os.environ["PATH"] += os.pathsep + os.path.dirname(sys.executable)
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -56,7 +56,7 @@ RUM_CODE = os.environ.get("RUM_CODE")  # Pingdom RUM
 
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_HSTS_SECONDS
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")  # https://docs.djangoproject.com/en/2.0/ref/settings/#secure-ssl-redirect
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_PROXY_SSL_HEADER
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_PROXY_SSL_HEADER
 SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "True", "true")
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SESSION_COOKIE_SECURE
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#csrf-cookie-secure
@@ -70,26 +70,26 @@ CSP_ENABLED = os.environ.get("CSP_ENABLED", True) in (True, "true", "True")
 # Application definition
 
 INSTALLED_APPS = (
-    'django_extensions',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.humanize',
-    'googleauth',
-    'django_tables2',
-    'invoices',
-    'flex_hours',
-    'compressor',
+    "django_extensions",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    "googleauth",
+    "django_tables2",
+    "invoices",
+    "flex_hours",
+    "compressor",
 )
 
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
+    INSTALLED_APPS += ("debug_toolbar",)
 
 AUTHENTICATION_BACKENDS = (
-    'googleauth.backends.GoogleAuthBackend',
+    "googleauth.backends.GoogleAuthBackend",
 )
 
 GOOGLEAUTH_GET_PROFILE = True
@@ -101,7 +101,7 @@ GOOGLEAUTH_IS_STAFF = False
 GOOGLEAUTH_GROUPS = []
 
 WKHTMLTOPDF_CMD = subprocess.Popen(
-    ['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],  # Note we default to 'wkhtmltopdf' as the binary name
+    ["which", os.environ.get("WKHTMLTOPDF_BINARY", "wkhtmltopdf")],  # Note we default to "wkhtmltopdf" as the binary name
     stdout=subprocess.PIPE).communicate()[0].strip()
 
 CSP_DEFAULT_SRC = ("'none'",)
@@ -114,58 +114,58 @@ CSP_CONNECT_SRC = ("https://rum-collector-2.pingdom.net", "https://rum-collector
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://fonts.googleapis.com")  # unsafe-inline is required by google charts
 CSP_IMG_SRC = ("'self'", "https://stats.g.doubleclick.net", "https://www.google-analytics.com", "https://solinor.fi")
 CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI")
-X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 MIDDLEWARE = (
-    'invoice_checking.middleware.DomainRedirectMiddleware',
-    'sslify.middleware.SSLifyMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    "invoice_checking.middleware.DomainRedirectMiddleware",
+    "sslify.middleware.SSLifyMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
 )
 
 if CSP_ENABLED:
-    MIDDLEWARE += ('csp.middleware.CSPMiddleware',)
+    MIDDLEWARE += ("csp.middleware.CSPMiddleware",)
 
 
 if DEBUG:
     MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
     INTERNAL_IPS = ("127.0.0.1",)
 
-ROOT_URLCONF = 'invoice_checking.urls'
+ROOT_URLCONF = "invoice_checking.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'debug': True,
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'invoices.context_processors.add_tenkfuser',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "debug": True,
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "invoices.context_processors.add_tenkfuser",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'invoice_checking.wsgi.application'
+WSGI_APPLICATION = "invoice_checking.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
@@ -174,47 +174,47 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(message)s"
         },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout,
-            'formatter': 'verbose',
-            'level': 'DEBUG',
+        "simple": {
+            "format": "%(levelname)s %(message)s"
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
+            "formatter": "verbose",
+            "level": "DEBUG",
         },
-        'invoices': {
-            'handlers': ['console'],
-            'level': os.getenv('INVOICES_LOG_LEVEL', 'INFO'),
-            'propagate': True,
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        },
+        "invoices": {
+            "handlers": ["console"],
+            "level": os.getenv("INVOICES_LOG_LEVEL", "INFO"),
+            "propagate": True,
         }
     },
 }
@@ -222,8 +222,8 @@ LOGGING = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Europe/Helsinki'
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Europe/Helsinki"
 USE_I18N = True
 USE_L10N = False
 USE_TZ = True
@@ -233,35 +233,35 @@ SHORT_DATE_FORMAT = "Y-m-d"
 DATETIME_FORMAT = "Y-m-d H:i"
 SHORT_DATETIME_FORMAT = "Y-m-d H:i"
 
-handler404 = 'invoices.views.handler404'
-handler500 = 'invoices.views.handler500'
+handler404 = "invoices.views.handler404"
+handler500 = "invoices.views.handler500"
 
 # Update database configuration with $DATABASE_URL.
-DATABASES['default'].update(dj_database_url.config(conn_max_age=500))
+DATABASES["default"].update(dj_database_url.config(conn_max_age=500))
 
-# Honor the 'X-Forwarded-Proto' header for request.is_secure()
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Honor the "X-Forwarded-Proto" header for request.is_secure()
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Allow all host headers
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
-STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "staticfiles")
+STATIC_URL = "/static/"
 
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    "compressor.finders.CompressorFinder",
 )
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
-    os.path.join(PROJECT_ROOT, 'static'),
+    os.path.join(PROJECT_ROOT, "static"),
 )
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.django.GzipManifestStaticFilesStorage"

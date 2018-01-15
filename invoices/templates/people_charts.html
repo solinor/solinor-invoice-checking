@@ -17,8 +17,8 @@ function drawChart() {
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url 'frontpage' %}">Home</a></li>
-  <li><a href="{% url 'people' %}">People</a></li>
+  <li><a href="{% url "frontpage" %}">Home</a></li>
+  <li><a href="{% url "users_list" %}">People</a></li>
   <li class="active">Charts</li>
 </ol>
 
@@ -26,7 +26,7 @@ function drawChart() {
 
 <div class="row top-buttons-row">
   <div class="col-md-12">
-    <a class="btn btn-info" href="{% url 'hours_charts' %}">Charts for hours</a>
+    <a class="btn btn-info" href="{% url "hours_charts" %}">Charts for hours</a>
   </div>
 </div>
 

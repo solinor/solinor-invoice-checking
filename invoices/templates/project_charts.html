@@ -17,9 +17,9 @@ function drawChart() {
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url 'frontpage' %}">Home</a></li>
-  <li><a href="{% url 'projects_list' %}">Projects</a></li>
-  <li><a href="{% url 'project' project.guid %}">Project</a></li>
+  <li><a href="{% url "frontpage" %}">Home</a></li>
+  <li><a href="{% url "projects_list" %}">Projects</a></li>
+  <li><a href="{% url "project" project.guid %}">Project</a></li>
   <li class="active">Charts</li>
 </ol>
 
