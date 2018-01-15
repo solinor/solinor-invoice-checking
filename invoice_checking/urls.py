@@ -23,6 +23,7 @@ urlpatterns = [
     path("hours/browser", invoices.views.hours_browser, name="hours_browser"),
     path("hours/charts", invoices.views.hours_charts, name="hours_charts"),
     path("hours/overview", invoices.views.hours_overview, name="hours_overview"),
+    path("hours/sickleaves", invoices.views.hours_sickleaves, name="hours_sickleaves"),
     path("users", invoices.views.users_list, name="users_list"),
     path("users/charts", invoices.views.users_charts, name="users_charts"),
     path("users/<uuid:user_guid>", invoices.views.person_details, name="person_details"),
