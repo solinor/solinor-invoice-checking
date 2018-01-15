@@ -228,7 +228,6 @@ def hours_sickleaves(request):
             per_person_info[item["user_m__pk"]]["short_periods"].append(item["date"])
 
     for person in per_person_info.values():
-        print(person)
         previous_date = None
         collected_periods = []
         current_period = DatePeriod()
