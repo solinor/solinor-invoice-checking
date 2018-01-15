@@ -221,6 +221,9 @@ class TenkfUser(models.Model):
     def __str__(self):
         return "%s %s" % (self.first_name, self.last_name)
 
+    class Meta:
+        ordering = ("first_name", "last_name")
+
 
 class Project(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
