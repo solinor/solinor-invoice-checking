@@ -137,9 +137,11 @@ def calculate_flex_saldo(person):
 
         if contract.flex_enabled:
             if current_day in unpaid_leave_markings:
-                day_entry["unpaid_leaves"] = unpaid_leave_markings[current_day]
-                day_entry["expected_hours_today"] -= unpaid_leave_markings[current_day]
-                month_entry["expected_worktime"] -= unpaid_leave_markings[current_day]
+                unpaid_hours = unpaid_leave_markings[current_day]
+                day_entry["unpaid_leaves"] = unpaid_hours
+                day_entry["expected_hours_today"] -= unpaid_hours
+                month_entry["expected_worktime"] -= unpaid_hours
+                month_entry["diff"] += unpaid_hours
 
             if plus_hours_today:
                 day_entry["worktime"] = plus_hours_today
