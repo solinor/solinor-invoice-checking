@@ -53,7 +53,7 @@ def find_first_process_date(events, contracts):
 
 
 def find_last_process_date(hour_markings_list, contracts):
-    today = datetime.date.today()
+    today = datetime.date.today() - datetime.timedelta(days=1)
     last_hour_marking_day = None
     if hour_markings_list:
         last_hour_marking_day = hour_markings_list[-1][0]
