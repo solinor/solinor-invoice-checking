@@ -417,9 +417,9 @@ def hours_charts(request):
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
     treemaps.append(gen_treemap_data_projects(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_projects(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Money"))
+    treemaps.append(gen_treemap_data_projects(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Gross income per project"))
     treemaps.append(gen_treemap_data_users(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Net income per person"))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Gross income per person"))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
     hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]
@@ -434,8 +434,8 @@ def hours_charts(request):
     linecharts.append(("billing_rate_avg", "Billing rate avg (billable hours)", json.dumps(monthly_avg_billing)))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
-    linecharts.append(("incurred_money", "Incurred money per month", json.dumps(money_per_month_data)))
+    money_per_month_data = [["Date", "Gross income (billing)"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
+    linecharts.append(("incurred_money", "Gross income (billing) per month", json.dumps(money_per_month_data)))
     entries = HourEntry.objects.filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
@@ -503,8 +503,8 @@ def project_charts(request, project_id):
     entries = HourEntry.objects.filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
-    money_per_month_data = [["Date", "Incurred money"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
-    linecharts.append(("incurred_money", "Incurred money per month", json.dumps(money_per_month_data)))
+    money_per_month_data = [["Date", "Gross income"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
+    linecharts.append(("incurred_money", "Gross income per month", json.dumps(money_per_month_data)))
     entries = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
@@ -547,7 +547,7 @@ def invoice_charts(request, invoice_id):
         "per_category_billing": {
             "queryset": HourEntry.objects.values_list("category").filter(calculated_is_billable=True).annotate(hours=Sum("incurred_money")),
             "callback": get_chart_data,
-            "title": "Incurred money per category",
+            "title": "Incurred billing per category",
         },
         "per_person_hours": {
             "queryset": HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_hours")),
@@ -557,7 +557,7 @@ def invoice_charts(request, invoice_id):
         "per_person_billing": {
             "queryset": HourEntry.objects.values_list("user_name").filter(calculated_is_billable=True).annotate(hours=Sum("incurred_money")),
             "callback": get_chart_data,
-            "title": "Incurred money per person",
+            "title": "Incurred billing per person",
         },
     }
     for chart_name in charts:
