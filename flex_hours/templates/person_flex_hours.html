@@ -25,7 +25,13 @@ function drawChart() {
 
 <h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if flex_hours %}{{ flex_hours|floatformat }}h{% endif %}</h2>
 
-<div class="alert alert-info" role="alert"><strong>Tip:</strong> today is not included in flex hours calculations. If you want to know your flex saldo including today, you have to add it manually. <abbr title=""><small><span data-toggle="tooltip" data-placement="top" title="This way, if you mark your hours daily, you will know your exact balance, instead of 'on the morning it is -7.5h'.">Why?</span></small></abbr></div>
+
+
+<div class="alert alert-info" role="alert">
+  {% if kiky.saldo %}
+  Flex saldo includes {{ kiky.saldo|floatformat:"2" }}h KIKY deduction.<br>
+  {% endif %}
+  <strong>Tip:</strong> today is not included in flex hours calculations. If you want to know your flex saldo including today, you have to add it manually. <abbr title=""><small><span data-toggle="tooltip" data-placement="top" title="This way, if you mark your hours daily, you will know your exact balance, instead of 'on the morning it is -7.5h'.">Why?</span></small></abbr></div>
 
 
 <div id="flex_diff_calendar"></div>
