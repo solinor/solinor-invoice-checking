@@ -30,10 +30,16 @@ h2 {
   text-align: right;
 }
 
+#flex_diff_calendar_holder {
+  width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
 #flex_diff_calendar {
-   width: 100%;
-   min-width: 1000px;
-   overflow-x: scroll;
+  width: 100%;
+  min-width: 1000px;
+  display:inline-block;
 }
 
 .top-buttons-row {
