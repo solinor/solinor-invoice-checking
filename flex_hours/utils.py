@@ -67,7 +67,8 @@ def find_last_process_date(hour_markings_list, contracts):
 
 def calculate_kiky_stats(person, contracts, first_process_day, last_process_day):
     hours = HourEntry.objects.filter(user_m=person).filter(date__gte=datetime.date(2017, 9, 1)).filter(project="KIKY - Make Finland Great again").aggregate(Sum("incurred_hours"))["incurred_hours__sum"]
-
+    if hours is None:
+        hours = 0
     first_process_day = max(datetime.date(2017, 11, 1), first_process_day.replace(day=1))
     months_list = list(dateutil.rrule.rrule(dateutil.rrule.MONTHLY, dtstart=first_process_day, until=last_process_day))
     deduction = 0
