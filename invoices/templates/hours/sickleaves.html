@@ -3,24 +3,14 @@
 {% block content %}
 <h2>Sick leaves <i class="fa fa-lock" aria-hidden="true"></i></h2>
 
+<h3>People exceeding early caring model limits</h3>
 
-<table class="table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Days over past 12 months</th>
-      <th colspan="2">Sick leave periods over past 4 months</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for person in per_person_info %}
-    <tr>
-      <td>{{ person.user_name }}</td>
-      <td>{% if person.long > 20 %}<strong>{{ person.long }}</strong>{% else %}{{ person.long }}{% endif %}</td>
-      <td>{{ person.short }}</td>
-      <td>{% for date in person.collected_periods %}{{ date.items.0 }} - {{ date.items.1 }} ({{ date.num_days }})<br> {% endfor %}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<p>&gt; 20 sick leave days during past 12 months <i>and/or</i> &gt; 3 sick leave periods during past 4 months.</p>
+
+{% include "hours/snippets/sick_leaves_table.html" with per_person_info=sick_leaves_exceeding_limits %}
+
+<h3>Everyone else</h3>
+
+{% include "hours/snippets/sick_leaves_table.html" with per_person_info=sick_leaves_not_exceeding_limits %}
+
 {% endblock %}

@@ -216,7 +216,7 @@ def hours_sickleaves(request):
 
     start_date = datetime.date.today() - datetime.timedelta(days=365)
     short_period_start_date = datetime.date.today() - datetime.timedelta(days=120)
-    sick_leaves = HourEntry.objects.filter(date__gte=start_date).filter(leave_type="Sick leave").order_by("user_m", "date").values("user_m__email", "user_m__display_name", "user_m__pk", "date").annotate(incurred_hours_sum=Sum("incurred_hours"))
+    sick_leaves = HourEntry.objects.filter(date__gte=start_date).exclude(user_m=None).filter(leave_type="Sick leave").order_by("user_m", "date").values("user_m__email", "user_m__display_name", "user_m__pk", "date").annotate(incurred_hours_sum=Sum("incurred_hours"))
 
     per_person_info = defaultdict(lambda: {"short": 0, "long": 0, "short_periods": []})
     for item in sick_leaves:
@@ -248,7 +248,11 @@ def hours_sickleaves(request):
             current_period.items.append(item)
             collected_periods.append(current_period)
         person["collected_periods"] = collected_periods
-    return render(request, "hours/sickleaves.html", {"sick_leaves": sick_leaves, "per_person_info": per_person_info.values()})
+
+    sick_leaves_exceeding_limits = sorted([k for k in per_person_info.values() if k["short"] > 3 or k["long"] > 20], key=lambda k: k["user_name"])
+    sick_leaves_not_exceeding_limits = sorted([k for k in per_person_info.values() if k["short"] <= 3 and k["long"] <= 20], key=lambda k: k["user_name"])
+
+    return render(request, "hours/sickleaves.html", {"sick_leaves_exceeding_limits": sick_leaves_exceeding_limits, "sick_leaves_not_exceeding_limits": sick_leaves_not_exceeding_limits})
 
 
 @staff_member_required

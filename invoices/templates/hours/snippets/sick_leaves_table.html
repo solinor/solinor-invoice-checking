@@ -1,0 +1,19 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Days over past 12 months</th>
+      <th colspan="2">Sick leave periods over past 4 months</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for person in per_person_info %}
+    <tr>
+      <td>{{ person.user_name }}</td>
+      <td>{% if person.long > 20 %}<strong>{{ person.long }}</strong>{% else %}{{ person.long }}{% endif %}</td>
+      <td>{% if person.short > 3 %}<strong>{{ person.short }}</strong>{% else %}{{ person.short }}{% endif %}</td>
+      <td>{% for date in person.collected_periods %}{{ date.items.0 }} - {{ date.items.1 }} ({{ date.num_days }})<br> {% endfor %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
