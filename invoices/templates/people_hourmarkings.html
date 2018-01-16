@@ -21,9 +21,9 @@
     </tr>
   </thead>
   <tbody>
-    {% for guid, person in people.items %}
+    {% for person in people %}
       <tr>
-        <td><a href="{% url "person_month" guid today.year today.month %}">{{ person.name }}</a></td>
+        <td><a href="{% url "person_month" person.guid today.year today.month %}">{{ person.name }}</a></td>
         <td>{{ person.sum_of_hours }}</td>
         {% for day in person.days %}
         <td>{% if day.hours > 0 %}{{ day.hours }}{% endif %}</td>

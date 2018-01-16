@@ -49,13 +49,13 @@
           <li><a href="{% url "users_list" %}">People</a></li>
           <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Hours <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              <li><a href="{% url "hours_overview" %}">Overview</a></li>
               <li><a href="{% url "hours_browser" %}">Browser</a></li>
               <li><a href="{% url "users_charts" %}">Charts (people)</a></li>
               <li><a href="{% url "hours_charts" %}">Charts (hours/projects)</a></li>
               {% if request.user.is_staff %}
               <li class="divider"></li>
               <li><a href="{% url "hours_sickleaves" %}">Sick leaves <i class="fa fa-lock" aria-hidden="true"></i></a></li>
+              <li><a href="{% url "hours_overview" %}">Overview</a></li>
               {% endif %}
             </ul>
           </li>

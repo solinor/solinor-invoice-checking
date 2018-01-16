@@ -476,12 +476,14 @@ def hours_overview(request):
         guid = hour_marking["user_m__guid"]
         if guid not in people:
             people[guid] = {"name": hour_marking["user_name"],
+                            "guid": guid,
                             "days": copy.deepcopy(days),
                             "sum_of_hours": 0}
         for i, current_day in enumerate(people[guid]["days"]):
             if current_day["date"] == hour_marking["date"]:
                 people[guid]["days"][i]["hours"] += hour_marking["hours"]
                 people[guid]["sum_of_hours"] += hour_marking["hours"]
+    people = sorted(people.values(), key=lambda k: k.get("name", ""))
     return render(request, "people_hourmarkings.html", {"people": people, "days": days, "today": today})
 
 
