@@ -32,6 +32,8 @@ h2 {
 
 #flex_diff_calendar {
    width: 100%;
+   min-width: 1000px;
+   overflow-x: scroll;
 }
 
 .top-buttons-row {
