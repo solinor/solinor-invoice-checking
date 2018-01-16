@@ -7,6 +7,6 @@ def add_tenkfuser(request):
             return {
                 "tenkf_user": TenkfUser.objects.get(email=request.user.email)
             }
-        except TenkfUser.objects.DoesNotExist:
+        except TenkfUser.DoesNotExist:
             pass
     return {}
