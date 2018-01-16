@@ -419,7 +419,7 @@ def hours_charts(request):
     treemaps.append(gen_treemap_data_projects(HourEntry.objects.all()))
     treemaps.append(gen_treemap_data_projects(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Money"))
     treemaps.append(gen_treemap_data_users(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Money"))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Net income per person"))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
     hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]

@@ -3,7 +3,7 @@ import datetime
 from django.db.models import Sum
 
 
-def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
+def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours per person"):
     data = [["User", "Project", title, "Diff from last month"], ["All", None, 0, 0]]
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)
@@ -52,7 +52,7 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours"):
     return (u"hours_treemap-%s-%s" % (sum_by, title), u"%s for past 30 days" % title, data)
 
 
-def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours"):
+def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours per project"):
     data = [["Project", "Client", title, "Diff from last month"], ["All", None, 0, 0]]
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)
