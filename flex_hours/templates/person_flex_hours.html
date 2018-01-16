@@ -30,20 +30,6 @@ function drawChart() {
 
 <div id="flex_diff_calendar"></div>
 
-<h3>Contracts <small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
-<ul>
-  {% for contract in contracts %}
-  <li>{{ contract.start_date }} - {{ contract.end_date }} - {% if contract.flex_enabled %}Flex time in use.{% else %}Flex time not in use.{% endif %}{% if contract.worktime_percent %} Working with {{ contract.worktime_percent }}% contract.{%endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_workcontract_change" contract.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
-  {% endfor %}
-</ul>
-
-<h3>Flex time adjustments <small><a href="{% url "admin:flex_hours_flextimecorrection_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
-<ul>
-  {% for event in flex_time_events %}
-    <li>{{ event.date }}{% if event.adjust_by %} - flex time adjusted by {{ event.adjust_by|floatformat }}h{% endif %}{% if event.set_to %} - flex time set to {{ event.set_to|floatformat }}h{% endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_flextimecorrection_change" event.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
-  {% endfor %}
-</ul>
-
 <h3>Summary</h3>
 
 <table class="table">
@@ -55,7 +41,7 @@ function drawChart() {
       <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Overtime hours. Not counted to your flex saldo, as overtime hours are paid separately.">Overtime</span></th>
       <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Amount of hours you should work in this month to have no changes in your flex saldo.">Working time</span></th>
       <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Change in flex saldo this month.">Diff</span></th>
-      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Total amount of flex saldo, including past months.">Cumulative</span></th>
+      <th class="number-column"><span data-toggle="tooltip" data-placement="top" title="Total amount of flex saldo, including past months. Excluding KIKY hours.">Cumulative</span></th>
     </tr>
   </thead>
   <tbody>
@@ -72,6 +58,28 @@ function drawChart() {
   {% endfor %}
   </tbody>
 </table>
+
+<ul>
+  <li>Months for KIKY deductions: {{ kiky.months }}</li>
+  <li>KIKY hours you should have done so far: {{ kiky.deduction|floatformat:"2" }}h</li>
+  <li>KIKY hours you have done so far: {{ kiky.hours|floatformat:"2" }}h</li>
+  <li>Unused KIKY hours: {{ kiky.hours_left|floatformat:"2" }}h</li>
+  <li>Final saldo from KIKY: {{ kiky.saldo|floatformat:"2" }}h</li>
+</ul>
+
+<h3>Contracts <small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
+<ul>
+  {% for contract in contracts %}
+  <li>{{ contract.start_date }} - {{ contract.end_date }} - {% if contract.flex_enabled %}Flex time in use.{% else %}Flex time not in use.{% endif %}{% if contract.worktime_percent %} Working with {{ contract.worktime_percent }}% contract.{%endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_workcontract_change" contract.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
+  {% endfor %}
+</ul>
+
+<h3>Flex time adjustments <small><a href="{% url "admin:flex_hours_flextimecorrection_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
+<ul>
+  {% for event in flex_time_events %}
+    <li>{{ event.date }}{% if event.adjust_by %} - flex time adjusted by {{ event.adjust_by|floatformat }}h{% endif %}{% if event.set_to %} - flex time set to {{ event.set_to|floatformat }}h{% endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_flextimecorrection_change" event.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
+  {% endfor %}
+</ul>
 
 <h3>Calculations log</h3>
 

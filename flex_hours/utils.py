@@ -1,5 +1,6 @@
 import datetime
 
+import dateutil.rrule
 from django.db.models import Sum
 
 from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
@@ -64,6 +65,30 @@ def find_last_process_date(hour_markings_list, contracts):
     return last_process_day
 
 
+def calculate_kiky_stats(person, contracts, first_process_day, last_process_day):
+    hours = HourEntry.objects.filter(user_m=person).filter(date__gte=datetime.date(2017, 9, 1)).filter(project="KIKY - Make Finland Great again").aggregate(Sum("incurred_hours"))["incurred_hours__sum"]
+
+    first_process_day = max(datetime.date(2017, 11, 1), first_process_day.replace(day=1))
+    months_list = list(dateutil.rrule.rrule(dateutil.rrule.MONTHLY, dtstart=first_process_day, until=last_process_day))
+    deduction = 0
+    for month in months_list:
+        contract = fetch_contract(contracts, month.date())
+        if not contract.flex_enabled:
+            continue
+        percentage = float(contract.worktime_percent or 100) / 100
+        print(percentage, month)
+        deduction += percentage * 2
+
+    months = len(months_list)
+    return {
+        "hours": hours,
+        "months": months,
+        "hours_left": max(0, hours - deduction),
+        "deduction": deduction,
+        "saldo": min(0, hours - deduction),
+    }
+
+
 def calculate_flex_saldo(person):
     contracts = WorkContract.objects.all().filter(user=person)
     events = FlexTimeCorrection.objects.all().filter(user=person)
@@ -77,7 +102,7 @@ def calculate_flex_saldo(person):
 
     base_query = HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today)
 
-    hour_markings_list = list(base_query.exclude(phase_name__icontains="overtime").filter(leave_type="[project]").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
+    hour_markings_list = list(base_query.exclude(phase_name__icontains="overtime").filter(leave_type="[project]").exclude(project="KIKY - Make Finland Great again").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
     leave_markings_list = base_query.exclude(leave_type="Flex time Leave").exclude(leave_type="[project]").exclude(leave_type="Unpaid leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
     unpaid_leaves_list = base_query.filter(leave_type="Unpaid leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
     overtime_hours_list = base_query.filter(phase_name__icontains="overtime").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
@@ -173,15 +198,17 @@ def calculate_flex_saldo(person):
     if month_entry.get("month"):
         per_month_stats.append(month_entry)
     per_month_stats.reverse()
+    kiky_stats = calculate_kiky_stats(person, contracts, start_hour_markings_from_date, last_process_day)
     context = {
         "person": person,
         "contracts": contracts,
         "flex_time_events": events,
-        "flex_hours": flex_hours,
+        "flex_hours": flex_hours + kiky_stats.get("saldo", 0),
         "calculation_log": calculation_log,
         "hour_markings": hour_markings_list,
         "daily_diff_entries": daily_diff_entries,
         "summary": per_month_stats,
         "calendar_height": min(3, len(years)) * 175,
+        "kiky": kiky_stats,
     }
     return context
