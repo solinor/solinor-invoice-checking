@@ -90,8 +90,8 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
 
 
 def calculate_flex_saldo(person):
-    contracts = WorkContract.objects.all().filter(user=person)
-    events = FlexTimeCorrection.objects.all().filter(user=person)
+    contracts = WorkContract.objects.filter(user=person)
+    events = FlexTimeCorrection.objects.filter(user=person)
     today = datetime.date.today()
 
     # Find the first date

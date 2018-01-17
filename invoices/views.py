@@ -53,7 +53,7 @@ def amazon_overview(request):
             return HttpResponseBadRequest("Invalid year or month")
     else:
         today = datetime.date.today()
-    aws_accounts = AmazonLinkedAccount.objects.all().prefetch_related("project_set", "tenkfuser_set")
+    aws_accounts = AmazonLinkedAccount.objects.prefetch_related("project_set", "tenkfuser_set")
     linked_accounts = sum([aws_account.has_linked_properties() for aws_account in aws_accounts])
     total_billing = linked_billing = unlinked_billing = employee_billing = project_billing = 0
 
@@ -63,9 +63,9 @@ def amazon_overview(request):
 
         if aws_account.has_linked_properties():
             linked_billing += aws_account.billing
-            if aws_account.project_set.all().count() > 0:
+            if aws_account.project_set.count() > 0:
                 project_billing += aws_account.billing
-            if aws_account.tenkfuser_set.all().count() > 0:
+            if aws_account.tenkfuser_set.count() > 0:
                 employee_billing += aws_account.billing
         else:
             unlinked_billing += aws_account.billing
@@ -78,9 +78,9 @@ def amazon_overview(request):
     linking_data = (
         ("a", "b"),
         ("Linked accounts", linked_accounts),
-        ("Unlinked accounts", AmazonLinkedAccount.objects.all().count() - linked_accounts),
+        ("Unlinked accounts", AmazonLinkedAccount.objects.count() - linked_accounts),
     )
-    months = AmazonInvoiceRow.objects.all().dates("invoice_month", "month", order="DESC")
+    months = AmazonInvoiceRow.objects.dates("invoice_month", "month", order="DESC")
     context = {
         "today": today,
         "months": months,

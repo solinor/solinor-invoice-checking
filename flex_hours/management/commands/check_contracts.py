@@ -16,11 +16,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         errors = []
-        work_contracts = WorkContract.objects.all().select_related("user")
+        work_contracts = WorkContract.objects.select_related("user")
         per_user_contracts = defaultdict(list)
         for contract in work_contracts:
             per_user_contracts[contract.user.email].append(contract)
-        flex_time_corrections = FlexTimeCorrection.objects.all().order_by("date")  # Important to order by date for "start_date_by_user" collection
+        flex_time_corrections = FlexTimeCorrection.objects.order_by("date")  # Important to order by date for "start_date_by_user" collection
         start_date_by_user = {}
         for correction in flex_time_corrections:
             if correction.set_to is not None:  # can be 0

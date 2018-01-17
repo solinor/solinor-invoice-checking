@@ -60,7 +60,7 @@ def send_unsubmitted_hours_notifications():
 
 
 def send_unapproved_hours_notifications(year, month):
-    for project in Project.objects.all().filter(hourentry__approved=False, hourentry__date__year=year, hourentry__date__month=month).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
+    for project in Project.objects.filter(hourentry__approved=False, hourentry__date__year=year, hourentry__date__month=month).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
         message = """Your project *%s - %s* has unapproved hours: %s hour markings with total of %s hours, which equals to %s euros. Go to <https://app.10000ft.com/viewproject?id=%s|10000ft> to approve these hours. See detailed info in <https://solinor-finance.herokuapp.com%s|Solinor Finance service>.""" % (project.client, project.name, project.entries_count, project.sum_of_hours, project.sum_of_money, project.project_id, reverse("project", args=(project.guid,)))
 
         admin_users = project.admin_users.all()
