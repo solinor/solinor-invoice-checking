@@ -106,7 +106,7 @@ function drawChart() {
   </thead>
   <tbody>
   {% for event in calculation_log %}
-  {% if event.sum or event.worktime or event.leave %}
+  {% if event.sum or event.worktime or event.leave or event.unpaid_leaves %}
   <tr>
     <td><a href="{% url "hours_browser" %}?user_name__icontains={{ person.full_name }}&date__gte={{ event.date }}&date__lte={{ event.date }}">{{ event.date }}</a></td>
     <td>{{ event.day_type }}</td>
