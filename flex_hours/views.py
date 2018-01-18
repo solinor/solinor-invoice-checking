@@ -11,8 +11,7 @@ from flex_hours.utils import FlexHourException, calculate_flex_saldo
 from invoices.models import TenkfUser
 
 
-def get_flex_hours_for_user(request, person):
-    json_responses = "application/json" in request.META.get("HTTP_ACCEPT")
+def get_flex_hours_for_user(request, person, json_responses=False):
     try:
         context = calculate_flex_saldo(person)
     except FlexHourException as error:
@@ -34,3 +33,9 @@ def person_flex_hours(request, user_guid):
 def your_flex_hours(request):
     person = get_object_or_404(TenkfUser, email=request.user.email)
     return get_flex_hours_for_user(request, person)
+
+
+@login_required
+def your_flex_hours_json(request):
+    person = get_object_or_404(TenkfUser, email=request.user.email)
+    return get_flex_hours_for_user(request, person, json_responses=True)

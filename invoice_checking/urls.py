@@ -30,6 +30,7 @@ urlpatterns = [
     path("users/<uuid:user_guid>/<int:year>/<int:month>", invoices.views.person_details_month, name="person_month"),
     path("users/<uuid:user_guid>/flexhours", flex_hours.views.person_flex_hours, name="person_flex_hours"),
     path("you/flexhours", flex_hours.views.your_flex_hours, name="your_flex_hours"),
+    path("you/flexhours/json", flex_hours.views.your_flex_hours_json, name="your_flex_hours_json"),
 
     path("queue_update", invoices.views.queue_update, name="queue_update"),
     path("queue_slack_notification", invoices.views.queue_slack_notification, name="queue_slack_notification"),
