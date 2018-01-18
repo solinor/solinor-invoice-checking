@@ -73,6 +73,8 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
     deduction = 0
     for month in months_list:
         contract = fetch_contract(contracts, month.date())
+        if not contract:
+            continue
         if not contract.flex_enabled:
             continue
         percentage = float(contract.worktime_percent or 100) / 100
