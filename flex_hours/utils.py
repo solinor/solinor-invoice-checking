@@ -53,8 +53,7 @@ def find_first_process_date(events, contracts):
     return first_contract.start_date, 0
 
 
-def find_last_process_date(hour_markings_list, contracts):
-    today = datetime.date.today() - datetime.timedelta(days=1)
+def find_last_process_date(hour_markings_list, contracts, today):
     last_hour_marking_day = None
     if hour_markings_list:
         last_hour_marking_day = hour_markings_list[-1][0]
@@ -89,7 +88,9 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
     }
 
 
-def calculate_flex_saldo(person):
+def calculate_flex_saldo(person, flex_last_day=None):
+    if not flex_last_day:
+        flex_last_day = datetime.date.today() - datetime.timedelta(days=1)
     contracts = WorkContract.objects.filter(user=person)
     events = FlexTimeCorrection.objects.filter(user=person)
     today = datetime.date.today()
@@ -111,7 +112,7 @@ def calculate_flex_saldo(person):
     overtime_markings = {k[0]: float(k[1]) for k in overtime_hours_list}
     unpaid_leave_markings = {k[0]: float(k[1]) for k in unpaid_leaves_list}
 
-    last_process_day = find_last_process_date(hour_markings_list, contracts)
+    last_process_day = find_last_process_date(hour_markings_list, contracts, flex_last_day)
     current_day = start_hour_markings_from_date
     calculation_log = []
     daily_diff_entries = []
