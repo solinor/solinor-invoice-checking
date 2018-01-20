@@ -258,8 +258,14 @@ class HourEntryUpdate(object):
 
 def refresh_stats(start_date, end_date):
     if start_date and end_date:
-        invoices = Invoice.objects.filter(year__gte=start_date.year, year__lte=end_date.year, month__gte=start_date.month, month__lte=end_date.month)  # TODO: this is not working properly over new year.
-        logger.info("Updating statistics for invoices between %s and %s: %s invoices", start_date, end_date, invoices.count())
+        if start_date.year == end_date.year:
+            invoices = Invoice.objects.filter(year__gte=start_date.year, year__lte=end_date.year, month__gte=start_date.month, month__lte=end_date.month)
+        else:
+            invoices_1 = Invoice.objects.filter(year=start_date.year, month__gte=start_date.month)
+            invoices_2 = Invoice.objects.filter(year=end_date.year, month__lte=end_date.month)
+            invoices = [invoice for invoice in invoices_1]
+            invoices.extend([invoice for invoice in invoices_2])
+        logger.info("Updating statistics for invoices between %s and %s: %s invoices", start_date, end_date, len(invoices))
     else:
         logger.info("Updating statistics for all invoices")
         invoices = Invoice.objects.all()
