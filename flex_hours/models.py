@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from invoices.models import TenkfUser
+
+
+def validate_percent_field(value):
+    if value is None:
+        return
+    if 0 > value > 100:
+        raise ValidationError(
+            _('%(value)s is not between 0-100'),
+            params={'value': value},
+        )
 
 
 class WorkContract(models.Model):
@@ -11,7 +22,7 @@ class WorkContract(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     flex_enabled = models.BooleanField(blank=True, default=True)
-    worktime_percent = models.IntegerField(null=True, blank=True)
+    worktime_percent = models.IntegerField(default=100, validators=(validate_percent_field,))
 
     class Meta:
         ordering = ("start_date", "user")
