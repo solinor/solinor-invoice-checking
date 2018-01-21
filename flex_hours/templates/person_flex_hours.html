@@ -6,12 +6,12 @@
    google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff_entries destination_id="flex_diff_calendar" title="Flex saldo diff" %}
+  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff destination_id="flex_diff_calendar" title="Flex saldo diff" %}
 }
  </script>
  {% endblock %}
 
-{% block title %}{% if flex_hours %}{{ flex_hours|floatformat }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
+{% block title %}{% if cumulative_saldo %}{{ cumulative_saldo|floatformat }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
 
 {% block content %}
 
@@ -23,7 +23,7 @@ function drawChart() {
 </ol>
 
 
-<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if flex_hours %}{{ flex_hours|floatformat }}h{% endif %}</h2>
+<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if cumulative_saldo %}{{ cumulative_saldo|floatformat }}h{% endif %}</h2>
 
 
 
@@ -53,7 +53,7 @@ function drawChart() {
     </tr>
   </thead>
   <tbody>
-  {% for row in summary %}
+  {% for row in monthly_summary %}
   <tr>
     <td><a href="{% url "person_month" person.guid row.month.year row.month.month %}">{{ row.month|date:"Y-m" }}</a></td>
     <td class="number-column">{% if row.leave %}+{{ row.leave|floatformat:"2" }}{% endif %}</td>
@@ -61,19 +61,34 @@ function drawChart() {
     <td class="number-column">{% if row.overtime %}({{ row.overtime|floatformat:"2"}}h){% endif %}</td>
     <td class="number-column">-{{ row.expected_worktime|floatformat:"2" }}</td>
     <td class="number-column">{{ row.diff|floatformat:"2" }}</td>
-    <td class="number-column">{{ row.flex_hours|floatformat:"2" }}</td>
+    <td class="number-column">{{ row.cumulative_saldo|floatformat:"2" }}</td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
 
-<ul>
-  <li>Months for KIKY deductions: {{ kiky.months }}</li>
-  <li>KIKY hours you should have done so far: {{ kiky.deduction|floatformat:"2" }}h</li>
-  <li>KIKY hours you have done so far: {{ kiky.hours|floatformat:"2" }}h</li>
-  <li>Unused KIKY hours: {{ kiky.hours_left|floatformat:"2" }}h</li>
-  <li>Final saldo from KIKY: {{ kiky.saldo|floatformat:"2" }}h</li>
-</ul>
+<h3>KIKY</h3>
+
+<table class="table" style="max-width: 30em">
+  <tbody>
+    <tr>
+      <td>KIKY hours you should have done so far</td>
+      <td>-{{ kiky.deduction|floatformat:"2" }}</td>
+    </tr>
+    <tr class="summary-below-row">
+      <td>KIKY hours you have done so far</td>
+      <td>+{{ kiky.hours_done|floatformat:"2" }}h</td>
+    </tr>
+    <tr {% if kiky.saldo < 0 %}class="warning"{% endif %}>
+      <td>Final saldo from KIKY</td>
+      <td>{{ kiky.saldo|floatformat:"2" }}h</td>
+    </tr>
+    <tr>
+      <td>Unused KIKY hours</td>
+      <td>{{ kiky.unused_hours|floatformat:"2" }}h</td>
+    </tr>
+  </tbody>
+</table>
 
 <h3>Contracts <small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
 <ul>
@@ -83,11 +98,15 @@ function drawChart() {
 </ul>
 
 <h3>Flex time adjustments <small><a href="{% url "admin:flex_hours_flextimecorrection_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
+{% if flex_time_events %}
 <ul>
   {% for event in flex_time_events %}
     <li>{{ event.date }}{% if event.adjust_by %} - flex time adjusted by {{ event.adjust_by|floatformat }}h{% endif %}{% if event.set_to %} - flex time set to {{ event.set_to|floatformat }}h{% endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_flextimecorrection_change" event.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
   {% endfor %}
 </ul>
+{% else %}
+<p>You don't have any recorded flex time adjustments, such as converting flex time to money (or vice versa).</p>
+{% endif %}
 
 <h3>Calculations log</h3>
 
@@ -133,7 +152,7 @@ function drawChart() {
     <td class="number-column">{% if event.worktime %}{{ event.worktime|floatformat:"2" }}h{% endif %}</td>
     <td class="number-column">{% if event.overtime %}({{ event.overtime|floatformat:"2" }}h){% endif %}</td>
     <td class="number-column">{% if event.sum or event.sum == 0 %}{{ event.sum|floatformat:"2" }}h{% endif %}</td>
-    <td class="number-column">{{ event.flex_hours|floatformat:"2" }}h</td>
+    <td class="number-column">{{ event.cumulative_saldo|floatformat:"2" }}h</td>
   </tr>
   {% endif %}
   {% endfor %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Flex saldos{% endblock %}
+
+{% block header %}
+<script>
+$(function () {
+  $(".flex-row").each(function () {
+    var user_guid = $(this).data("guid");
+    $.get("/users/" + user_guid + "/flexhours/json", function(data) {
+      console.log(user_guid, data);
+      $("#" + user_guid + "-saldo").html(data.flex_hours + "h")
+      $("#" + user_guid + "-kiky").html(data.kiky_saldo + "h")
+    }, "json");
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+
+<h3>Flex saldos</h3>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Saldo</th>
+      <th>KIKY</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for person in people %}
+    <tr class="flex-row" data-guid="{{ person.guid }}">
+      <td>{{ person.full_name }}</td>
+      <td id="{{ person.guid }}-saldo"></td>
+      <td id="{{ person.guid }}-kiky"></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

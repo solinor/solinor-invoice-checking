@@ -27,6 +27,10 @@ class WorkContract(models.Model):
     class Meta:
         ordering = ("start_date", "user")
 
+    @property
+    def workday_length(self):
+        return float(self.worktime_percent / 100) * 7.5
+
     def __str__(self):
         return u"%s - %s - %s - %s - %s%%" % (self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
 

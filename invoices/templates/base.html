@@ -55,6 +55,7 @@
               {% if request.user.is_staff %}
               <li class="divider"></li>
               <li><a href="{% url "hours_sickleaves" %}">Sick leaves <i class="fa fa-lock" aria-hidden="true"></i></a></li>
+              <li><a href="{% url "flex_overview" %}">Flex saldos <i class="fa fa-lock" aria-hidden="true"></i></a></li>
               <li><a href="{% url "hours_overview" %}">Overview</a></li>
               {% endif %}
             </ul>

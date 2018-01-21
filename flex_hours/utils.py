@@ -16,6 +16,7 @@ class FlexHourNoContractException(FlexHourException):
 
 
 def fetch_contract(contracts, current_day):
+    """Return contract that is valid for given day, or None"""
     for contract in contracts:
         if contract.start_date <= current_day and (contract.end_date is None or contract.end_date >= current_day):
             return contract
@@ -38,6 +39,10 @@ def fetch_last_contract(contracts):
 
 
 def find_first_process_date(events, contracts):
+    """Finds the first day for calculating flex saldo
+
+    Start from the latest set_to adjustment, and if not set, from the first contract.
+    """
     latest_set_to = start_hour_markings_from_date = None
     for event in events:
         if event.set_to is not None:
@@ -54,9 +59,13 @@ def find_first_process_date(events, contracts):
 
 
 def find_last_process_date(hour_markings_list, contracts, today):
+    """Finds the last day for calculating flex saldo
+
+    Stop at the last hour marking, last contract end date. Never process future entries.
+    """
     last_hour_marking_day = None
     if hour_markings_list:
-        last_hour_marking_day = hour_markings_list[-1][0]
+        last_hour_marking_day = hour_markings_list[-1][0]  # datetime.date for the last hour marking
     last_contract = fetch_last_contract(contracts)
     last_process_day = today
     if last_hour_marking_day and last_contract:
@@ -73,35 +82,34 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
     deduction = 0
     for month in months_list:
         contract = fetch_contract(contracts, month.date())
-        if not contract:
+        if not contract:  # If there is no valid contract for the first day of the month, month is excluded from KIKY deductions
             continue
-        if not contract.flex_enabled:
+        if not contract.flex_enabled:  # If the contract for the first day of the month has flex saldo disabled, month is excluded from KIKY deductions
             continue
-        percentage = float(contract.worktime_percent or 100) / 100
+        percentage = float(contract.worktime_percent) / 100
         deduction += percentage * 2
 
     months = len(months_list)
     return {
-        "hours": hours,
-        "months": months,
-        "hours_left": max(0, hours - deduction),
+        "hours_done": hours,
         "deduction": deduction,
+        "eligible_months": months,
+        "unused_hours": max(0, hours - deduction),
         "saldo": min(0, hours - deduction),
     }
 
 
 def calculate_flex_saldo(person, flex_last_day=None):
     if not flex_last_day:
-        flex_last_day = datetime.date.today() - datetime.timedelta(days=1)
+        flex_last_day = datetime.date.today() - datetime.timedelta(days=1)  # The default is to exclude today to have stable flex saldo (assuming everyone marks hours daily)
     contracts = WorkContract.objects.filter(user=person)
     events = FlexTimeCorrection.objects.filter(user=person)
     today = datetime.date.today()
 
     # Find the first date
-    start_hour_markings_from_date, flex_hours = find_first_process_date(events, contracts)
+    start_hour_markings_from_date, cumulative_saldo = find_first_process_date(events, contracts)
 
-    holidays_list = PublicHoliday.objects.filter(date__gte=start_hour_markings_from_date).filter(date__lte=today)
-    holidays = {k.date: k.name for k in holidays_list}
+    holidays = {k.date: k.name for k in PublicHoliday.objects.filter(date__gte=start_hour_markings_from_date).filter(date__lte=today)}
 
     base_query = HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today)
 
@@ -117,16 +125,16 @@ def calculate_flex_saldo(person, flex_last_day=None):
     last_process_day = find_last_process_date(hour_markings_list, contracts, flex_last_day)
     current_day = start_hour_markings_from_date
     calculation_log = []
-    daily_diff_entries = []
+    daily_diff = []
     per_month_stats = []
     month_entry = {}
     years = set()
     while current_day <= last_process_day:
         if month_entry.get("month") is None:
-            month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "flex_hours": 0, "overtime": 0, "unpaid_leaves": 0}
+            month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "cumulative_saldo": 0, "overtime": 0, "unpaid_leaves": 0}
         if month_entry["month"].strftime("%Y-%m") != current_day.strftime("%Y-%m"):
             per_month_stats.append(month_entry)
-            month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "flex_hours": 0, "overtime": 0, "unpaid_leaves": 0}
+            month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "cumulative_saldo": 0, "overtime": 0, "unpaid_leaves": 0}
             years.add(current_day.strftime("%Y"))
         day_entry = {"date": current_day, "day_type": "Weekday", "expected_hours_today": 0}
         flex_hour_deduct = 0
@@ -134,11 +142,11 @@ def calculate_flex_saldo(person, flex_last_day=None):
         is_holiday = False
         for event in events:
             if event.date == current_day and event.adjust_by:
-                flex_hours += float(event.adjust_by)
+                cumulative_saldo += float(event.adjust_by)
                 calculation_log.append({
                     "date": current_day,
                     "sum": float(event.adjust_by),
-                    "flex_hours": flex_hours,
+                    "cumulative_saldo": cumulative_saldo,
                 })
         plus_hours_today = flex_hour_deduct = 0
         if current_day in hour_markings:
@@ -155,7 +163,7 @@ def calculate_flex_saldo(person, flex_last_day=None):
                 is_holiday = True
                 day_entry["day_type"] = "Public holiday: %s" % holidays[current_day]
             elif contract.flex_enabled:
-                    flex_hour_deduct = (float(contract.worktime_percent or 100) / 100) * 7.5
+                    flex_hour_deduct = contract.workday_length
                     day_entry["expected_hours_today"] = flex_hour_deduct
                     month_entry["expected_worktime"] += flex_hour_deduct
                     month_entry["diff"] -= flex_hour_deduct
@@ -189,13 +197,13 @@ def calculate_flex_saldo(person, flex_last_day=None):
 
         day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0) + day_entry.get("unpaid_leaves", 0)
 
-        flex_hours += day_entry["sum"]
-        day_entry["flex_hours"] = flex_hours
-        month_entry["flex_hours"] = flex_hours
+        cumulative_saldo += day_entry["sum"]
+        day_entry["cumulative_saldo"] = cumulative_saldo
+        month_entry["cumulative_saldo"] = cumulative_saldo
 
         calculation_log.append(day_entry)
         if contract.flex_enabled:
-            daily_diff_entries.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "%s (%s): %sh" % (current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
+            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "%s (%s): %sh" % (current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
         current_day += datetime.timedelta(days=1)
     calculation_log.reverse()
     if month_entry.get("month"):
@@ -206,11 +214,10 @@ def calculate_flex_saldo(person, flex_last_day=None):
         "person": person,
         "contracts": contracts,
         "flex_time_events": events,
-        "flex_hours": flex_hours + kiky_stats.get("saldo", 0),
+        "cumulative_saldo": cumulative_saldo + kiky_stats.get("saldo", 0),
         "calculation_log": calculation_log,
-        "hour_markings": hour_markings_list,
-        "daily_diff_entries": daily_diff_entries,
-        "summary": per_month_stats,
+        "daily_diff": daily_diff,
+        "monthly_summary": per_month_stats,
         "calendar_height": min(3, len(years)) * 175,
         "kiky": kiky_stats,
     }
