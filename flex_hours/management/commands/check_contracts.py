@@ -25,6 +25,7 @@ class Command(BaseCommand):
         for correction in flex_time_corrections:
             if correction.set_to is not None:  # can be 0
                 start_date_by_user[correction.user.email] = correction.date
+        for correction in flex_time_corrections:
             if correction.user.email not in per_user_contracts:
                 errors.append("Flex saldo correction (%s) for user %s but no contracts defined." % (correction, correction.user.email))
                 continue
@@ -33,17 +34,24 @@ class Command(BaseCommand):
                     if contract.start_date >= correction.date >= contract.end_date:
                         break
                 else:
-                    errors.append("Flex saldo adjustment (%s) for user %s but no valid contract defined." % (correction, correction.user.email))
+                    if correction.date < start_date_by_user[correction.user.email]:
+                        errors.append("Flex saldo adjustment (%s) for user %s but no valid contract defined." % (correction, correction.user.email))
 
-        hour_entries = HourEntry.objects.exclude(user_m=None).filter(date__gte=datetime.datetime(2017, 10, 1)).order_by("user_m", "date").distinct("user_m", "date").select_related("user_m")
+        hour_entries = HourEntry.objects.exclude(user_m=None).filter(date__gte=datetime.datetime(2017, 10, 1)).values("user_m__email", "date").order_by("user_m__email", "date").distinct()
         users_with_no_contracts = set()
         for entry in hour_entries:
-            if entry.user_m.email in users_with_no_contracts:
+            if entry["user_m__email"] in users_with_no_contracts:
                 continue
-            if entry.user_m.email not in per_user_contracts:
-                errors.append("No contract for %s (%s)" % (entry.user_m.email, entry.date))
-                users_with_no_contracts.add(entry.user_m.email)
+            if entry["user_m__email"] not in per_user_contracts:
+                errors.append("No contract for %s (%s)" % (entry["user_m__email"], entry["date"]))
+                users_with_no_contracts.add(entry["user_m__email"])
                 continue
+            for contract in work_contracts:
+                if contract.start_date <= entry["date"] <= contract.end_date:
+                    break
+            else:
+                errors.append("No contract for %s (%s)" % (entry["user_m__email"], entry["date"]))
+                users_with_no_contracts.add(entry["user_m__email"])
 
         message = "Following errors with flex hour contracts were found:\n"
         for error in errors:
