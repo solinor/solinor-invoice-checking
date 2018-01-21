@@ -54,7 +54,7 @@ $(function () {
   <tbody>
     {% for person in people %}
     <tr id="{{ person.guid }}-row" class="flex-row" data-guid="{{ person.guid }}">
-      <td>{{ person.full_name }}</td>
+      <td><a href="{% url "person_flex_hours" person.guid %}">{{ person.full_name }}</a></td>
       <td class="number-column" id="{{ person.guid }}-saldo"></td>
       <td class="number-column" id="{{ person.guid }}-kiky"></td>
     </tr>
