@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import uuid
 
+import reversion
 from django.db import models
 
 import invoices.date_utils as date_utils
@@ -73,6 +74,7 @@ class HourEntry(models.Model):
         verbose_name_plural = "Hour entries"
 
 
+@reversion.register()
 class Invoice(models.Model):
     INVOICE_STATE_CHOICES = (
         ("C", "Created"),
@@ -182,6 +184,7 @@ class Invoice(models.Model):
         ordering = ("-year", "-month", "client", "project")
 
 
+@reversion.register()
 class SlackChannel(models.Model):
     channel_id = models.CharField(max_length=50, primary_key=True, editable=False)
     name = models.CharField(max_length=1000)
@@ -194,6 +197,7 @@ class SlackChannel(models.Model):
         ordering = ("name",)
 
 
+@reversion.register()
 class TenkfUser(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
     user_id = models.IntegerField(editable=False)
@@ -225,6 +229,7 @@ class TenkfUser(models.Model):
         ordering = ("first_name", "last_name")
 
 
+@reversion.register()
 class Project(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
     project_id = models.IntegerField(null=True, blank=True)
@@ -258,6 +263,7 @@ class Phase(models.Model):
         return u"Phase: %s - %s" % (self.project, self.phase_name)
 
 
+@reversion.register()
 class Comments(models.Model):
     invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -285,6 +291,7 @@ class Comments(models.Model):
         return u"%s - %s - %s" % (self.invoice, self.timestamp, self.user)
 
 
+@reversion.register()
 class InvoiceFixedEntry(models.Model):
     invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
     price = models.FloatField()
@@ -299,6 +306,7 @@ class InvoiceFixedEntry(models.Model):
         return u"%s - %s - %s" % (self.invoice, self.description, self.price)
 
 
+@reversion.register()
 class ProjectFixedEntry(models.Model):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     price = models.FloatField()
@@ -313,6 +321,7 @@ class ProjectFixedEntry(models.Model):
         return u"%s - %s - %s" % (self.project, self.description, self.price)
 
 
+@reversion.register()
 class AmazonLinkedAccount(models.Model):
     linked_account_id = models.CharField(max_length=50, primary_key=True, editable=False)
     name = models.CharField(max_length=255)
@@ -379,10 +388,12 @@ class SlackNotificationBundle(models.Model):
         ordering = ("-sent_at", "notification_type")
 
 
+@reversion.register()
 class SlackChat(models.Model):
     chat_id = models.CharField(max_length=50, primary_key=True, editable=False)
 
 
+@reversion.register()
 class SlackChatMember(models.Model):
     slack_chat = models.ForeignKey("SlackChat", on_delete=models.CASCADE)
     member_id = models.CharField(max_length=50)

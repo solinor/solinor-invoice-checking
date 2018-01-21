@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -17,6 +18,7 @@ def validate_percent_field(value):
         )
 
 
+@reversion.register()
 class WorkContract(models.Model):
     user = models.ForeignKey(TenkfUser, on_delete=models.CASCADE)
     start_date = models.DateField()
@@ -35,6 +37,7 @@ class WorkContract(models.Model):
         return u"%s - %s - %s - %s - %s%%" % (self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
 
 
+@reversion.register()
 class FlexTimeCorrection(models.Model):
     user = models.ForeignKey(TenkfUser, on_delete=models.CASCADE)
     date = models.DateField()
@@ -55,6 +58,7 @@ class FlexTimeCorrection(models.Model):
         ordering = ("date", "user",)
 
 
+@reversion.register()
 class PublicHoliday(models.Model):
     name = models.CharField(max_length=100)
     date = models.DateField()

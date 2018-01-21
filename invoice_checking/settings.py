@@ -83,6 +83,7 @@ INSTALLED_APPS = (
     "invoices",
     "flex_hours",
     "compressor",
+    "reversion",
 )
 
 if DEBUG:
