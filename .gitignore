@@ -6,3 +6,4 @@ db.sqlite3
 dev/
 dev3/
 backups/
+__pycache__
