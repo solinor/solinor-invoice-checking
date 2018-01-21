@@ -9,7 +9,7 @@ $(function () {
   var kiky_sum = 0;
   $(".flex-row").each(function () {
     var user_guid = $(this).data("guid");
-    $.get("/users/" + user_guid + "/flexhours/json", null, "json")
+    $.get("/users/" + user_guid + "/flexhours/json?onlyActive=true", null, "json")
       .done(function(data, status) {
       if (data.flex_enabled === false) {
         $("#" + user_guid + "-row").hide();

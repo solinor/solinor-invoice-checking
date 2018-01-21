@@ -99,12 +99,16 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
     }
 
 
-def calculate_flex_saldo(person, flex_last_day=None):
+def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
     if not flex_last_day:
         flex_last_day = datetime.date.today() - datetime.timedelta(days=1)  # The default is to exclude today to have stable flex saldo (assuming everyone marks hours daily)
     contracts = WorkContract.objects.filter(user=person)
     events = FlexTimeCorrection.objects.filter(user=person)
     today = datetime.date.today()
+
+    if only_active:
+        if not fetch_contract(contracts, flex_last_day):
+            return {"active": False}
 
     # Find the first date
     start_hour_markings_from_date, cumulative_saldo = find_first_process_date(events, contracts)

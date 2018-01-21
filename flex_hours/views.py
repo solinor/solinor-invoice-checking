@@ -12,14 +12,16 @@ from flex_hours.utils import FlexHourException, calculate_flex_saldo
 from invoices.models import TenkfUser
 
 
-def get_flex_hours_for_user(request, person, json_responses=False):
+def get_flex_hours_for_user(request, person, json_responses=False, only_active=False):
     try:
-        context = calculate_flex_saldo(person)
+        context = calculate_flex_saldo(person, only_active=only_active)
     except FlexHourException as error:
         if json_responses:
             return HttpResponse(json.dumps({"flex_enabled": False}), content_type="application/json")
         return render(request, "error.html", {"error": error, "message": "This is normal for flex hour calculations when some required information is missing. If this is your page, please contact HR to get this fixed."})
     if json_responses:
+        if not context.get("active", True):
+            return HttpResponse(json.dumps({"flex_enabled": False}), content_type="application/json")
         return HttpResponse(json.dumps({"flex_enabled": True, "flex_hours": context["cumulative_saldo"], "kiky_saldo": context.get("kiky", {}).get("saldo")}), content_type="application/json")
     return render(request, "person_flex_hours.html", context)
 
@@ -51,4 +53,4 @@ def your_flex_hours_json(request):
 @login_required
 def person_flex_hours_json(request, user_guid):
     person = get_object_or_404(TenkfUser, guid=user_guid)
-    return get_flex_hours_for_user(request, person, json_responses=True)
+    return get_flex_hours_for_user(request, person, json_responses=True, only_active=request.GET.get("onlyActive", False) == "true")
