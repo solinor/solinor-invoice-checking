@@ -139,7 +139,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
         if month_entry["month"].strftime("%Y-%m") != current_day.strftime("%Y-%m"):
             per_month_stats.append(month_entry)
             month_entry = {"month": current_day, "leave": 0, "worktime": 0, "expected_worktime": 0, "diff": 0, "cumulative_saldo": 0, "overtime": 0, "unpaid_leaves": 0}
-            years.add(current_day.strftime("%Y"))
+        years.add(current_day.strftime("%Y"))
         day_entry = {"date": current_day, "day_type": "Weekday", "expected_hours_today": 0}
         flex_hour_deduct = 0
         is_weekend = False
