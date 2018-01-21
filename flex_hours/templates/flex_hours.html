@@ -5,13 +5,35 @@
 {% block header %}
 <script>
 $(function () {
+  var saldo_sum = 0;
+  var kiky_sum = 0;
   $(".flex-row").each(function () {
     var user_guid = $(this).data("guid");
-    $.get("/users/" + user_guid + "/flexhours/json", function(data) {
-      console.log(user_guid, data);
-      $("#" + user_guid + "-saldo").html(data.flex_hours + "h")
-      $("#" + user_guid + "-kiky").html(data.kiky_saldo + "h")
-    }, "json");
+    $.get("/users/" + user_guid + "/flexhours/json", null, "json")
+      .done(function(data, status) {
+      if (data.flex_enabled === false) {
+        $("#" + user_guid + "-row").hide();
+      } else {
+        $("#" + user_guid + "-saldo").html(data.flex_hours.toFixed(2) + "h");
+        saldo_sum = saldo_sum + data.flex_hours;
+        $("#saldo-sum").html(saldo_sum.toFixed(2) + "h");
+        $("#" + user_guid + "-kiky").html(data.kiky_saldo.toFixed(2) + "h");
+        kiky_sum = kiky_sum + data.kiky_saldo;
+        $("#kiky-sum").html(kiky_sum.toFixed(2) + "h");
+        if (data.flex_hours < -50) {
+          $("#" + user_guid + "-row").addClass("danger");
+        }
+        if (data.flex_hours > 100) {
+          $("#" + user_guid + "-row").addClass("warning");
+        }
+      }
+      })
+      .fail(function(data, status) {
+        if (status == "error") {
+          $("#" + user_guid + "-saldo").html("err");
+          $("#" + user_guid + "-kiky").html("err");
+        }
+      });
   });
 });
 </script>
@@ -25,19 +47,26 @@ $(function () {
   <thead>
     <tr>
       <th>Name</th>
-      <th>Saldo</th>
-      <th>KIKY</th>
+      <th class="number-column">Saldo</th>
+      <th class="number-column">KIKY</th>
     </tr>
   </thead>
   <tbody>
     {% for person in people %}
-    <tr class="flex-row" data-guid="{{ person.guid }}">
+    <tr id="{{ person.guid }}-row" class="flex-row" data-guid="{{ person.guid }}">
       <td>{{ person.full_name }}</td>
-      <td id="{{ person.guid }}-saldo"></td>
-      <td id="{{ person.guid }}-kiky"></td>
+      <td class="number-column" id="{{ person.guid }}-saldo"></td>
+      <td class="number-column" id="{{ person.guid }}-kiky"></td>
     </tr>
     {% endfor %}
   </tbody>
+  <tfoot>
+    <tr>
+      <td></td>
+      <td class="number-column" id="saldo-sum"></td>
+      <td class="number-column" id="kiky-sum"></td>
+    </tr>
+  </tfoot>
 </table>
 
 {% endblock %}
