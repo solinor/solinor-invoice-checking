@@ -1,3 +1,5 @@
+import datetime
+
 from invoices.aws_utils import AWS_URLS
 from invoices.models import AmazonInvoiceRow
 
@@ -113,7 +115,7 @@ def calculate_stats_for_fixed_rows(fixed_invoice_rows):
 def get_aws_entries(aws_accounts, month_start_date, month_end_date):
     aws_entries = {}
     for aws_account in aws_accounts:
-        rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date=month_end_date).filter(record_type="AccountTotal")
+        rows = AmazonInvoiceRow.objects.filter(linked_account=aws_account).filter(billing_period_start__date=month_start_date).filter(billing_period_end__date__lte=month_end_date + datetime.timedelta(days=1)).filter(record_type="AccountTotal")
         aws_entries[aws_account] = rows
     return aws_entries
 
