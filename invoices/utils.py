@@ -221,7 +221,7 @@ class HourEntryUpdate(object):
         for date in dates:
             if date not in per_date_data:
                 logger.info("No entries for %s - delete all existing entries.", date)
-                # TODO
+                delete_days.append(date)
                 continue
             sha256 = per_date_data[date]["sha256"].hexdigest()
             if checksums.get(date) != sha256:
