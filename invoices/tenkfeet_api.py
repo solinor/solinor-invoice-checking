@@ -174,13 +174,15 @@ class TenkFeetApi(object):
         next_page = "/api/v1/projects?per_page=250&page=1&with_archived=true"
         return self.PROJECTS_SCHEMA.validate(self.fetch_endpoint(next_page))
 
-    def fetch_hour_entries(self, start_date, end_date):
+    def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
         self.logger.info("Fetching hour entries: %s - %s", start_date, end_date)
         now = timezone.now()
         url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"), self.apikey)
         tenkfeet_data = requests.get(url).json()["time_entries"]
         self.logger.info("Fetched %s hour entries", len(tenkfeet_data))
-        return self.HOUR_ENTRIES_SCHEMA.validate(tenkfeet_data)
+        if validate_schema:
+            return self.HOUR_ENTRIES_SCHEMA.validate(tenkfeet_data)
+        return tenkfeet_data
 
     def fetch_users(self):
         self.logger.info("Fetching users")
