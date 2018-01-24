@@ -388,6 +388,11 @@ class SlackNotificationBundle(models.Model):
         ordering = ("-sent_at", "notification_type")
 
 
+class HourEntryChecksum(models.Model):
+    date = models.DateField(primary_key=True)
+    sha256 = models.CharField(max_length=64)
+
+
 @reversion.register()
 class SlackChat(models.Model):
     chat_id = models.CharField(max_length=50, primary_key=True, editable=False)
