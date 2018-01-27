@@ -1,0 +1,10 @@
+<div class="dropdown top-bar-dropdown">
+  <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Hours <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+    <li><a href="{% url "get_invoice_pdf" invoice.invoice_id "hours" %}">PDF</a></li>
+    <li><a href="{% url "get_invoice_xls" invoice.invoice_id "hours" %}">XLS</a></li>
+  </ul>
+</div>

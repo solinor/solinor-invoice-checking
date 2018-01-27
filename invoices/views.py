@@ -364,9 +364,16 @@ def frontpage(request):
 def invoice_hours(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
     entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0).select_related("user_m")
+
+    previous_invoices = []
+    if invoice.project_m:
+        previous_invoices = Invoice.objects.filter(project_m=invoice.project_m)
+
     context = {
         "invoice": invoice,
         "entries": entries,
+        "previous_invoices": previous_invoices,
+        "recent_invoice": abs((datetime.date.today() - datetime.date(invoice.year, invoice.month, 1)).days) < 60,
     }
     return render(request, "invoice_hours.html", context)
 

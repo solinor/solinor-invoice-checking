@@ -14,44 +14,12 @@
     <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
     <div class="row top-buttons-row">
       <div class="col-md-12">
-        {% if previous_invoices %}
-        <div class="dropdown top-bar-dropdown">
-          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Open another invoice
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-            {% for previous_invoice in previous_invoices %}
-            <li><a href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
+        {% include "snippets/previous_invoices.html" %}
         <a class="btn btn-info" href="{% url "invoice_charts" invoice.invoice_id %}" role="button">Charts</a>
-        <div class="dropdown top-bar-dropdown">
-          <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Hours <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-            <li><a href="{% url "get_invoice_pdf" invoice.invoice_id "hours" %}">PDF</a></li>
-            <li><a href="{% url "get_invoice_xls" invoice.invoice_id "hours" %}">XLS</a></li>
-          </ul>
-        </div>
+        {% include "snippets/download_hours.html" %}
         <a class="btn btn-info" href="{% url "invoice_hours" invoice.invoice_id %}" role="button">View hours</a>
-        {% if invoice.project_m %}
-        <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/viewproject?id={{ invoice.project_m.project_id }}" role="button">View project in 10000ft</a>
-        <a class="btn btn-info" rel="noopener" href="https://app.10000ft.com/editproject?id={{ invoice.project_m.project_id }}" role="button">Edit project in 10000ft</a>
-        {% endif %}
-        {% if recent_invoice %}
-        <form method="post" action="{% url "queue_update" %}" class="form-inline">
-          {% csrf_token %}
-          <input type="hidden" name="back" value="{{ request.get_full_path }}">
-          <input type="hidden" name="start_date" value="{{ invoice.month_start_date }}">
-          <input type="hidden" name="end_date" value="{{ invoice.month_end_date }}">
-          <button role="submit" class="btn btn-info">Update data from 10000ft</button>
-        </form>
-        {% endif %}
+        {% include "snippets/10000ft_project_links.html" %}
+        {% include "snippets/update_data_button.html" %}
       </div>
     </div>
     <div class="row">

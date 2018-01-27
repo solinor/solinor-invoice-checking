@@ -14,6 +14,14 @@
     </ol>
 
     <h2>{{ invoice.full_name }}: {{ invoice.date }}</h2>
+    <div class="row top-buttons-row">
+      <div class="col-md-12">
+        {% include "snippets/previous_invoices.html" with previous_invoice_url="invoice_hours" %}
+        {% include "snippets/download_hours.html" %}
+        {% include "snippets/10000ft_project_links.html" %}
+        {% include "snippets/update_data_button.html" %}
+      </div>
+    </div>
 
     <table class="table table-striped table-condensed">
       <thead>
