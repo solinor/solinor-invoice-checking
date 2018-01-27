@@ -2,11 +2,7 @@
 
 Simple web service for checking and approving invoices generated from hour entries.
 
-## Contributions
-
-To contribute to this project, fork on GitHub, commit your appropriately documented changes to a separate branch and create a new pull request.
-
-This service is tightly integrated with 10000ft hour reporting service. Pull requests for making this more generic will be rejected.
+Master branch of [this repository](https://github.com/solinor/solinor-invoice-checking) is automatically deployed to Solinor's internal service.
 
 ### Code checks
 
