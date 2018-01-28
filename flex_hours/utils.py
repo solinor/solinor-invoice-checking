@@ -1,8 +1,10 @@
 import datetime
+import pickle
 
 import dateutil.rrule
 from django.conf import settings
-from django.db.models import Sum
+from django.core.cache import cache
+from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.urls import reverse
 
@@ -106,14 +108,14 @@ def find_first_process_date(events, contracts):
     return first_contract.start_date, 0
 
 
-def find_last_process_date(hour_markings_list, contracts, today):
+def find_last_process_date(data_list, contracts, today):
     """Finds the last day for calculating flex saldo
 
     Stop at the last hour marking, last contract end date. Never process future entries.
     """
     last_hour_marking_day = None
-    if hour_markings_list:
-        last_hour_marking_day = hour_markings_list[-1][0]  # datetime.date for the last hour marking
+    if data_list:
+        last_hour_marking_day = data_list[-1]["date"]  # datetime.date for the last hour marking
     last_contract = fetch_last_contract(contracts)
     last_process_day = today
     if last_hour_marking_day and last_contract:
@@ -147,6 +149,16 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
     }
 
 
+def get_holidays(today):
+    cache_key = "holidays-{:%Y-%m-%d}".format(today)
+    holidays = cache.get(cache_key)
+    if holidays:
+        return pickle.loads(holidays)
+    holidays = {k.date: k.name for k in PublicHoliday.objects.filter(date__lte=today)}
+    cache.set(cache_key, pickle.dumps(holidays), 10)
+    return holidays
+
+
 def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
     if not flex_last_day:
         flex_last_day = datetime.date.today() - datetime.timedelta(days=1)  # The default is to exclude today to have stable flex saldo (assuming everyone marks hours daily)
@@ -161,20 +173,17 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
     # Find the first date
     start_hour_markings_from_date, cumulative_saldo = find_first_process_date(events, contracts)
 
-    holidays = {k.date: k.name for k in PublicHoliday.objects.filter(date__gte=start_hour_markings_from_date).filter(date__lte=today)}
+    holidays = get_holidays(today)
 
-    base_query = HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today)
+    data_list = list(HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).values("date").order_by("date")
+                     .annotate(incurred_working_hours=Sum("incurred_hours", filter=~Q(phase_name__icontains="overtime") & Q(leave_type="[project]") & ~Q(project="KIKY - Make Finland Great again")))
+                     .annotate(incurred_leave_hours=Sum("incurred_hours", filter=~Q(leave_type="Flex time Leave") & ~Q(leave_type="[project]") & ~Q(leave_type="Unpaid leave")))
+                     .annotate(incurred_unpaid_leave=Sum("incurred_hours", filter=Q(leave_type="Unpaid leave")))
+                     .annotate(incurred_overtime=Sum("incurred_hours", filter=Q(phase_name__icontains="overtime"))))
 
-    hour_markings_list = list(base_query.exclude(phase_name__icontains="overtime").filter(leave_type="[project]").exclude(project="KIKY - Make Finland Great again").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours"))
-    leave_markings_list = base_query.exclude(leave_type="Flex time Leave").exclude(leave_type="[project]").exclude(leave_type="Unpaid leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
-    unpaid_leaves_list = base_query.filter(leave_type="Unpaid leave").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
-    overtime_hours_list = base_query.filter(phase_name__icontains="overtime").order_by("date").values("date").annotate(incurred_hours=Sum("incurred_hours")).values_list("date", "incurred_hours")
-    hour_markings = {k[0]: float(k[1]) for k in hour_markings_list}
-    leave_markings = {k[0]: float(k[1]) for k in leave_markings_list}
-    overtime_markings = {k[0]: float(k[1]) for k in overtime_hours_list}
-    unpaid_leave_markings = {k[0]: float(k[1]) for k in unpaid_leaves_list}
+    hour_markings_data = {k["date"]: k for k in data_list}
 
-    last_process_day = find_last_process_date(hour_markings_list, contracts, flex_last_day)
+    last_process_day = find_last_process_date(data_list, contracts, flex_last_day)
     current_day = start_hour_markings_from_date
     calculation_log = []
     daily_diff = []
@@ -201,8 +210,8 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
                     "cumulative_saldo": cumulative_saldo,
                 })
         plus_hours_today = flex_hour_deduct = 0
-        if current_day in hour_markings:
-            plus_hours_today = hour_markings[current_day]
+        if current_day in hour_markings_data:
+            plus_hours_today = hour_markings_data[current_day]["incurred_working_hours"] or 0
         contract = fetch_contract(contracts, current_day)
         if not contract:
             raise FlexHourNoContractException("Hour markings for {} for {}, but no contract.".format(current_day, person))
@@ -224,28 +233,30 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
             day_entry["day_type"] = "Weekend"
 
         if contract.flex_enabled:
-            if current_day in unpaid_leave_markings:
-                unpaid_hours = unpaid_leave_markings[current_day]
-                day_entry["unpaid_leaves"] = unpaid_hours
-                day_entry["expected_hours_today"] -= unpaid_hours
-                month_entry["expected_worktime"] -= unpaid_hours
-                month_entry["diff"] += unpaid_hours
+            if current_day in hour_markings_data:
+                current_day_entry = hour_markings_data[current_day]
+                if current_day_entry["incurred_unpaid_leave"]:
+                    unpaid_hours = current_day_entry["incurred_unpaid_leave"]
+                    day_entry["unpaid_leaves"] = unpaid_hours
+                    day_entry["expected_hours_today"] -= unpaid_hours
+                    month_entry["expected_worktime"] -= unpaid_hours
+                    month_entry["diff"] += unpaid_hours
 
-            if plus_hours_today:
-                day_entry["worktime"] = plus_hours_today
-                month_entry["worktime"] += plus_hours_today
-                month_entry["diff"] += plus_hours_today
+                if plus_hours_today:
+                    day_entry["worktime"] = plus_hours_today
+                    month_entry["worktime"] += plus_hours_today
+                    month_entry["diff"] += plus_hours_today
 
-            if current_day in leave_markings and not is_weekend and not is_holiday:
-                leave_hours = leave_markings[current_day]
-                plus_hours_today += leave_hours
-                day_entry["leave"] = leave_hours
-                month_entry["leave"] += leave_hours
-                month_entry["diff"] += leave_hours
+                if current_day_entry["incurred_leave_hours"] and not is_weekend and not is_holiday:
+                    leave_hours = current_day_entry["incurred_leave_hours"]
+                    plus_hours_today += leave_hours
+                    day_entry["leave"] = leave_hours
+                    month_entry["leave"] += leave_hours
+                    month_entry["diff"] += leave_hours
 
-            if current_day in overtime_markings:
-                month_entry["overtime"] += overtime_markings[current_day]
-                day_entry["overtime"] = overtime_markings[current_day]
+                if current_day_entry["incurred_overtime"]:
+                    month_entry["overtime"] += current_day_entry["incurred_overtime"]
+                    day_entry["overtime"] = current_day_entry["incurred_overtime"]
 
         day_entry["sum"] = - flex_hour_deduct + day_entry.get("worktime", 0) + day_entry.get("leave", 0) + day_entry.get("unpaid_leaves", 0)
 
@@ -255,7 +266,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
 
         calculation_log.append(day_entry)
         if contract.flex_enabled:
-            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "{} ({}): {}h".format(current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
+            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "{:%Y-%m-%d} ({:%A}): {:2f}h".format(current_day, current_day, plus_hours_today - flex_hour_deduct)))
         current_day += datetime.timedelta(days=1)
     calculation_log.reverse()
     if month_entry.get("month"):
