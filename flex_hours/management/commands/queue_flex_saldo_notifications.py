@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = timezone.now()
-        if options.get("force") or now.isoweekday() == 3 and now.day =< 7:
+        if options.get("force") or now.isoweekday() == 3 and now.day <= 7:
             redis_client = redis.from_url(settings.REDIS)
             redis_client.publish("request-refresh", json.dumps({"type": "slack-unapproved-notification"}))
         else:
