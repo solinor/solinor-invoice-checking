@@ -15,6 +15,12 @@ class Command(BaseCommand):
             dest="end_date",
             help="Last date included in flex saldo report (YYYY-MM-DD)",
         )
+        parser.add_argument(
+            "--ignore-events",
+            dest="ignore_events",
+            action="store_true",
+            help="Ignore events",
+        )
 
     def handle(self, *args, **options):
         end_date = options.get("end_date")
@@ -24,7 +30,7 @@ class Command(BaseCommand):
         users = []
         for user in TenkfUser.objects.all():
             try:
-                flex_info = calculate_flex_saldo(user, end_date)
+                flex_info = calculate_flex_saldo(user, end_date, ignore_events=options.get("ignore_events", False))
             except FlexHourException as error:
                 print("Unable to calculate the report for {}: {}".format(user, error))
                 continue

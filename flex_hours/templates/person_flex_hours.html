@@ -108,14 +108,18 @@ function drawChart() {
   </tbody>
 </table>
 
-<h3>Contracts <small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#additional-details" aria-expanded="false">Toggle details</button>
+
+<div id="additional-details" class="collapse">
+
+<h3>Contracts {% if request.user.is_staff %}<small><a href="{% url "admin:flex_hours_workcontract_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small>{% endif %}</h3>
 <ul>
   {% for contract in contracts %}
   <li>{{ contract.start_date }} - {{ contract.end_date }} - {% if contract.flex_enabled %}Flex time in use.{% else %}Flex time not in use.{% endif %}{% if contract.worktime_percent %} Working with {{ contract.worktime_percent }}% contract.{%endif %} {% if request.user.is_staff %}<a href="{% url "admin:flex_hours_workcontract_change" contract.id %}"><span class="glyphicon glyphicon-pencil"></span></a>{% endif %}</li>
   {% endfor %}
 </ul>
 
-<h3>Flex time adjustments <small><a href="{% url "admin:flex_hours_flextimecorrection_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small></h3>
+<h3>Flex time adjustments {% if request.user.is_staff %}<small><a href="{% url "admin:flex_hours_flextimecorrection_add" %}"><span class="glyphicon glyphicon-plus"></span></a></small>{% endif %}</h3>
 {% if flex_time_events %}
 <ul>
   {% for event in flex_time_events %}
@@ -126,8 +130,8 @@ function drawChart() {
 <p>You don't have any recorded flex time adjustments, such as converting flex time to money (or vice versa).</p>
 {% endif %}
 
-<h3>Calculations log</h3>
 
+<h3>Calculations log</h3>
 <table class="table table-condensed">
   <thead>
     <tr>
@@ -176,4 +180,5 @@ function drawChart() {
   {% endfor %}
 </tbody>
 </table>
+</div>
 {% endblock %}

@@ -160,11 +160,14 @@ def get_holidays(today):
     return holidays
 
 
-def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
+def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_events=False):
     if not flex_last_day:
         flex_last_day = datetime.date.today() - datetime.timedelta(days=1)  # The default is to exclude today to have stable flex saldo (assuming everyone marks hours daily)
     contracts = WorkContract.objects.filter(user=person)
-    events = FlexTimeCorrection.objects.filter(user=person)
+    if ignore_events:
+        events = []
+    else:
+        events = FlexTimeCorrection.objects.filter(user=person)
     today = datetime.date.today()
 
     if only_active:
