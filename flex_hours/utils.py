@@ -1,10 +1,14 @@
 import datetime
 
 import dateutil.rrule
+from django.conf import settings
 from django.db.models import Sum
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
-from invoices.models import HourEntry
+from invoices.models import HourEntry, SlackNotificationBundle, TenkfUser
+from invoices.slack import slack
 
 
 class FlexHourException(Exception):
@@ -13,6 +17,51 @@ class FlexHourException(Exception):
 
 class FlexHourNoContractException(FlexHourException):
     pass
+
+
+def send_flex_saldo_notifications(year, month):
+    end_date = datetime.date(year, month, 1) - datetime.timedelta(days=1)
+    users = []
+    previous_month = (end_date - datetime.timedelta(days=32))
+
+    for user in TenkfUser.objects.all():
+        try:
+            flex_info = calculate_flex_saldo(user, end_date, only_active=True)
+        except FlexHourException as error:
+            print("Unable to calculate the report for %s: %s" % (user, error))
+            continue
+        if not flex_info.get("active", True):
+            continue
+        saldo = flex_info["cumulative_saldo"]
+        context = {"saldo": saldo, "kiky_saldo": flex_info["kiky"]["saldo"]}
+
+        if flex_info["monthly_summary"]:
+            for month in flex_info["monthly_summary"]:
+                if month["month"].strftime("%Y-%m") == previous_month.strftime("%Y-%m"):
+                    context["last_month_diff"] = month["cumulative_saldo"] - saldo
+                    break
+        notification_text = render_to_string("notifications/flex_saldo.txt", context).strip()
+
+        if notification_text:
+            attachment = {
+                "author_name": "Solinor Finance",
+                "author_link": "https://" + settings.DOMAIN,
+                "fallback": "Flex saldo report",
+                "title": "Flex saldo report",
+                "title_link": "https://" + settings.DOMAIN + reverse("your_flex_hours"),
+                "text": notification_text,
+                "fields": [
+                    {"title": "Flex saldo at the end of last month", "value": "{:.2f}h".format(saldo), "short": False},
+                    {"title": "Change from month before", "value": "{:.2f}h".format(context["last_month_diff"]), "short": False},
+                    {"title": "KIKY saldo", "value": "{:.2f}h".format(context["kiky_saldo"]), "short": False},
+                ]
+            }
+            if user.slack_id:
+                slack.chat.post_message(user.slack_id, attachments=[attachment], as_user="finance-bot")
+                for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
+                    slack.chat.post_message(admin, text="Following message was sent to {}:".format(user.full_name), attachments=[attachment], as_user="finance-bot")
+            else:
+                print("Unable to send flex saldo notification to {} - no slack ID available.".format(user.guid))
 
 
 def fetch_contract(contracts, current_day):

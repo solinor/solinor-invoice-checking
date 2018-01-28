@@ -62,5 +62,5 @@ class Command(BaseCommand):
             slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
             message += "<%s%s|Edit in %s>" % (settings.DOMAIN, reverse("admin:index"), settings.DOMAIN)
             for user in settings.SLACK_NOTIFICATIONS_ADMIN:
-                slack.chat.post_message(channel=user, text=message)
+                slack.chat.post_message(channel=user, text=message, as_user="finance-bot")
                 print("Sent report to %s" % user)

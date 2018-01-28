@@ -1,0 +1,5 @@
+{% if diff > 10 %}
+
+Your flex saldo changed by {{ diff|floatformat }}h during the past month.{% elif diff < -10 %}
+
+Your flex saldo changed by {{ diff|floatformat }}h during the past month. Did you remember to mark in all hours?{% endif %}

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from flex_saldo.utils import send_flex_saldo_notifications
 from invoices.models import DataUpdate, SlackNotificationBundle
 from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
 from invoices.utils import HourEntryUpdate, refresh_stats
@@ -66,6 +67,13 @@ def slack_unapproved_notifications(logger):
     send_unapproved_hours_notifications(today.year, today.month)
 
 
+def slack_flex_saldo_notifications(logger):
+    if time_since_last_slack_notification("flex") < datetime.timedelta(hours=12):
+        logger.error("Skip sending flex saldo notifications - last notification sent too recently.")
+    today = datetime.date.today()
+    send_flex_saldo_notifications(today.year, today.month)
+
+
 def slack_unsubmitted_notifications(logger):
     if time_since_last_slack_notification("unsubmitted") < datetime.timedelta(hours=12):
         logger.error("Skip sending unsubmitted slack notifications - last notification sent too recently.")
@@ -90,5 +98,7 @@ class Command(BaseCommand):
                 slack_unsubmitted_notifications(logger)
             elif data["type"] == "slack-unapproved-notification":
                 slack_unapproved_notifications(logger)
+            elif data["type"] == "slack-flex-saldo-notification":
+                slack_flex_saldo_notifications(logger)
             else:
                 logger.error("Unhandled data: %s", entry)
