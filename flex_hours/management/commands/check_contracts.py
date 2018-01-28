@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 start_date_by_user[correction.user.email] = correction.date
         for correction in flex_time_corrections:
             if correction.user.email not in per_user_contracts:
-                errors.append("Flex saldo correction (%s) for user %s but no contracts defined." % (correction, correction.user.email))
+                errors.append("Flex saldo correction ({}) for user {} but no contracts defined.".format(correction, correction.user.email))
                 continue
             if correction.adjust_by is not None:
                 for contract in per_user_contracts[correction.user.email]:
@@ -35,7 +35,7 @@ class Command(BaseCommand):
                         break
                 else:
                     if correction.date < start_date_by_user[correction.user.email]:
-                        errors.append("Flex saldo adjustment (%s) for user %s but no valid contract defined." % (correction, correction.user.email))
+                        errors.append("Flex saldo adjustment ({}) for user {} but no valid contract defined.".format(correction, correction.user.email))
 
         hour_entries = HourEntry.objects.exclude(user_m=None).filter(date__gte=datetime.datetime(2017, 10, 1)).values("user_m__email", "date").order_by("user_m__email", "date").distinct()
         users_with_no_contracts = set()
@@ -43,14 +43,14 @@ class Command(BaseCommand):
             if entry["user_m__email"] in users_with_no_contracts:
                 continue
             if entry["user_m__email"] not in per_user_contracts:
-                errors.append("No contract for %s (%s)" % (entry["user_m__email"], entry["date"]))
+                errors.append("No contract for {} ({})".format(entry["user_m__email"], entry["date"]))
                 users_with_no_contracts.add(entry["user_m__email"])
                 continue
             for contract in work_contracts:
                 if contract.start_date <= entry["date"] <= contract.end_date:
                     break
             else:
-                errors.append("No contract for %s (%s)" % (entry["user_m__email"], entry["date"]))
+                errors.append("No contract for {} ({})".format(entry["user_m__email"], entry["date"]))
                 users_with_no_contracts.add(entry["user_m__email"])
 
         message = "Following errors with flex hour contracts were found:\n"
@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
         if errors:
             slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)
-            message += "<%s%s|Edit in %s>" % (settings.DOMAIN, reverse("admin:index"), settings.DOMAIN)
+            message += "<{}{}|Edit in {}>".format(settings.DOMAIN, reverse("admin:index"), settings.DOMAIN)
             for user in settings.SLACK_NOTIFICATIONS_ADMIN:
                 slack.chat.post_message(channel=user, text=message, as_user="finance-bot")
-                print("Sent report to %s" % user)
+                print("Sent report to {}".format(user))

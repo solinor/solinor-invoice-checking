@@ -113,7 +113,7 @@ def hours_browser(request):
         today = datetime.date.today()
         month_start_date = date_utils.month_start_date(today.year, today.month)
         month_end_date = date_utils.month_end_date(today.year, today.month)
-        return HttpResponseRedirect("%s?date__gte=%s&date__lte=%s" % (reverse("hours_browser"), month_start_date, month_end_date))
+        return HttpResponseRedirect("{}?date__gte={}&date__lte={}".format(reverse("hours_browser"), month_start_date, month_end_date))
     hours = HourEntry.objects.filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
@@ -143,8 +143,8 @@ def person_details(request, user_guid):
     entries = entries.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
 
     calendar_charts = []
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]
-    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "%s€" % entry["money"]) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
+    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{}€".format(entry["money"])) for entry in entries]
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
@@ -262,9 +262,9 @@ def queue_slack_notification(request):
         notification_type = request.POST.get("type")
         if not notification_type:
             return HttpResponseBadRequest()
-        REDIS.publish("request-refresh", json.dumps({"type": "slack-%s-notification" % notification_type}))
+        REDIS.publish("request-refresh", json.dumps({"type": "slack-{}-notification".format(notification_type)}))
 
-        messages.add_message(request, messages.INFO, "Slack notifications for %s queued." % notification_type)
+        messages.add_message(request, messages.INFO, "Slack notifications for {} queued.".format(notification_type))
         return HttpResponseRedirect(return_url)
 
     notification_history = SlackNotificationBundle.objects.all()
@@ -320,7 +320,7 @@ def get_invoice_xls(request, invoice_id, xls_type):
         return HttpResponseBadRequest("Invalid XLS type")
 
     response = HttpResponse(xls, content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = u"attachment; filename='Hours for %s.xlsx'" % title
+    response["Content-Disposition"] = "attachment; filename='Hours for {}.xlsx'".format(title)
     return response
 
 
@@ -332,7 +332,7 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
         return HttpResponseBadRequest("Invalid PDF type")
 
     response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = u"attachment; filename='Hours for %s.pdf'" % title
+    response["Content-Disposition"] = "attachment; filename='Hours for {}.pdf'".format(title)
     return response
 
 
@@ -345,7 +345,7 @@ def frontpage(request):
     RequestConfig(request, paginate={
         "per_page": 100
     }).configure(table)
-    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="%s %s" % (request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
+    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
     try:
         last_update_finished_at = REDIS.get("last-data-update").decode()
     except TypeError:
@@ -429,22 +429,22 @@ def hours_charts(request):
     treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Gross income per person"))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
-    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "%s€" % entry["money"]) for entry in entries if entry["money"] > 0]
+    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
 
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
+    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg (billable hours)", json.dumps(monthly_avg_billing)))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    money_per_month_data = [["Date", "Gross income (billing)"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
+    money_per_month_data = [["Date", "Gross income (billing)"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Gross income (billing) per month", json.dumps(money_per_month_data)))
     entries = HourEntry.objects.filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
+    hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
 
@@ -456,11 +456,11 @@ def users_charts(request):
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type__in=["Annual holiday", "Flex time Leave", "Other paid leave", "Parental leave", "Unpaid leave", "Vuosiloma"]).order_by("date").values("date").annotate(hours=Count("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("annual_holiday_calendar", "People enjoying holidays per day", "People", hours_calendar_data))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type="Sick leave").order_by("date").values("date").annotate(hours=Count("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("sick_leaves_calendar", "People on sick leave per day", "People", hours_calendar_data))
 
     return render(request, "people_charts.html", {"calendar_charts": calendar_charts, "line_charts": linecharts})
@@ -501,19 +501,19 @@ def project_charts(request, project_id):
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
     entries = project.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "%sh" % entry["hours"]) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
     entries = project.hourentry_set.filter(date__gte=year_ago).filter(calculated_is_billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
-    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "%s€" % entry["money"]) for entry in entries if entry["money"] > 0]
+    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
     entries = HourEntry.objects.filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
+    monthly_avg_billing = [["Date", "Bill rate avg"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
-    money_per_month_data = [["Date", "Gross income"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
+    money_per_month_data = [["Date", "Gross income"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Gross income per month", json.dumps(money_per_month_data)))
     entries = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
-    hours_per_month_data = [["Date", "Incurred hours"]] + [["%s-%s" % (entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
+    hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
     return render(request, "project_charts.html", {"calendar_charts": calendar_charts, "project": project, "line_charts": linecharts})

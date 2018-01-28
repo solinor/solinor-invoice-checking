@@ -22,7 +22,7 @@ def create_slack_mpim(members_list):
             logger.info("Unable to create a new chat for %s - not enough members", members_list)
             return
         logger.info("Trying to create a new Slack group chat with %s.", members_list)
-        slack_chat_details = slack.mpim.open(u",".join(members_list))
+        slack_chat_details = slack.mpim.open(",".join(members_list))
         chat_id = slack_chat_details.body["group"]["id"]
         slack_chat = SlackChat(chat_id=chat_id)
         slack_chat.save()
@@ -38,13 +38,13 @@ def create_slack_mpim(members_list):
 def send_unsubmitted_hours_notifications():
     today = datetime.date.today()
     for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
-        message = """<https://solinor-finance.herokuapp.com%s|You> have *unsubmitted hours*: %s hour markings with total of %s hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""" % (reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
+        message = """<https://finance.solinor.com{}|You> have *unsubmitted hours*: {} hour markings with total of {} hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""".format(reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).order_by("date")
         for unsubmitted_hour in unsubmitted_hours:
-            project_name_field = "%s - %s" % (unsubmitted_hour.client, unsubmitted_hour.project)
+            project_name_field = "{} - {}".format(unsubmitted_hour.client, unsubmitted_hour.project)
             if unsubmitted_hour.project_m:
-                project_name_field = "<https://solinor-finance.herokuapp.com%s|%s>" % (reverse("project", args=(unsubmitted_hour.project_m.guid,)), project_name_field)
-            message += "\n- %s - %s - %s - %s - %sh - %s" % (unsubmitted_hour.date, project_name_field, unsubmitted_hour.category, unsubmitted_hour.phase_name, unsubmitted_hour.incurred_hours, unsubmitted_hour.notes)
+                project_name_field = "<https://finance.solinor.com{}|{}>".format(reverse("project", args=(unsubmitted_hour.project_m.guid,)), project_name_field)
+            message += "\n- {} - {} - {} - {} - {}h - {}".format(unsubmitted_hour.date, project_name_field, unsubmitted_hour.category, unsubmitted_hour.phase_name, unsubmitted_hour.incurred_hours, unsubmitted_hour.notes)
         if not user.slack_id:
             logger.warning("No slack_id for %s", user.email)
             for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
@@ -61,7 +61,7 @@ def send_unsubmitted_hours_notifications():
 
 def send_unapproved_hours_notifications(year, month):
     for project in Project.objects.filter(hourentry__approved=False, hourentry__date__year=year, hourentry__date__month=month).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
-        message = """Your project *%s - %s* has unapproved hours: %s hour markings with total of %s hours, which equals to %s euros. Go to <https://app.10000ft.com/viewproject?id=%s|10000ft> to approve these hours. See detailed info in <https://solinor-finance.herokuapp.com%s|Solinor Finance service>.""" % (project.client, project.name, project.entries_count, project.sum_of_hours, project.sum_of_money, project.project_id, reverse("project", args=(project.guid,)))
+        message = """Your project *{} - {}* has unapproved hours: {} hour markings with total of {} hours, which equals to {} euros. Go to <https://app.10000ft.com/viewproject?id={}|10000ft> to approve these hours. See detailed info in <https://finance.solinor.com{}|Solinor Finance service>.""".format(project.client, project.name, project.entries_count, project.sum_of_hours, project.sum_of_money, project.project_id, reverse("project", args=(project.guid,)))
 
         admin_users = project.admin_users.all()
         admin_users_count = admin_users.count()
@@ -77,7 +77,7 @@ def send_unapproved_hours_notifications(year, month):
             if not chat_id:
                 logger.warning("No chat_id for %s - %s", project, members_list)
                 continue
-            logger.info(u"%s %s", message, chat_id)
+            logger.info("%s %s", message, chat_id)
             slack.chat.post_message(chat_id, text=message, as_user="finance-bot")
         else:
             for member in members_list:
@@ -112,6 +112,6 @@ def refresh_slack_channels():
 
 
 def send_slack_notification(project):
-    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id=%s|%s - %s> (created at %s)""" % (project.project_id, project.client, project.name, project.created_at)
+    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id={}|{} - {}> (created at {})""".format(project.project_id, project.client, project.name, project.created_at)
     for channel in SlackChannel.objects.filter(new_project_notification=True):
         slack.chat.post_message(channel.channel_id, message)

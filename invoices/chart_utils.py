@@ -34,11 +34,11 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours per p
 
     per_user_data = {}
     for entry in entries_for_past_month:
-        k = "%s - %s" % (entry["project"], entry["user_name"])
+        k = "{} - {}".format(entry["project"], entry["user_name"])
         per_user_data[k] = {"1m": entry}
 
     for entry in entries_before_past_month:
-        k = "%s - %s" % (entry["project"], entry["user_name"])
+        k = "{} - {}".format(entry["project"], entry["user_name"])
         if k in per_user_data:
             per_user_data[k]["2m"] = entry
 
@@ -47,9 +47,9 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours per p
             diff = entry["1m"]["hours"] - entry["2m"]["hours"]
         else:
             diff = 0
-        data.append((u"%s - %s" % (entry["1m"]["project"], entry["1m"]["user_name"]), entry["1m"]["user_name"], entry["1m"]["hours"], diff))
+        data.append(("{} - {}".format(entry["1m"]["project"], entry["1m"]["user_name"]), entry["1m"]["user_name"], entry["1m"]["hours"], diff))
 
-    return (u"hours_treemap-%s-%s" % (sum_by, title), u"%s for past 30 days" % title, data)
+    return ("hours_treemap-{}-{}".format(sum_by, title), "{} for past 30 days".format(title), data)
 
 
 def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours per project"):
@@ -68,11 +68,11 @@ def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours pe
 
     per_project_data = {}
     for entry in entries_for_past_month:
-        k = "%s - %s" % (entry["client"], entry["project"])
+        k = "{} - {}".format(entry["client"], entry["project"])
         per_project_data[k] = {"1m": entry}
 
     for entry in entries_before_past_month:
-        k = "%s - %s" % (entry["client"], entry["project"])
+        k = "{} - {}".format(entry["client"], entry["project"])
         if k in per_project_data:
             per_project_data[k]["2m"] = entry
 
@@ -85,11 +85,11 @@ def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours pe
 
     per_user_data = {}
     for entry in per_person_entries_for_past_month:
-        k = "%s - %s - %s" % (entry["user_name"], entry["client"], entry["project"])
+        k = "{} - {} - {}".format(entry["user_name"], entry["client"], entry["project"])
         per_user_data[k] = {"1m": entry}
 
     for entry in per_person_entries_before_past_month:
-        k = "%s - %s - %s" % (entry["user_name"], entry["client"], entry["project"])
+        k = "{} - {} - {}".format(entry["user_name"], entry["client"], entry["project"])
         if k in per_user_data:
             per_user_data[k]["2m"] = entry
 
@@ -98,6 +98,6 @@ def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours pe
             diff = entry["1m"]["hours"] - entry["2m"]["hours"]
         else:
             diff = 0
-        data.append((u"%s - %s" % (entry["1m"]["user_name"], entry["1m"]["project"]), entry["1m"]["project"], entry["1m"]["hours"], diff))
+        data.append(("{} - {}".format(entry["1m"]["user_name"], entry["1m"]["project"]), entry["1m"]["project"], entry["1m"]["hours"], diff))
 
-    return (u"projects_treemap-%s-%s" % (sum_by, title), u"%s for past 30 days" % title, data)
+    return ("projects_treemap-{}-{}".format(sum_by, title), "{} for past 30 days".format(title), data)

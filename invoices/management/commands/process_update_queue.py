@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from flex_saldo.utils import send_flex_saldo_notifications
+from flex_hours.utils import send_flex_saldo_notifications
 from invoices.models import DataUpdate, SlackNotificationBundle
 from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
 from invoices.utils import HourEntryUpdate, refresh_stats

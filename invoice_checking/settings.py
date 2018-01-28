@@ -61,7 +61,7 @@ SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "Tru
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SESSION_COOKIE_SECURE
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#csrf-cookie-secure
 
-SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", u"").split(u",")))
+SLACK_NOTIFICATIONS_ADMIN = list(filter(len, os.environ.get("SLACK_NOTIFICATIONS_ADMIN", "").split(",")))
 DOMAIN = os.environ.get("DOMAIN")
 REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
 REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
@@ -234,8 +234,8 @@ SHORT_DATE_FORMAT = "Y-m-d"
 DATETIME_FORMAT = "Y-m-d H:i"
 SHORT_DATETIME_FORMAT = "Y-m-d H:i"
 
-handler404 = "invoices.views.handler404"
-handler500 = "invoices.views.handler500"
+handler404 = "invoices.views.handler404"  # pylint:ignore=invalid-name
+handler500 = "invoices.views.handler500"  # pylint:ignore=invalid-name
 
 # Update database configuration with $DATABASE_URL.
 DATABASES["default"].update(dj_database_url.config(conn_max_age=500))

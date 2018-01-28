@@ -67,7 +67,7 @@ class HourEntry(models.Model):
         self.calculated_is_overtime = "overtime" in self.phase_name.lower()
 
     def __str__(self):
-        return u"%s - %s - %s - %s - %sh - %se" % (self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
+        return "{} - {} - {} - {} - {}h - {}e".format(self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)
 
     class Meta:
         ordering = ("date", "user_id")
@@ -126,14 +126,14 @@ class Invoice(models.Model):
 
     @property
     def date(self):
-        return "%s-%02d" % (self.year, self.month)
+        return "{}-{:02d}".format(self.year, self.month)
 
     @property
     def full_name(self):
-        return "%s - %s" % (self.client, self.project)
+        return "{} - {}".format(self.client, self.project)
 
     def __str__(self):
-        return u"%s - %s" % (self.full_name, self.date)
+        return "{} - {}".format(self.full_name, self.date)
 
     def update_state(self, comment):
         self.invoice_state = "C"
@@ -220,10 +220,10 @@ class TenkfUser(models.Model):
 
     @property
     def full_name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return "{} {}".format(self.first_name, self.last_name)
 
     def __str__(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return "{} {}".format(self.first_name, self.last_name)
 
     class Meta:
         ordering = ("first_name", "last_name")
@@ -249,7 +249,7 @@ class Project(models.Model):
     admin_users = models.ManyToManyField("TenkfUser", blank=True)
 
     def __str__(self):
-        return u"%s - %s" % (self.client, self.name)
+        return "{} - {}".format(self.client, self.name)
 
     class Meta:
         ordering = ("client", "name")
@@ -260,7 +260,7 @@ class Phase(models.Model):
     phase_name = models.CharField(max_length=100)
 
     def __str__(self):
-        return u"Phase: %s - %s" % (self.project, self.phase_name)
+        return "Phase: {} - {}".format(self.project, self.phase_name)
 
 
 @reversion.register()
@@ -288,7 +288,7 @@ class Comments(models.Model):
         get_latest_by = "timestamp"
 
     def __str__(self):
-        return u"%s - %s - %s" % (self.invoice, self.timestamp, self.user)
+        return "{} - {} - {}".format(self.invoice, self.timestamp, self.user)
 
 
 @reversion.register()
@@ -303,7 +303,7 @@ class InvoiceFixedEntry(models.Model):
         verbose_name = "Fixed invoice entry"
 
     def __str__(self):
-        return u"%s - %s - %s" % (self.invoice, self.description, self.price)
+        return "{} - {} - {}".format(self.invoice, self.description, self.price)
 
 
 @reversion.register()
@@ -318,7 +318,7 @@ class ProjectFixedEntry(models.Model):
         verbose_name = "Fixed project entry"
 
     def __str__(self):
-        return u"%s - %s - %s" % (self.project, self.description, self.price)
+        return "{} - {} - {}".format(self.project, self.description, self.price)
 
 
 @reversion.register()
@@ -360,7 +360,7 @@ class AmazonInvoiceRow(models.Model):
     invoice_month = models.DateField(null=True)
 
     def __str__(self):
-        return u"%s - %s - %s - %s" % (self.linked_account.name, self.product_code, self.usage_type, self.total_cost)
+        return "{} - {} - {} - {}".format(self.linked_account.name, self.product_code, self.usage_type, self.total_cost)
 
 
 class DataUpdate(models.Model):
@@ -373,7 +373,7 @@ class DataUpdate(models.Model):
         get_latest_by = "created_at"
 
     def __str__(self):
-        return u"%s - %s - %s - aborted: %s" % (self.created_at, self.started_at, self.finished_at, self.aborted)
+        return "{} - {} - {} - aborted: {}".format(self.created_at, self.started_at, self.finished_at, self.aborted)
 
 
 class SlackNotificationBundle(models.Model):
@@ -381,7 +381,7 @@ class SlackNotificationBundle(models.Model):
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return "%s - %s" % (self.sent_at, self.notification_type)
+        return "{} - {}".format(self.sent_at, self.notification_type)
 
     class Meta:
         get_latest_by = "sent_at"

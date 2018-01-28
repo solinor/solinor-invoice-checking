@@ -12,10 +12,7 @@ def validate_percent_field(value):
     if value is None:
         return
     if 0 > value > 100:
-        raise ValidationError(
-            _('%(value)s is not between 0-100'),
-            params={'value': value},
-        )
+        raise ValidationError("{} is not between 0-100".format(value))
 
 
 @reversion.register()
@@ -34,7 +31,7 @@ class WorkContract(models.Model):
         return float(self.worktime_percent / 100) * 7.5
 
     def __str__(self):
-        return u"%s - %s - %s - %s - %s%%" % (self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
+        return "{} - {} - {} - {} - {}%".format(self.user, self.start_date, self.end_date, self.flex_enabled, self.worktime_percent)
 
 
 @reversion.register()
@@ -45,13 +42,13 @@ class FlexTimeCorrection(models.Model):
     set_to = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
-        message = "%s - %s: " % (self.user, self.date)
+        message = "{} - {}: ".format(self.user, self.date)
         if self.adjust_by:
-            message += "adjust by %sh" % self.adjust_by
+            message += "adjust by {}h".format(self.adjust_by)
         if self.set_to is not None:
             if self.adjust_by:
                 message += " and"
-            message += "set to %sh" % self.set_to
+            message += "set to {}h".format(self.set_to)
         return message
 
     class Meta:
@@ -64,7 +61,7 @@ class PublicHoliday(models.Model):
     date = models.DateField()
 
     def __str__(self):
-        return u"%s - %s" % (self.date, self.name)
+        return "{} - {}".format(self.date, self.name)
 
     class Meta:
         ordering = ("date", )

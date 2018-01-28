@@ -149,7 +149,7 @@ def get_projects():
 def get_invoices():
     invoices_data = {}
     for invoice in Invoice.objects.all():
-        invoice_key = u"%s-%s %s - %s" % (invoice.year, invoice.month, invoice.client, invoice.project)
+        invoice_key = "{}-{} {} - {}".format(invoice.year, invoice.month, invoice.client, invoice.project)
         invoices_data[invoice_key] = invoice
     return invoices_data
 
@@ -180,7 +180,7 @@ class HourEntryUpdate(object):
         return self.projects_data.get(project_id, None)
 
     def match_invoice(self, data):
-        invoice_key = u"%s-%s %s - %s" % (data["date"].year, data["date"].month, data["client"], data["project"])
+        invoice_key = "{}-{} {} - {}".format(data["date"].year, data["date"].month, data["client"], data["project"])
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
             logger.debug("Invoice already exists: %s", invoice_key)

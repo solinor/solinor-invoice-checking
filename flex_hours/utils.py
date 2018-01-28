@@ -21,14 +21,13 @@ class FlexHourNoContractException(FlexHourException):
 
 def send_flex_saldo_notifications(year, month):
     end_date = datetime.date(year, month, 1) - datetime.timedelta(days=1)
-    users = []
     previous_month = (end_date - datetime.timedelta(days=32))
 
     for user in TenkfUser.objects.all():
         try:
             flex_info = calculate_flex_saldo(user, end_date, only_active=True)
         except FlexHourException as error:
-            print("Unable to calculate the report for %s: %s" % (user, error))
+            print("Unable to calculate the report for {}: {}".format(user, error))
             continue
         if not flex_info.get("active", True):
             continue
@@ -36,9 +35,9 @@ def send_flex_saldo_notifications(year, month):
         context = {"saldo": saldo, "kiky_saldo": flex_info["kiky"]["saldo"]}
 
         if flex_info["monthly_summary"]:
-            for month in flex_info["monthly_summary"]:
-                if month["month"].strftime("%Y-%m") == previous_month.strftime("%Y-%m"):
-                    context["last_month_diff"] = month["cumulative_saldo"] - saldo
+            for item in flex_info["monthly_summary"]:
+                if item["month"].strftime("%Y-%m") == previous_month.strftime("%Y-%m"):
+                    context["last_month_diff"] = item["cumulative_saldo"] - saldo
                     break
         notification_text = render_to_string("notifications/flex_saldo.txt", context).strip()
 
@@ -206,7 +205,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
             plus_hours_today = hour_markings[current_day]
         contract = fetch_contract(contracts, current_day)
         if not contract:
-            raise FlexHourNoContractException("Hour markings for %s for %s, but no contract." % (current_day, person))
+            raise FlexHourNoContractException("Hour markings for {} for {}, but no contract.".format(current_day, person))
 
         day_entry["flex_enabled"] = contract.flex_enabled
         day_entry["worktime_percent"] = contract.worktime_percent
@@ -214,7 +213,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
         if 0 < current_day.isoweekday() < 6:
             if current_day in holidays:
                 is_holiday = True
-                day_entry["day_type"] = "Public holiday: %s" % holidays[current_day]
+                day_entry["day_type"] = "Public holiday: {}".format(holidays[current_day])
             elif contract.flex_enabled:
                     flex_hour_deduct = contract.workday_length
                     day_entry["expected_hours_today"] = flex_hour_deduct
@@ -256,7 +255,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
 
         calculation_log.append(day_entry)
         if contract.flex_enabled:
-            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "%s (%s): %sh" % (current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
+            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "{} ({}): {}h".format(current_day.strftime("%Y-%m-%d"), current_day.strftime("%A"), plus_hours_today - flex_hour_deduct)))
         current_day += datetime.timedelta(days=1)
     calculation_log.reverse()
     if month_entry.get("month"):

@@ -26,9 +26,9 @@ class Command(BaseCommand):
             try:
                 flex_info = calculate_flex_saldo(user, end_date)
             except FlexHourException as error:
-                print("Unable to calculate the report for %s: %s" % (user, error))
+                print("Unable to calculate the report for {}: {}".format(user, error))
                 continue
             users.append((flex_info["person"].email, flex_info["cumulative_saldo"]))
         users = sorted(users, key=lambda k: k[1])
         for email, flex_hours in users:
-            print("%s - %sh" % (email, flex_hours))
+            print("{} - {}h".format(email, flex_hours))

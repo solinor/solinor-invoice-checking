@@ -6,15 +6,6 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 
 
-"""
-from invoices.tenkfeet_api import TenkFeetApi
-from django.conf import settings
-import datetime
-a = TenkFeetApi(settings.TENKFEET_AUTH)
-a.fetch_users()
-"""
-
-
 class TenkFeetApi(object):
     NONETYPE = type(None)
 
@@ -162,7 +153,7 @@ class TenkFeetApi(object):
         entries = []
         while next_page:
             self.logger.debug("Processing page %s", next_page)
-            url = "https://api.10000ft.com%s&auth=%s" % (next_page, self.apikey)
+            url = "https://api.10000ft.com{}&auth={}".format(next_page, self.apikey)
             tenkfeet_data = requests.get(url).json()
             next_page = tenkfeet_data["paging"]["next"]
             entries.extend(tenkfeet_data["data"])
@@ -177,7 +168,7 @@ class TenkFeetApi(object):
     def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
         self.logger.info("Fetching hour entries: %s - %s", start_date, end_date)
         now = timezone.now()
-        url = "https://api.10000ft.com/api/v1/reports.json?startdate=%s&enddate=%s&today=%s&auth=%s" % (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"), self.apikey)
+        url = "https://api.10000ft.com/api/v1/reports.json?startdate={}&enddate={}&today={}&auth={}".format(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"), self.apikey)
         tenkfeet_data = requests.get(url).json()["time_entries"]
         self.logger.info("Fetched %s hour entries", len(tenkfeet_data))
         if validate_schema:
