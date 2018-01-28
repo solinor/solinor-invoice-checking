@@ -47,15 +47,15 @@ def send_unsubmitted_hours_notifications():
             message += "\n- %s - %s - %s - %s - %sh - %s" % (unsubmitted_hour.date, project_name_field, unsubmitted_hour.category, unsubmitted_hour.phase_name, unsubmitted_hour.incurred_hours, unsubmitted_hour.notes)
         if not user.slack_id:
             logger.warning("No slack_id for %s", user.email)
+            for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
+                slack.chat.post_message(admin, text="Unsubmitted hours by {}, but no slack ID available.".format(user.email), as_user="finance-bot")
             continue
 
-        members_list = set([user.slack_id] + settings.SLACK_NOTIFICATIONS_ADMIN)
-        chat_id = create_slack_mpim(members_list)
-        if not chat_id:
-            logger.warning("No chat_id for %s - %s", user.email, members_list)
-            continue
-        logger.info("%s - %s", chat_id, message)
-        slack.chat.post_message(chat_id, message)
+        slack.chat.post_message(user.slack_id, text=message, as_user="finance-bot")
+
+        for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
+            if admin != user.slack_id:
+                slack.chat.post_message(admin, text=message, as_user="finance-bot")
     SlackNotificationBundle(notification_type="unsubmitted").save()
 
 
@@ -67,15 +67,26 @@ def send_unapproved_hours_notifications(year, month):
         admin_users_count = admin_users.count()
         if admin_users_count == 0:
             logger.warning("Unapproved hours in %s, but no admin users specified.", project.project_id)
+            for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
+                slack.chat.post_message(admin, text="Unapproved hours in {}, but no admin users specified.".format(project.project_id), as_user="finance-bot")
             continue
 
-        members_list = set([member.slack_id for member in project.admin_users.all() if member.slack_id] + settings.SLACK_NOTIFICATIONS_ADMIN)
-        chat_id = create_slack_mpim(members_list)
-        if not chat_id:
-            logger.warning("No chat_id for %s - %s", project, members_list)
-            continue
-        logger.info(u"%s %s", message, chat_id)
-        slack.chat.post_message(chat_id, message)
+        members_list = set([member.slack_id for member in project.admin_users.all() if member.slack_id])
+        if len(members_list) > 1:
+            chat_id = create_slack_mpim(members_list)
+            if not chat_id:
+                logger.warning("No chat_id for %s - %s", project, members_list)
+                continue
+            logger.info(u"%s %s", message, chat_id)
+            slack.chat.post_message(chat_id, text=message, as_user="finance-bot")
+        else:
+            for member in members_list:
+                slack.chat.post_message(member, text=message, as_user="finance-bot")
+
+        for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
+            if admin not in members_list:
+                slack.chat.post_message(admin, text=message, as_user="finance-bot")
+
     SlackNotificationBundle(notification_type="unapproved").save()
 
 
