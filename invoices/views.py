@@ -143,8 +143,8 @@ def person_details(request, user_guid):
     entries = entries.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money"))
 
     calendar_charts = []
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
-    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{}€".format(entry["money"])) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
+    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{:.2f}€".format(entry["money"])) for entry in entries]
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
@@ -429,9 +429,9 @@ def hours_charts(request):
     treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Gross income per person"))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
-    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
+    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{:.2f}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
 
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
@@ -456,11 +456,11 @@ def users_charts(request):
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type__in=["Annual holiday", "Flex time Leave", "Other paid leave", "Parental leave", "Unpaid leave", "Vuosiloma"]).order_by("date").values("date").annotate(hours=Count("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("annual_holiday_calendar", "People enjoying holidays per day", "People", hours_calendar_data))
 
     entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type="Sick leave").order_by("date").values("date").annotate(hours=Count("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("sick_leaves_calendar", "People on sick leave per day", "People", hours_calendar_data))
 
     return render(request, "people_charts.html", {"calendar_charts": calendar_charts, "line_charts": linecharts})
@@ -501,9 +501,9 @@ def project_charts(request, project_id):
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
     entries = project.hourentry_set.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
-    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{}h".format(entry["hours"])) for entry in entries]
+    hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     entries = project.hourentry_set.filter(date__gte=year_ago).filter(calculated_is_billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
-    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
+    money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{:.2f}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 

@@ -20,7 +20,7 @@ class Command(BaseCommand):
             fetch_months = [(today - datetime.timedelta(days=10))]
         for date in fetch_months:
             with tempfile.NamedTemporaryFile(mode="w+b") as data:
-                s3_client.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-{}.csv".format(date.strftime("%Y-%m")), data)
+                s3_client.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-{:%Y-%m}.csv".format(date), data)
                 data.seek(0)
                 infile = open(data.name, mode="rt")
                 import_aws_invoice(infile, date.year, date.month)

@@ -96,7 +96,7 @@ def send_unapproved_hours_notifications(year, month):
             "title_link": "https://app.10000ft.com",
             "text": message,
             "fields": [
-                {"title": "Value", "value": "{}€".format(project.sum_of_money), "short": True},
+                {"title": "Value", "value": "{:.2f}€".format(project.sum_of_money), "short": True},
                 {"title": "Number of entries", "value": "{}".format(project.entries_count), "short": True},
                 {"title": "Amount of hours", "value": "{:.2f}h".format(project.sum_of_hours), "short": True},
             ],

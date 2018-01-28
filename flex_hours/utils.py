@@ -266,7 +266,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
 
         calculation_log.append(day_entry)
         if contract.flex_enabled:
-            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "{:%Y-%m-%d} ({:%A}): {:2f}h".format(current_day, current_day, plus_hours_today - flex_hour_deduct)))
+            daily_diff.append((current_day.year, current_day.month - 1, current_day.day, plus_hours_today - flex_hour_deduct, "{:%Y-%m-%d} ({:%A}): {:.2f}h".format(current_day, current_day, plus_hours_today - flex_hour_deduct)))
         current_day += datetime.timedelta(days=1)
     calculation_log.reverse()
     if month_entry.get("month"):
