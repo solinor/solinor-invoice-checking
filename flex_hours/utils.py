@@ -1,4 +1,5 @@
 import datetime
+import json
 import pickle
 
 import dateutil.rrule
@@ -273,6 +274,14 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
         per_month_stats.append(month_entry)
     per_month_stats.reverse()
     kiky_stats = calculate_kiky_stats(person, contracts, start_hour_markings_from_date, last_process_day)
+
+    if len(per_month_stats):
+        months = [["{:%Y-%m}".format(entry["month"]), entry["cumulative_saldo"]] for entry in per_month_stats]
+        months.reverse()
+        monthly_summary_linechart_data = json.dumps([["Date", "Flex saldo (h)"]] + months)
+    else:
+        monthly_summary_linechart_data = None
+
     context = {
         "person": person,
         "contracts": contracts,
@@ -281,6 +290,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False):
         "calculation_log": calculation_log,
         "daily_diff": daily_diff,
         "monthly_summary": per_month_stats,
+        "monthly_summary_linechart": monthly_summary_linechart_data,
         "calendar_height": min(3, len(years)) * 175,
         "kiky": kiky_stats,
     }
