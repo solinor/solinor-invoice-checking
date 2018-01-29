@@ -34,7 +34,7 @@ def incoming_event(request):
                     },
                 },
             }
-            slack.chat.unfurls(unfurl_request)
+            slack.chat.unfurl(unfurl_request)
         return HttpResponse("ok")
 
 
