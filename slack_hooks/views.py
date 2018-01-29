@@ -1,6 +1,7 @@
 import json
 import logging
 
+import slacker
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -11,16 +12,30 @@ from flex_hours.utils import calculate_flex_saldo
 from invoices.models import TenkfUser
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
 
 
 @csrf_exempt
 def incoming_event(request):
     data = json.loads(request.body.decode("utf-8"))
     logger.info("Incoming slack event: {}", data)
+    if data.get("token") != settings.SLACK_VERIFICATION_TOKEN:
+        return HttpResponseForbidden("Invalid verification token")
     if data.get("type") == "url_verification":
-        if data.get("token") != settings.SLACK_VERIFICATION_TOKEN:
-            return HttpResponseForbidden("Invalid verification token")
         return HttpResponse(data.get("challenge", ""), content_type="text/plain")
+    if data.get("event"):
+        for link in data["event"]["links"]:
+            unfurl_request = {
+                "channel": data["event"].get("channel"),
+                "ts": data["event"].get("ts"),
+                "unfurls": {
+                    link["url"]: {
+                        "text": "Test event",
+                    },
+                },
+            }
+            slack.chat.unfurls(unfurl_request)
+        return HttpResponse("ok")
 
 
 @csrf_exempt
