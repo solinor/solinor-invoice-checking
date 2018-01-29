@@ -26,15 +26,11 @@ def incoming_event(request):
     if data.get("event"):
         for link in data["event"]["links"]:
             unfurl_request = {
-                "channel": data["event"].get("channel"),
-                "ts": data["event"].get("ts"),
-                "unfurls": {
-                    link["url"]: {
-                        "text": "Test event",
-                    },
+                link["url"]: {
+                    "text": "Test event",
                 },
             }
-            slack.chat.unfurl(unfurl_request)
+            slack.chat.unfurl(data["event"].get("channel"), data["event"].get("ts"), unfurl_request)
         return HttpResponse("ok")
 
 
