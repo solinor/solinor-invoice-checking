@@ -22,6 +22,10 @@ class FlexHourNoContractException(FlexHourException):
     pass
 
 
+class FlexNotEnabledException(FlexHourException):
+    pass
+
+
 def send_flex_saldo_notifications(year, month):
     end_date = datetime.date(year, month, 1) - datetime.timedelta(days=1)
     previous_month = (end_date - datetime.timedelta(days=32))
