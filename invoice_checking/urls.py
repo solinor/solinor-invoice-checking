@@ -6,6 +6,7 @@ from django.views.generic.base import RedirectView
 
 import flex_hours.views
 import invoices.views
+import slack_hooks.views
 
 admin.autodiscover()
 
@@ -36,6 +37,8 @@ urlpatterns = [
 
     path("queue_update", invoices.views.queue_update, name="queue_update"),
     path("queue_slack_notification", invoices.views.queue_slack_notification, name="queue_slack_notification"),
+
+    path("incoming_slack_event", slack_hooks.views.incoming_event),
 
     url(r"^accounts/profile/$", RedirectView.as_view(pattern_name="frontpage", permanent=False)),
     url(r"^accounts/", include("googleauth.urls")),

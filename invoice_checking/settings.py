@@ -32,6 +32,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "this-is-very-unsafe")
 REDIS = os.environ.get("REDIS_URL")
 TENKFEET_AUTH = os.environ.get("TENKFEET_AUTH")
 SLACK_BOT_ACCESS_TOKEN = os.environ.get("SLACK_BOT_ACCESS_TOKEN")
+SLACK_VERIFICATION_TOKEN = os.environ.get("SLACK_VERIFICATION_TOKEN")
 # client ID from the Google Developer Console
 GOOGLEAUTH_CLIENT_ID = os.environ.get("GOOGLEAUTH_CLIENT_ID")
 # client secret from the Google Developer Console
@@ -84,6 +85,7 @@ INSTALLED_APPS = (
     "flex_hours",
     "compressor",
     "reversion",
+    "slack_hooks",
 )
 
 if DEBUG:
