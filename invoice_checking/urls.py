@@ -39,6 +39,7 @@ urlpatterns = [
     path("queue_slack_notification", invoices.views.queue_slack_notification, name="queue_slack_notification"),
 
     path("incoming_slack_event", slack_hooks.views.incoming_event),
+    path("slack_query_flex_saldo", slack_hooks.views.slack_query_flex_saldo),
 
     url(r"^accounts/profile/$", RedirectView.as_view(pattern_name="frontpage", permanent=False)),
     url(r"^accounts/", include("googleauth.urls")),
