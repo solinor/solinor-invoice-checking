@@ -9,6 +9,7 @@ class DomainRedirectMiddleware(object):  # pylint: disable=too-few-public-method
     def __call__(self, request):
         if settings.REDIRECT_OLD_DOMAIN and settings.REDIRECT_NEW_DOMAIN:
             if request.META.get("HTTP_HOST") == settings.REDIRECT_OLD_DOMAIN:
-                return HttpResponsePermanentRedirect("https://{}{}".format(settings.REDIRECT_NEW_DOMAIN, request.get_full_path()))
+                if "slack" not in request.get_full_path():
+                    return HttpResponsePermanentRedirect("https://{}{}".format(settings.REDIRECT_NEW_DOMAIN, request.get_full_path()))
 
         return self.get_response(request)
