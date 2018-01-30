@@ -108,7 +108,7 @@ class ProjectDetailsTable(tables.Table):
         return format_html("<a href='{}'>Invoice</a>, <a href='{}'>hours</a>".format(reverse("invoice", args=[value]), reverse("invoice_hours", args=[value])))
 
     def render_bill_rate_avg(self, value):
-        return "{}€/h".format(intcomma(floatformat(value, 2)))
+        return "{}€/h".format(intcomma(floatformat(value, 0)))
 
     def render_incurred_hours(self, value):
         return "{}h".format(intcomma(floatformat(value, 0)))
@@ -117,4 +117,4 @@ class ProjectDetailsTable(tables.Table):
         return "{}€".format(intcomma(floatformat(value, 0)))
 
     def render_billable_percentage(self, value):
-        return "{}%%".format(floatformat(value * 100, 0))
+        return "{}%".format(floatformat(value * 100, 0))

@@ -26,6 +26,9 @@ h2 {
 .invoices-table .incurred-billing, .invoices-table .linked-projects, .invoices-table .linked-users, .invoices-table .incurred_hours, .invoices-table .incurred_money, .invoices-table .bill_rate_avg, .invoices-table .incorrect_entries_count, .invoices-table .billable_percentage {
   text-align: right;
 }
+.invoice-table .incorrect_entries_count, .invoice-table .incurred_hours, .invoice-table .bill_rate_avg, .invoice-table .incurred_money, .invoice-table .billable_percentage {
+  text-align: right;
+}
 .projects-table .incurred_hours, .projects-table .incurred_money {
   text-align: right;
 }
