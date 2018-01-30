@@ -137,7 +137,7 @@ def send_unapproved_hours_notifications(year, month):
 
         for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
             if admin not in members_list:
-                slack.chat.post_message(admin, text="This was sent to {} in slack:".format(", ".join(project.admin_users.all())), attachments=[attachment], as_user="finance-bot")
+                slack.chat.post_message(admin, text="This was sent to {} in slack:".format(", ".join(project.admin_users.all().values_list("display_name", flat=True))), attachments=[attachment], as_user="finance-bot")
 
     SlackNotificationBundle(notification_type="unapproved").save()
 

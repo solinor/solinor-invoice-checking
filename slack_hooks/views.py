@@ -15,7 +15,7 @@ from flex_hours.utils import FlexNotEnabledException, calculate_flex_saldo
 from invoices.models import Invoice, Project, TenkfUser
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
-slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
+slack = slacker.Slacker(settings.SLACK_WORKSPACE_ACCESS_TOKEN)  # pylint:disable=invalid-name
 
 
 def get_slack_flex_response(person, ephemeral=True):
