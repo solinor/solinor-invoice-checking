@@ -52,6 +52,11 @@ def get_slack_flex_response(person, ephemeral=True):
                 "text": "View details",
                 "url": "https://{}{}".format(settings.DOMAIN, reverse("person_flex_hours", args=(person.guid,))),
             },
+            {
+                "type": "button",
+                "text": "10000ft",
+                "url": "https://app.10000ft.com",
+            },
         ],
     }
     return message, attachment
