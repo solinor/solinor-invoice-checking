@@ -248,6 +248,10 @@ class Project(models.Model):
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
     admin_users = models.ManyToManyField("TenkfUser", blank=True)
 
+    @property
+    def full_name(self):
+        return "{} {}".format(self.client, self.name)
+
     def __str__(self):
         return "{} - {}".format(self.client, self.name)
 

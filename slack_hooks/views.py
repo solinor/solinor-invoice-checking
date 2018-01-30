@@ -5,13 +5,14 @@ import urllib.parse
 
 import slacker
 from django.conf import settings
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from flex_hours.utils import FlexNotEnabledException, calculate_flex_saldo
-from invoices.models import Invoice, TenkfUser
+from invoices.models import Invoice, Project, TenkfUser
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
@@ -88,6 +89,7 @@ def incoming_event(request):
                 attachment["text"] = message
                 attachment["is_app_unfurl"] = True
                 unfurls[link["url"]] = attachment
+
             invoice_url = re.match(r"^/invoices/([a-z0-9-]+)$", split_url.path)
             if invoice_url:
                 try:
@@ -125,6 +127,66 @@ def incoming_event(request):
                             "title": "Incorrect hour entries",
                             "short": True,
                             "value": invoice.incorrect_entries_count,
+                        },
+                    ],
+                }
+
+            projects_url = re.match(r"^/projects/([a-z0-9-]+)$", split_url.path)
+            if projects_url:
+                try:
+                    project = Project.objects.get(guid=projects_url.group(1))
+                except Project.DoesNotExist:
+                    unfurls[link["url"]] = {
+                        "text": "404 - project does not exist",
+                    }
+                    continue
+                invoices = Invoice.objects.filter(project_m=project).exclude(Q(incurred_hours=0) & Q(incurred_money=0)).order_by("-year", "-month")
+                message = ""
+                if project.description:
+                    message += project.description + "\n\n"
+                total_incurred_hours = total_incurred_billing = 0
+                if len(invoices):
+                    for invoice in invoices:
+                        total_incurred_hours += invoice.incurred_hours
+                        total_incurred_billing += invoice.incurred_money
+
+                    for c, invoice in enumerate(invoices):
+                        if c > 12:
+                            message += "..."
+                            break
+                        message += "- <https://{}{}|{} - {:.2f}h - {:.2f}€ - {}>\n".format(settings.DOMAIN, reverse("invoice", args=(invoice.invoice_id,)), invoice.date, invoice.incurred_hours, invoice.incurred_money, invoice.get_invoice_state_display())
+                else:
+                    message += "No invoices."
+                unfurls[link["url"]] = {
+                    "title": "Solinor project - {}".format(project.full_name),
+                    "title_link": link["url"],
+                    "text": message,
+                    "mrkdwn_in": ["text"],
+                    "fields": [
+                        {
+                            "title": "Start date",
+                            "value": "{:%Y-%m-%d}".format(project.starts_at),
+                            "short": True,
+                        },
+                        {
+                            "title": "End date",
+                            "value": "{:%Y-%m-%d}".format(project.ends_at),
+                            "short": True,
+                        },
+                        {
+                            "title": "Incurred hours",
+                            "value": "{:.2f}h".format(total_incurred_hours),
+                            "short": True,
+                        },
+                        {
+                            "title": "Incurred billing",
+                            "value": "{:.2f}€".format(total_incurred_billing),
+                            "short": True,
+                        },
+                        {
+                            "title": "Project state",
+                            "value": project.project_state,
+                            "short": True,
                         },
                     ],
                 }
