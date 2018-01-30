@@ -7,7 +7,7 @@ django-filter==1.1.0
 django-reversion==2.0.12
 django-tables2==1.16.0
 Django==2.0.0
-git+git://github.com/ojarva/django-googleauth.git@dd4347b955de0166fb1cc1bda5034787da22d596
+git+git://github.com/ojarva/django-googleauth.git@d6465465d0bc913a9bc2c561a7794d3e9df8fd55
 git+git://github.com/ojarva/django-sslify.git@0789e23f775705685b044d2984e426be33841423
 git+git://github.com/ojarva/wkhtmltopdf-pack.git@a4996edbd9ec1c9dfe316146e7fa17cc8f86a676
 gunicorn==19.7.1
