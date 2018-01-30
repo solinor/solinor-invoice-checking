@@ -59,7 +59,6 @@ RUM_CODE = os.environ.get("RUM_CODE")  # Pingdom RUM
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_HSTS_SECONDS
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")  # https://docs.djangoproject.com/en/2.0/ref/settings/#secure-ssl-redirect
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_PROXY_SSL_HEADER
-SSLIFY_DISABLE = os.environ.get("SECURE_SSL_REDIRECT", False) not in (True, "True", "true")
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SESSION_COOKIE_SECURE
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT  # https://docs.djangoproject.com/en/2.0/ref/settings/#csrf-cookie-secure
 
@@ -123,7 +122,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 MIDDLEWARE = (
     "invoice_checking.middleware.DomainRedirectMiddleware",
-    "sslify.middleware.SSLifyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
