@@ -95,9 +95,24 @@ class ProjectsTable(tables.Table):
         return format_html("<a href='{}'>Details</a>".format(reverse("project", args=[value])))
 
 
+def calc_bill_rate_avg(stats):
+    hours = billing = 0
+    for incurred_hours, incurred_money in stats:
+        hours += incurred_hours
+        billing += incurred_money
+
+    if hours == 0:
+        return 0
+    return billing / hours
+
+
 class ProjectDetailsTable(tables.Table):
     invoice_id = tables.Column(orderable=False, verbose_name="")
     date = tables.Column(order_by=("year", "month"))
+    incurred_hours = tables.Column(footer=lambda table: "{}h".format(intcomma(floatformat(sum(x.incurred_hours for x in table.data), 0))))
+    incurred_money = tables.Column(footer=lambda table: "{}€".format(intcomma(floatformat(sum(x.incurred_money for x in table.data), 0))))
+    bill_rate_avg = tables.Column(footer=lambda table: "{:.0f}€/h".format(calc_bill_rate_avg((x.incurred_hours, x.incurred_money) for x in table.data)))
+    incorrect_entries_count = tables.Column(footer=lambda table: sum(x.incorrect_entries_count for x in table.data))
 
     class Meta:
         model = Invoice
