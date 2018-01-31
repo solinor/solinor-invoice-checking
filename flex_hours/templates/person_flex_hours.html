@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block header %}
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
- <script type="text/javascript">
-   google.charts.load("current", {packages:["calendar", "corechart"]});
-   google.charts.setOnLoadCallback(drawChart);
+<script type="text/javascript">
+google.charts.load("current", {packages:["calendar", "corechart"]});
+google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
   {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff destination_id="flex_diff_calendar" title="Flex saldo diff" %}
@@ -22,8 +22,8 @@ function drawChart() {
   chart.draw(data, options);
   {% endif %}
 }
- </script>
- {% endblock %}
+</script>
+{% endblock %}
 
 {% block title %}{% if cumulative_saldo %}{{ cumulative_saldo|floatformat }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
 

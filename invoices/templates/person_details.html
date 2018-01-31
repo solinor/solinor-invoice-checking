@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ person.display_name }}{% endblock %}
 {% block header %}
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 google.charts.load("current", {packages:["calendar", "treemap"]});
 google.charts.setOnLoadCallback(drawChart);
