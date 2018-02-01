@@ -67,7 +67,7 @@ class FrontpageInvoices(tables.Table):
         return "{}€".format(intcomma(floatformat(value, 0)))
 
     def render_billable_percentage(self, value):
-        return "{}%%".format(floatformat(value * 100, 0))
+        return "{}%".format(floatformat(value * 100, 0))
 
 
 class ProjectsTable(tables.Table):
