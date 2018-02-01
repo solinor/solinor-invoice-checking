@@ -24,7 +24,7 @@ function drawChart() {
 </script>
 {% endblock %}
 
-{% block title %}{% if cumulative_saldo %}{{ cumulative_saldo|floatformat }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
+{% block title %}{% if cumulative_saldo %}{{ cumulative_saldo|floatformat:"2" }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
 
 {% block content %}
 
@@ -36,7 +36,7 @@ function drawChart() {
 </ol>
 
 
-<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if cumulative_saldo %}{{ cumulative_saldo|floatformat }}h{% endif %}</h2>
+<h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if cumulative_saldo %}{{ cumulative_saldo|floatformat:"2" }}h{% endif %}</h2>
 
 <div class="alert alert-info" role="alert">
 {% if kiky.saldo %}
