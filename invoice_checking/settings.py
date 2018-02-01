@@ -54,7 +54,6 @@ AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
 DEBUG = os.environ.get("DEBUG", False) in ("true", "True", True)
 
 TAG_MANAGER_CODE = os.environ.get("TAG_MANAGER_CODE")  # Google tag manager
-RUM_CODE = os.environ.get("RUM_CODE")  # Pingdom RUM
 
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", 0))  # https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-SECURE_HSTS_SECONDS
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", True) in (True, "True", "true")  # https://docs.djangoproject.com/en/2.0/ref/settings/#secure-ssl-redirect
@@ -108,12 +107,12 @@ WKHTMLTOPDF_CMD = subprocess.Popen(
     stdout=subprocess.PIPE).communicate()[0].strip()
 
 CSP_DEFAULT_SRC = ("'none'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.gstatic.com", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://stats.g.doubleclick.net", "https://ajax.googleapis.com", "https://rum-static.pingdom.net")  # thanks to google charts, unsafe-eval is required
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.gstatic.com", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://stats.g.doubleclick.net", "https://ajax.googleapis.com")  # thanks to google charts, unsafe-eval is required
 CSP_OBJECT_SRC = ("'none'",)
 CSP_MEDIA_SRC = ("'none'",)
 CSP_FRAME_SRC = ("'none'",)
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_CONNECT_SRC = ("https://rum-collector-2.pingdom.net", "https://rum-collector-1.pingdom.net", "https://rum-collector-1.pingdom.net", "'self'")
+CSP_CONNECT_SRC = ("'self'")
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://fonts.googleapis.com")  # unsafe-inline is required by google charts
 CSP_IMG_SRC = ("'self'", "https://stats.g.doubleclick.net", "https://www.google-analytics.com", "https://solinor.fi")
 CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI")
