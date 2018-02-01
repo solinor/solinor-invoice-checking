@@ -288,7 +288,7 @@ def queue_slack_notification(request):
 def queue_update(request):
     if request.method == "POST":
         return_url = request.POST.get("back") or reverse("frontpage")
-        end_date = parse_date(request.POST.get("end_date", datetime.datetime.now().strftime("%Y-%m-%d")))
+        end_date = parse_date(request.POST.get("end_date", (datetime.date.today() + datetime.timedelta(days=2)).strftime("%Y-%m-%d")))
         start_date = parse_date(request.POST.get("start_date", (datetime.datetime.now() - datetime.timedelta(days=60)).strftime("%Y-%m-%d")))
         try:
             now = timezone.now()

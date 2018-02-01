@@ -35,7 +35,7 @@ class Command(BaseCommand):
             start_date = (datetime.datetime.now() - datetime.timedelta(days=60)).strftime(date_format)
         end_date = options.get("end_date")
         if not end_date:
-            end_date = (datetime.datetime.now()).strftime(date_format)
+            end_date = (datetime.datetime.now() + datetime.timedelta(days=2)).strftime(date_format)
 
         if datetime.datetime.strptime(end_date, date_format) - datetime.datetime.strptime(start_date, date_format) > datetime.timedelta(days=181):
             raise CommandError("Date range can't be >181 days.")
