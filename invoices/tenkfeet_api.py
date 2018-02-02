@@ -165,15 +165,20 @@ class TenkFeetApi(object):
         url = "/api/v1/holidays?per_page=250"
         return self.fetch_endpoint(url)
 
+    def fetch_api_hour_entries(self, start_date, end_date):
+        self.logger.info("Fetching hour entries from the API: %s - %s", start_date, end_date)
+        url = "/api/v1/time_entries?with_suggestions=false&from={:%Y-%m-%d}&to={:%Y-%m-%d}".format(start_date, end_date)
+        return self.fetch_endpoint(url)
+
     def fetch_projects(self):
         self.logger.info("Fetching projects")
         next_page = "/api/v1/projects?per_page=250&page=1&with_archived=true"
         return self.PROJECTS_SCHEMA.validate(self.fetch_endpoint(next_page))
 
     def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
-        self.logger.info("Fetching hour entries: %s - %s", start_date, end_date)
+        self.logger.info("Fetching hour entries reporting API: %s - %s", start_date, end_date)
         now = timezone.now()
-        url = "https://api.10000ft.com/api/v1/reports.json?startdate={}&enddate={}&today={}&auth={}".format(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d"), self.apikey)
+        url = "https://api.10000ft.com/api/v1/reports.json?startdate={:%Y-%m-%d}&enddate={:%Y-%m-%d}&today={:%Y-%m-%d}&auth={}".format(start_date, end_date, now, self.apikey)
         tenkfeet_data = requests.get(url).json()["time_entries"]
         self.logger.info("Fetched %s hour entries", len(tenkfeet_data))
         if validate_schema:
@@ -182,5 +187,5 @@ class TenkFeetApi(object):
 
     def fetch_users(self):
         self.logger.info("Fetching users")
-        next_page = "/api/v1/users?per_page=250&page=1"
+        next_page = "/api/v1/users?per_page=250&page=1&with_archived=true"
         return self.USERS_SCHEMA.validate(self.fetch_endpoint(next_page))

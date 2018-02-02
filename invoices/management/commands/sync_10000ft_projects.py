@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
 
-from invoices.utils import update_projects
+from invoices.utils import sync_10000ft_projects
 
 
 class Command(BaseCommand):
     help = 'Refresh project data from 10000ft'
 
     def handle(self, *args, **options):
-        update_projects()
+        sync_10000ft_projects()

@@ -20,13 +20,16 @@ from django.utils.dateparse import parse_datetime
 from django_tables2 import RequestConfig
 
 import invoices.date_utils as date_utils
+from flex_hours.utils import sync_public_holidays
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
 from invoices.file_gen_utils import generate_hours_pdf_for_invoice, generate_hours_xls_for_invoice
 from invoices.filters import HourListFilter, InvoiceFilter, ProjectsFilter
 from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
-from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, DataUpdate, HourEntry, Invoice,
+from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, DataUpdate, Event, HourEntry, Invoice,
                              InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
+from invoices.slack import refresh_slack_channels, refresh_slack_users
 from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
+from invoices.utils import sync_10000ft_projects, sync_10000ft_users
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -674,3 +677,24 @@ def invoice_page(request, invoice_id, **_):
         pass
 
     return render(request, "invoice_page.html", context)
+
+
+@staff_member_required
+@login_required
+def admin_sync(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if not action:
+            return HttpResponseBadRequest("No action specified")
+        if action == "sync_public_holidays":
+            sync_public_holidays()
+        if action == "sync_10000ft_users":
+            sync_10000ft_users()
+        if action == "sync_10000ft_projects":
+            sync_10000ft_projects()
+        if action == "sync_slack_channels":
+            refresh_slack_users()
+        if action == "sync_slack_users":
+            refresh_slack_channels()
+    events = Event.objects.all()
+    return render(request, "admin_sync.html", {"events": events})

@@ -411,5 +411,15 @@ class SlackChatMember(models.Model):
         unique_together = (("slack_chat", "member_id"),)
 
 
-def gen_auth_token():
+class Event(models.Model):
+    event_type = models.CharField(max_length=50)
+    succeeded = models.BooleanField(blank=True, default=False)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-timestamp",)
+
+
+def gen_auth_token():  # Migrations support function
     return ""

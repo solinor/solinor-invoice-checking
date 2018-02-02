@@ -3,7 +3,7 @@ import datetime
 
 import pytz
 
-from invoices.models import AmazonInvoiceRow, AmazonLinkedAccount, Invoice
+from invoices.models import AmazonInvoiceRow, AmazonLinkedAccount, Event, Invoice
 
 AWS_URLS = {
     "OCBPremiumSupport": "https://aws.amazon.com/premiumsupport/",
@@ -53,7 +53,9 @@ def parse_date_record(d):
 def import_aws_invoice(f, year, month):
     invoice_month = datetime.date(year, month, 1)
     linked_accounts = {}
+    c = 0
     for record in parse_aws_invoice(f):
+        c += 1
         linked_account_id = record["LinkedAccountId"]
         if record["UsageQuantity"]:
             usage_quantity = float(record["UsageQuantity"])
@@ -92,3 +94,4 @@ def import_aws_invoice(f, year, month):
         record_data["linked_account"] = linked_account
         record_id = record["RecordID"] + invoice_month.strftime("%Y-%m-%d")
         AmazonInvoiceRow.objects.update_or_create(record_id=record_id, defaults=record_data)
+    Event(event_type="sync_aws_invoice", succeeded=True, message="Synced {}. {} entries.".format(invoice_month, c)).save()

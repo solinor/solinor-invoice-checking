@@ -56,7 +56,7 @@ def parse_float(data):
         return 0
 
 
-def update_users():
+def sync_10000ft_users():
     logger.info("Updating users")
     tenkfeet_users = tenkfeet_api.fetch_users()
     total_updated = 0
@@ -86,7 +86,7 @@ def update_users():
     logger.info("Updated %s hour entries and %s users", total_updated, len(tenkfeet_users))
 
 
-def update_projects():
+def sync_10000ft_projects():
     logger.info("Updating projects")
     tenkfeet_projects = tenkfeet_api.fetch_projects()
     projects = []

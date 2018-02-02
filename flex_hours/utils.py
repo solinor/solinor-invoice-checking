@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_date, parse_datetime
 
 from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
-from invoices.models import HourEntry, SlackNotificationBundle, TenkfUser
+from invoices.models import Event, HourEntry, SlackNotificationBundle, TenkfUser
 from invoices.slack import slack
 from invoices.tenkfeet_api import TenkFeetApi
 
@@ -32,6 +32,7 @@ def send_flex_saldo_notifications(year, month):
     end_date = datetime.date(year, month, 1) - datetime.timedelta(days=1)
     previous_month = (end_date - datetime.timedelta(days=32))
 
+    c = 0
     for user in TenkfUser.objects.all():
         try:
             flex_info = calculate_flex_saldo(user, end_date, only_active=True)
@@ -65,11 +66,13 @@ def send_flex_saldo_notifications(year, month):
                 ]
             }
             if user.slack_id:
+                c += 1
                 slack.chat.post_message(user.slack_id, attachments=[attachment], as_user="finance-bot")
                 for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
                     slack.chat.post_message(admin, text="Following message was sent to {}:".format(user.full_name), attachments=[attachment], as_user="finance-bot")
             else:
                 print("Unable to send flex saldo notification to {} - no slack ID available.".format(user.guid))
+    Event(event_type="send_flex_saldo_notifications", succeeded=True, message="Sent {} flex saldo notifications".format(c)).save()
 
 
 def fetch_contract(contracts, current_day):
@@ -306,7 +309,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_e
     return context
 
 
-def refresh_public_holidays():
+def sync_public_holidays():
     def process_10000ft_holiday(holiday):
         holiday["date"] = parse_date(holiday["date"])
         holiday["created_at"] = parse_datetime(holiday["created_at"])
@@ -317,19 +320,24 @@ def refresh_public_holidays():
     tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)
     holidays = [process_10000ft_holiday(holiday) for holiday in tenkfeet_api.fetch_holidays()]
     stored_holidays = {holiday.date: holiday for holiday in PublicHoliday.objects.all()}
+    deleted = added = updated = 0
     for holiday in holidays:
         saved_holiday = stored_holidays.get(holiday["date"])
         if saved_holiday:
             if saved_holiday.updated_at != holiday["updated_at"]:
                 print("Updating {}".format(holiday["date"]))
+                updated += 1
                 for arg, val in holiday.items():
                     setattr(saved_holiday, arg, val)
                 saved_holiday.save()
             del(stored_holidays[holiday["date"]])
         else:
             print("Creating {}".format(holiday["date"]))
+            added += 1
             new_holiday = PublicHoliday(**holiday)
             new_holiday.save()
     removed_holidays = [holiday for holiday in stored_holidays]
-    print("Deleting {}".format(", ".join([holiday.strftime("%Y-%m-%d") for holiday in removed_holidays])))
-    PublicHoliday.objects.filter(date__in=removed_holidays).delete()
+    if removed_holidays:
+        print("Deleting {}".format(", ".join([holiday.strftime("%Y-%m-%d") for holiday in removed_holidays])))
+        deleted, _ = PublicHoliday.objects.filter(date__in=removed_holidays).delete()
+    Event(event_type="sync_public_holidays", succeeded=True, message="Added {}, updated {}, deleted {}".format(added, updated, deleted)).save()

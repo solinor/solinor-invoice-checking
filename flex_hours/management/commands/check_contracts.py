@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from flex_hours.models import FlexTimeCorrection, WorkContract
 from flex_hours.utils import FlexHourException, calculate_flex_saldo
-from invoices.models import HourEntry, TenkfUser
+from invoices.models import Event, HourEntry, TenkfUser
 
 
 class Command(BaseCommand):
@@ -64,3 +64,5 @@ class Command(BaseCommand):
             for user in settings.SLACK_NOTIFICATIONS_ADMIN:
                 slack.chat.post_message(channel=user, text=message, as_user="finance-bot")
                 print("Sent report to {}".format(user))
+
+        Event(event_type="check_contracts", succeeded=True, message="Found {} issues".format(len(errors))).save()

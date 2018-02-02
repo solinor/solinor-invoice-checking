@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="post" action="{% url "admin_sync" %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="action" value="sync_public_holidays">
+  <button role="submit" name="Sync public holidays from 10000ft" class="btn btn-default">Sync public holidays from 10000ft</button>
+</form>
+
+<form method="post" action="{% url "admin_sync" %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="action" value="sync_10000ft_users">
+  <button role="submit" name="Sync users from 10000ft" class="btn btn-default">Sync users from 10000ft</button>
+</form>
+
+<form method="post" action="{% url "admin_sync" %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="action" value="sync_10000ft_projects">
+  <button role="submit" name="Sync projects from 10000ft" class="btn btn-default">Sync projects from 10000ft</button>
+</form>
+
+<form method="post" action="{% url "admin_sync" %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="action" value="sync_slack_channels">
+  <button role="submit" name="Sync Slack channels" class="btn btn-default">Sync Slack channels</button>
+</form>
+
+<form method="post" action="{% url "admin_sync" %}">
+  {% csrf_token %}
+  <input type="hidden" name="back" value="{{ request.get_full_path }}">
+  <input type="hidden" name="action" value="sync_slack_users">
+  <button role="submit" name="Sync Slack users" class="btn btn-default">Sync Slack users</button>
+</form>
+
+<h2>Event log</h2>
+
+<table class="table table-condensed table-striped">
+  <tbody>
+  {% for event in events %}
+  <tr>
+    <td>{{ event.event_type }}</td>
+    <td>{{ event.timestamp }}</td>
+    <td>{{ event.succeeded }}</td>
+    <td>{{ event.message }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from flex_hours.utils import send_flex_saldo_notifications
-from invoices.models import DataUpdate, SlackNotificationBundle
+from invoices.models import DataUpdate, Event, SlackNotificationBundle
 from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
 from invoices.utils import HourEntryUpdate, refresh_stats
 
@@ -50,6 +50,7 @@ def update_10kf_data(logger, data, redis_instance):
     update_obj.save()
     redis_instance.set("last-data-update", str(timezone.now()))
     logger.info("Statistics updated.")
+    Event(event_type="sync_10000ft_hours", succeeded=True, message="Entries between {} and {}".format(start_date, end_date)).save()
 
 
 def time_since_last_slack_notification(notification_type):

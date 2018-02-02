@@ -42,10 +42,10 @@ AWS_ACCESS_KEY="aws-access-key"
 For local development:
 
 1. Collect static files: `./manage.py collectstatic && ./manage.py compress --force`
-2. Update 10000ft projects and users: `./manage.py update_projects && ./manage.py update_users`
+2. Update 10000ft projects and users: `./manage.py sync_10000ft_projects && ./manage.py sync_10000ft_users`
 3. Start background worker: `./manage.py process_update_queue`, in order to actually fetch data from 10000ft with the "Request data update" button.
 4. Start the server with `./manage.py runserver` and navigate to http://localhost:8000
 
-If you are starting with empty database, after first hours refresh from 10000ft, run `./manage.py update_projects` to link hours to projects.
+If you are starting with empty database, after first hours refresh from 10000ft, run `./manage.py sync_10000ft_projects` to link hours to projects.
 
 If you want to avoid using Google authentication, remove `googleauth.backends.GoogleAuthBackend` from `AUTHENTICATION_BACKENDS` list from `invoice_checking/settings.py`.

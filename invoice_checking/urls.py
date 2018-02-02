@@ -37,6 +37,7 @@ urlpatterns = [
 
     path("queue_update", invoices.views.queue_update, name="queue_update"),
     path("queue_slack_notification", invoices.views.queue_slack_notification, name="queue_slack_notification"),
+    path("admin_sync", invoices.views.admin_sync, name="admin_sync"),
 
     path("incoming_slack_event", slack_hooks.views.incoming_event),
     path("slack_query_flex_saldo", slack_hooks.views.slack_query_flex_saldo),

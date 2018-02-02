@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Count, Sum
 from django.urls import reverse
 
-from invoices.models import Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle, TenkfUser
+from invoices.models import Event, Project, SlackChannel, SlackChat, SlackChatMember, SlackNotificationBundle, TenkfUser
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
 logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
@@ -37,6 +37,7 @@ def create_slack_mpim(members_list):
 
 def send_unsubmitted_hours_notifications():
     today = datetime.date.today()
+    c = 0
     for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
         fallback_message = """<https://finance.solinor.com{}|You> have *unsubmitted hours*: {} hour markings with total of {} hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""".format(reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         message = "You need to submit or remove following hours:"
@@ -76,14 +77,17 @@ def send_unsubmitted_hours_notifications():
             continue
 
         slack.chat.post_message(user.slack_id, attachments=[attachment], as_user="finance-bot")
+        c += 1
 
         for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
             if admin != user.slack_id:
                 slack.chat.post_message(admin, text="This was sent to {} in slack:".format(user.email), attachments=[attachment], as_user="finance-bot")
     SlackNotificationBundle(notification_type="unsubmitted").save()
+    Event(event_type="send_unsubmitted_hours_notifications", succeeded=True, message="Sent {} notifications".format(c)).save()
 
 
 def send_unapproved_hours_notifications(year, month):
+    c = 0
     for project in Project.objects.filter(hourentry__approved=False, hourentry__date__year=year, hourentry__date__month=month).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
         message = """You are marked as a responsible person for {} - {}. You need to approve hours for the project weekly.""".format(project.client, project.name)
         fallback_message = """You are marked as a responsible person for {} - {}. You need to approve hours for the project weekly. Go to https://app.10000ft.com to do so.""".format(project.client, project.name)
@@ -130,9 +134,11 @@ def send_unapproved_hours_notifications(year, month):
                 logger.warning("No chat_id for %s - %s", project, members_list)
                 continue
             logger.info("%s %s", message, chat_id)
+            c += 1
             slack.chat.post_message(chat_id, attachments=[attachment], as_user="finance-bot")
         else:
             for member in members_list:
+                c += 1
                 slack.chat.post_message(member, attachments=[attachment], as_user="finance-bot")
 
         for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
@@ -140,6 +146,7 @@ def send_unapproved_hours_notifications(year, month):
                 slack.chat.post_message(admin, text="This was sent to {} in slack:".format(", ".join(project.admin_users.all().values_list("display_name", flat=True))), attachments=[attachment], as_user="finance-bot")
 
     SlackNotificationBundle(notification_type="unapproved").save()
+    Event(event_type="send_unapproved_hours_notifications", succeeded=True, message="Sent {} notifications".format(c)).save()
 
 
 def refresh_slack_users():
@@ -149,6 +156,7 @@ def refresh_slack_users():
         if not email:
             continue
         TenkfUser.objects.filter(email__iexact=email).update(slack_id=member.get("id"))
+    Event(event_type="sync_slack_users", succeeded=True, message="Got {} users from Slack".format(len(slack_users))).save()
 
 
 def refresh_slack_channels():
@@ -161,6 +169,7 @@ def refresh_slack_channels():
         SlackChannel.objects.update_or_create(channel_id=channel_id, defaults={
             "name": channel_name,
         })
+    Event(event_type="sync_slack_channels", succeeded=True, message="Got {} channels from Slack".format(len(slack_channels))).save()
 
 
 def send_slack_notification(project):
