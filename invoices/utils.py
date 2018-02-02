@@ -225,7 +225,7 @@ class HourEntryUpdate(object):
         dates = list(daterange(self.start_date, self.end_date))
         checksums = {k.date: k.sha256 for k in HourEntryChecksum.objects.filter(date__in=dates)}
         deleted_entries = 0
-        delete_days = {}
+        delete_days = set()
         for date in dates:
             if date not in per_date_data:
                 logger.info("No entries for %s - delete all existing entries.", date)
