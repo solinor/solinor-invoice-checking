@@ -47,6 +47,21 @@ def handler500(request):
 
 
 @login_required
+def search(request):
+    q = request.GET.get("q")
+    if not q:
+        return render(request, "search.html")
+
+    users = TenkfUser.objects.filter(archived=False).filter(Q(email__icontains=q) | Q(display_name__icontains=q))
+    projects = Project.objects.filter(Q(name__icontains=q) | Q(client__icontains=q))
+    if len(users) == 1 and len(projects) == 0:
+        return HttpResponseRedirect(reverse("person_details", args=(users[0].guid,)))
+    elif len(projects) == 1:
+        return HttpResponseRedirect(reverse("project", args=(projects[0].guid,)))
+    return render(request, "search.html", {"q": q, "users": users, "projects": projects})
+
+
+@login_required
 def amazon_overview(request):
     # TODO: this is really inefficient, as it is making a separate DB query for every single Amazon account
     if request.GET.get("year") and request.GET.get("month"):

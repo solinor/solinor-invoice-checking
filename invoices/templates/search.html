@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Search - {{ q }}{% endblock %}
+
+{% block content %}
+<h1>Search - {{ q }}</h1>
+
+{% if users %}
+<ul>
+{% for user in users %}
+<li><a href="{% url "person_details" user.guid %}">{{ user }}</a> - <a href="{% url "person_flex_hours" user.guid %}">flex</a> - <a href="https://app.10000ft.com/?user_id={{ user.guid }}">10000ft</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if projects %}
+<ul>
+{% for project in projects %}
+<li><a href="{% url "project" project.guid %}">{{ project }}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

@@ -35,6 +35,8 @@ urlpatterns = [
     path("you/flexhours", flex_hours.views.your_flex_hours, name="your_flex_hours"),
     path("you/flexhours/json", flex_hours.views.your_flex_hours_json, name="your_flex_hours_json"),
 
+    path("search", invoices.views.search, name="search"),
+
     path("queue_update", invoices.views.queue_update, name="queue_update"),
     path("queue_slack_notification", invoices.views.queue_slack_notification, name="queue_slack_notification"),
     path("admin_sync", invoices.views.admin_sync, name="admin_sync"),
