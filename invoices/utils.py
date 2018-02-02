@@ -138,7 +138,7 @@ def sync_10000ft_projects():
     linked_invoices = 0
     for invoice in Invoice.objects.filter(project_m=None):
         for project in projects:
-            if project.name == invoice.project and project.client == invoice.client:
+            if project.name == invoice.project and project.client == invoice.client and invoice.project_m != project:
                 logger.info("Updating invoice %s with project %s", invoice, project)
                 linked_invoices += 1
                 invoice.project_m = project
