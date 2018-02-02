@@ -86,12 +86,14 @@ def sync_10000ft_users():
         logger.debug("Updated %s to %s entries", user_email, updated_objects)
         total_updated += updated_objects
     logger.info("Updated %s hour entries and %s users", total_updated, len(tenkfeet_users))
+    Event(event_type="sync_10000ft_users", succeeded=True, message="Updated {} users and linked {} entries".format(len(tenkfeet_users), total_updated)).save()
 
 
 def sync_10000ft_projects():
     logger.info("Updating projects")
     tenkfeet_projects = tenkfeet_api.fetch_projects()
     projects = []
+    created_count = 0
     for project in tenkfeet_projects:
         project_fields = {
             "project_id": project["id"],
@@ -130,15 +132,19 @@ def sync_10000ft_projects():
         project_obj.save()
         projects.append(project_obj)
         if created:
+            created_count += 1
             send_slack_notification(project_obj)
     logger.info("Finished updating projects (n=%s)", len(projects))
+    linked_invoices = 0
     for invoice in Invoice.objects.filter(project_m=None):
         for project in projects:
             if project.name == invoice.project and project.client == invoice.client:
                 logger.info("Updating invoice %s with project %s", invoice, project)
+                linked_invoices += 1
                 invoice.project_m = project
                 invoice.save()
                 break
+    Event(event_type="sync_10000ft_projects", succeeded=True, message="Updated {} projects, created {} projects and linked {} invoices to projects".format(len(projects), created_count, linked_invoices)).save()
 
 
 def get_projects():
