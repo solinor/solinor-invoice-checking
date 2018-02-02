@@ -12,7 +12,7 @@ from django.utils.dateparse import parse_date as parse_date_django
 
 from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
-from invoices.models import HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
+from invoices.models import Event, HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
 from invoices.slack import send_slack_notification
 from invoices.tenkfeet_api import TenkFeetApi
 
@@ -216,7 +216,7 @@ class HourEntryUpdate(object):
 
         dates = list(daterange(self.start_date, self.end_date))
         checksums = {k.date: k.sha256 for k in HourEntryChecksum.objects.filter(date__in=dates)}
-
+        deleted_entries = 0
         delete_days = []
         for date in dates:
             if date not in per_date_data:
@@ -290,6 +290,7 @@ class HourEntryUpdate(object):
             logger.info("Deleting old 10k entries.")
             deleted_entries, _ = HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, date__in=delete_days, last_updated_at__lt=now).delete()
             logger.info("All old 10k entries deleted: %s.", deleted_entries)
+        Event(event_type="sync_10000ft_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
         return (self.first_entry, self.last_entry)
 
 
@@ -306,7 +307,9 @@ def refresh_stats(start_date, end_date):
     else:
         logger.info("Updating statistics for all invoices")
         invoices = Invoice.objects.all()
+    c = 0
     for invoice in invoices:
+        c += 1
         entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
         aws_entries = None
         if invoice.project_m:
@@ -329,3 +332,4 @@ def refresh_stats(start_date, end_date):
             invoice.bill_rate_avg = 0
         invoice.save()
         logger.debug("Updated statistics for %s", invoice)
+    Event(event_type("refresh_invoice_statistics", succeeded=True, message="Refreshed {} invoices between {:%Y-%m-%d} and {:%Y-%m-%d}.".format(c, start_date, end_date))).save()
