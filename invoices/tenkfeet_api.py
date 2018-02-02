@@ -21,7 +21,7 @@ class TenkFeetApi(object):
         "deleted_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
         "discipline": schema.Or(str, NONETYPE),
         "display_name": str,
-        "email": schema.And(str, schema.Use(str.lower), schema.Regex(r"[a-z0-9-_\.]+@[a-z0-9-_\.]+")),
+        "email": schema.And(str, schema.Use(str.lower)),
         "employee_number": schema.Or(str, NONETYPE),
         "first_name": str,
         "guid": str,  # Can be validated
