@@ -693,8 +693,8 @@ def admin_sync(request):
         if action == "sync_10000ft_projects":
             sync_10000ft_projects()
         if action == "sync_slack_channels":
-            refresh_slack_users()
-        if action == "sync_slack_users":
             refresh_slack_channels()
+        if action == "sync_slack_users":
+            refresh_slack_users()
     events = Event.objects.all()
     return render(request, "admin_sync.html", {"events": events})
