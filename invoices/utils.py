@@ -61,7 +61,9 @@ def sync_10000ft_users():
     tenkfeet_users = tenkfeet_api.fetch_users()
     total_updated = 0
     for user in tenkfeet_users:
-        user_email = user["email"].lower()
+        if not user["email"]:
+            continue
+        user_email = user["email"]
         user_fields = {
             "user_id": user["id"],
             "first_name": user["first_name"],
