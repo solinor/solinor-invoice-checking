@@ -8,10 +8,12 @@ from django.core.cache import cache
 from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.dateparse import parse_date, parse_datetime
 
 from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
 from invoices.models import HourEntry, SlackNotificationBundle, TenkfUser
 from invoices.slack import slack
+from invoices.tenkfeet_api import TenkFeetApi
 
 
 class FlexHourException(Exception):
@@ -302,3 +304,32 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_e
         "kiky": kiky_stats,
     }
     return context
+
+
+def refresh_public_holidays():
+    def process_10000ft_holiday(holiday):
+        holiday["date"] = parse_date(holiday["date"])
+        holiday["created_at"] = parse_datetime(holiday["created_at"])
+        holiday["updated_at"] = parse_datetime(holiday["updated_at"])
+        del(holiday["id"])
+        return holiday
+
+    tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)
+    holidays = [process_10000ft_holiday(holiday) for holiday in tenkfeet_api.fetch_holidays()]
+    stored_holidays = {holiday.date: holiday for holiday in PublicHoliday.objects.all()}
+    for holiday in holidays:
+        saved_holiday = stored_holidays.get(holiday["date"])
+        if saved_holiday:
+            if saved_holiday.updated_at != holiday["updated_at"]:
+                print("Updating {}".format(holiday["date"]))
+                for arg, val in holiday.items():
+                    setattr(saved_holiday, arg, val)
+                saved_holiday.save()
+            del(stored_holidays[holiday["date"]])
+        else:
+            print("Creating {}".format(holiday["date"]))
+            new_holiday = PublicHoliday(**holiday)
+            new_holiday.save()
+    removed_holidays = [holiday for holiday in stored_holidays]
+    print("Deleting {}".format(", ".join([holiday.strftime("%Y-%m-%d") for holiday in removed_holidays])))
+    PublicHoliday.objects.filter(date__in=removed_holidays).delete()

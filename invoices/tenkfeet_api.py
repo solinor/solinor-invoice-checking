@@ -160,6 +160,11 @@ class TenkFeetApi(object):
         self.logger.info("Fetched %s entries from 10kf", len(entries))
         return entries
 
+    def fetch_holidays(self):
+        self.logger.info("Fetching holidays")
+        url = "/api/v1/holidays?per_page=250"
+        return self.fetch_endpoint(url)
+
     def fetch_projects(self):
         self.logger.info("Fetching projects")
         next_page = "/api/v1/projects?per_page=250&page=1&with_archived=true"

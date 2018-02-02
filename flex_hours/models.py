@@ -58,7 +58,9 @@ class FlexTimeCorrection(models.Model):
 @reversion.register()
 class PublicHoliday(models.Model):
     name = models.CharField(max_length=100)
-    date = models.DateField()
+    date = models.DateField(primary_key=True)
+    created_at = models.DateTimeField(null=True)
+    updated_at = models.DateTimeField(null=True)
 
     def __str__(self):
         return "{} - {}".format(self.date, self.name)
