@@ -174,7 +174,7 @@ def sync_10000ft_projects():
 
 
 def get_projects():
-    projects_data = {project.project_id: project for project in Project.objects.all()}
+    return {project.project_id: project for project in Project.objects.all()}
 
 
 def get_invoices():
@@ -183,6 +183,13 @@ def get_invoices():
 
 def get_users():
     return {user.email: user for user in TenkfUser.objects.all()}
+
+
+def parse_upstream_id(id):
+    # 108957-2018-01-20-865336-717868858
+    if not id:
+        return
+    return id.split("-")[-1]
 
 
 class HourEntryUpdate(object):
@@ -242,6 +249,8 @@ class HourEntryUpdate(object):
                     continue
                 if stored_entry.category != upstream_entry["task"]:
                     continue
+                if stored_entry.assignable_id != upstream_entry["assignable_id"]:
+                    continue
                 created_at = parse_datetime(upstream_entry["created_at"])
                 updated_at = parse_datetime(upstream_entry["updated_at"])
                 upstream_id = upstream_entry["id"]
@@ -288,6 +297,11 @@ class HourEntryUpdate(object):
                         "date": entry_date,
                         "user_id": int(entry[0]),
                         "user_name": entry[1],
+                        "assignable_id": entry[2],
+                        "approved_at": parse_date(entry[55]),
+                        "upstream_id": parse_upstream_id(entry[59]),
+                        "approved_by": entry[53],
+                        "submitted_by": entry[54],
                         "client": entry[6],
                         "project": entry[3],
                         "incurred_hours": parse_float(entry[8]),
@@ -347,8 +361,6 @@ class HourEntryUpdate(object):
             deleted_entries, _ = HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, date__in=list(delete_days), last_updated_at__lt=now).delete()
             logger.info("All old 10k entries deleted: %s.", deleted_entries)
         Event(event_type="sync_10000ft_report_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
-        for date in updated_days:
-            self.update_10000ft_api_hours(date)
         return (self.first_entry, self.last_entry, deleted_entries + len(entries))
 
 

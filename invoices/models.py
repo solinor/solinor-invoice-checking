@@ -45,6 +45,10 @@ class HourEntry(models.Model):
     approved = models.BooleanField(blank=True)
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
     status = models.CharField(max_length=30)
+    assignable_id = models.IntegerField(null=True, blank=True)
+    approved_at = models.DateField(null=True, blank=True)
+    approved_by = models.CharField(max_length=255, blank=True, null=True)
+    submitted_by = models.CharField(max_length=255, blank=True, null=True)
 
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
