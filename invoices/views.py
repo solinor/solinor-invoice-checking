@@ -364,6 +364,27 @@ def frontpage(request):
         "per_page": 100
     }).configure(table)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
+
+    try:
+        your_last_hour_marking = HourEntry.objects.filter(user_email=request.user.email).values_list("date", flat=True).latest("date")
+    except HourEntry.DoesNotExist:
+        your_last_hour_marking = "No entries"
+
+    today = datetime.date.today()
+    week_start = today - datetime.timedelta(days=today.weekday())
+    week_end = week_start + datetime.timedelta(days=6)
+    your_hours_this_week = HourEntry.objects.filter(user_email=request.user.email).filter(date__gte=week_start, date__lte=week_end).aggregate(hours=Sum("incurred_hours"))["hours"]
+
+    your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).filter(status="Unsubmitted").count()
+
+    billing_rate_data = HourEntry.objects.filter(user_email="olli.jarva@solinor.com").filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+    your_billing_rate = "?"
+    if billing_rate_data:
+        total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
+        if total_hours > 0:
+            print(repr(billing_rate_data[0]["billable_hours"]), repr(total_hours))
+            your_billing_rate = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
+
     try:
         last_update_finished_at = REDIS.get("last-data-update").decode()
     except TypeError:
@@ -374,6 +395,9 @@ def frontpage(request):
         "filters": filters,
         "your_invoices": your_invoices,
         "last_update_finished_at": last_update_finished_at,
+        "your_last_hour_marking": your_last_hour_marking,
+        "your_hours_this_week": your_hours_this_week,
+        "your_billing_rate": your_billing_rate,
     }
     return render(request, "frontpage.html", context)
 

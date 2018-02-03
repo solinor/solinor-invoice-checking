@@ -3,39 +3,59 @@
 {% load django_tables2 %}
 {% block title %}Finance - Solinor{% endblock %}
 {% block content %}
-<ol class="breadcrumb">
-  <li class="active"><a href="{% url "frontpage" %}">Home</a></li>
-</ol>
 
-<span class="text-right">
-<form method="post" action="{% url "queue_update" %}">
-  {% csrf_token %}
-  <input type="hidden" name="back" value="{{ request.get_full_path }}">
-  <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>
-</form>
-</span>
+<div class="row well">
+  <div class="col-md-3">
+    <h3>Unsubmitted entries</h3>
+    {% if your_unsubmitted_entries > 0 %}
+      <p class="lead text-danger">{{ your_unsubmitted_entries }} <span class="glyphicon glyphicon-exclamation-sign"></span></p>
+    {% else %}
+      <p class="lead">0 <span class="glyphicon glyphicon-ok-sign"></p>
+    {% endif %}
+  </div>
+  <div class="col-md-3">
+    <h3>Last hour marking</h3>
+    <p class="lead">{{ your_last_hour_marking }} ({{ your_last_hour_marking|date:"l"}})</p>
+  </div>
+  <div class="col-md-3">
+    <h3>Hours this week</h3>
+    <p class="lead">{{ your_hours_this_week|floatformat:"2" }}h</p>
+  </div>
+  <div class="col-md-3">
+    <h3>Your billing rate <small>Past 30d</small></h3>
+    <p class="lead">{{ your_billing_rate|floatformat:"0" }}%</p>
+  </div>
+</div>
+
 
 {% if your_invoices %}
 <h2>Your projects</h2>
 
 {% include "snippets/frontpage_table.html" with invoices=your_invoices %}
 
-<h2>All projects</h2>
 {% endif %}
+<h2>All invoices <small><span data-toggle="collapse" data-target="#invoice-table-filters"><span class="glyphicon glyphicon-filter"></span></span></small>
+  <span class="text-right">
+  <form method="post" class="form-inline" action="{% url "queue_update" %}">
+    {% csrf_token %}
+    <input type="hidden" name="back" value="{{ request.get_full_path }}">
+    <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>
+  </form>
+  </span></h2>
 
+<div id="invoice-table-filters" class="collapse">
 <form action="" method="get" class="form-inline">
+  <div class="row">
   {% for field in filters.form %}
-
-      <div class="form-group">
-          {{ field.errors }}
-          {{ field.label_tag }} {{ field }}
-        {% if field.help_text %}
-        <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
-      </div>
+  <div class="col-md-3">
+    <h4>{{ field.label_tag }}</h4>
+    <p class="list-group-item-text">{{ field }}</p>
+  </div>
   {% endfor %}
+  </div>
   <button class="btn btn-primary" type="submit">Filter</button>
 </form>
+</div>
 
 {% render_table invoices %}
 
