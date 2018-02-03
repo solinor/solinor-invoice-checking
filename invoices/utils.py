@@ -7,8 +7,10 @@ from collections import defaultdict
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Sum
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.dateparse import parse_date as parse_date_django
+from django.utils.dateparse import parse_datetime as parse_datetime_django
 
 from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
@@ -44,9 +46,14 @@ def get_overly_long_days_per_user(start_date, end_date, incurred_hours_threshold
     hour_markings = HourEntry.objects.filter(date__gte=start_date).filter(date__lte=end_date).order_by("user_m", "date").values("user_m", "date").annotate(sum_hours=Sum("incurred_hours")).filter(sum_hours__gte=incurred_hours_threshold)
 
 
-def parse_date(date):
-    if date:
-        return parse_date_django(date)
+def parse_date(timestamp):
+    if timestamp:
+        return parse_date_django(timestamp)
+
+
+def parse_datetime(timestamp):
+    if timestamp:
+        return parse_datetime_django(timestamp)
 
 
 def parse_float(data):
@@ -59,11 +66,20 @@ def parse_float(data):
 def sync_10000ft_users():
     logger.info("Updating users")
     tenkfeet_users = tenkfeet_api.fetch_users()
-    total_updated = 0
+    updated_hour_entries = updated_users = created_users = 0
+    all_users = {str(user["guid"]): user["updated_at"] for user in TenkfUser.objects.values("guid", "updated_at")}
     for user in tenkfeet_users:
         if not user["email"]:
             continue
         user_email = user["email"]
+        updated_at = user["updated_at"]
+
+        if user["guid"] in all_users:
+            if all_users[user["guid"]] == updated_at:
+                logger.info("Skip updating %s (%s) - update timestamp matches", user["email"], user["guid"])
+                continue
+        logger.info("%s - %s - %s", user["guid"], all_users.get(user["guid"]), user["updated_at"])
+
         user_fields = {
             "user_id": user["id"],
             "first_name": user["first_name"],
@@ -79,14 +95,24 @@ def sync_10000ft_users():
             "billability_target": user["billability_target"],
             "created_at": user["created_at"],
             "archived_at": user["archived_at"],
+            "updated_at": user["updated_at"],
             "thumbnail": user["thumbnail"],
         }
-        user_obj, _ = TenkfUser.objects.update_or_create(guid=user["guid"], defaults=user_fields)
+        # TODO: always ensure non-archived user is added to the DB
+        try:
+            user_obj, created = TenkfUser.objects.update_or_create(guid=user["guid"], defaults=user_fields)
+            if created:
+                created_users += 1
+            else:
+                updated_users += 1
+        except IntegrityError:
+            logger.info("Unable to update %s - duplicate email", user_email)
+            continue
         updated_objects = HourEntry.objects.filter(user_email__iexact=user_email).filter(user_m=None).update(user_m=user_obj)
         logger.debug("Updated %s to %s entries", user_email, updated_objects)
-        total_updated += updated_objects
-    logger.info("Updated %s hour entries and %s users", total_updated, len(tenkfeet_users))
-    Event(event_type="sync_10000ft_users", succeeded=True, message="Updated {} users and linked {} entries".format(len(tenkfeet_users), total_updated)).save()
+        updated_hour_entries += updated_objects
+    logger.info("Got %s users from 10000ft, updated %s users, created %s users, linked %s hour entries", len(tenkfeet_users), updated_users, created_users, updated_hour_entries)
+    Event(event_type="sync_10000ft_users", succeeded=True, message="Got {} users from 10000ft, updated {} users, created {} users, linked {} hour entries".format(len(tenkfeet_users), updated_users, created_users, updated_hour_entries)).save()
 
 
 def sync_10000ft_projects():
