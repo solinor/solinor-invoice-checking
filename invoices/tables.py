@@ -44,7 +44,7 @@ class FrontpageInvoices(tables.Table):
     incorrect_entries_count = tables.Column(verbose_name="Issues")
     date = tables.Column(order_by=("year", "month"))
     full_name = tables.Column(order_by=("client", "project"), verbose_name="Name")
-    processed_tags = tables.Column(order_by=("tags"), verbose_name="Tags")
+    processed_tags = tables.Column(order_by=("tags",), verbose_name="Tags")
 
     class Meta:
         model = Invoice

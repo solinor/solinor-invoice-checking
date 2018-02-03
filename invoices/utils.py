@@ -215,8 +215,11 @@ class HourEntryUpdate(object):
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
             logger.debug("Invoice already exists: %s", invoice_key)
-            if invoice.tags != data["project_tags"]:
-                invoice.tags = data["project_tags"]
+            tags = data["project_tags"]
+            if tags:
+                tags = ",".join({tag.strip() for tag in tags.split(",")})
+            if invoice.tags != tags:
+                invoice.tags = tags
                 invoice.save()
             return invoice
         else:
