@@ -5,7 +5,7 @@ google.charts.load("current", {packages:["calendar", "corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
-  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff destination_id="flex_diff_calendar" title="Flex saldo diff" %}
+  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff destination_id="flex_diff_calendar" title="Flex saldo changes" %}
 
   {% if monthly_summary_linechart %}
   var data = google.visualization.arrayToDataTable({{ monthly_summary_linechart|safe }});
@@ -43,7 +43,7 @@ function drawChart() {
 <p>Flex saldo includes {{ kiky.saldo|floatformat:"2" }}h KIKY deduction.</p>
 {% endif %}
 <p><strong>Tip:</strong> today is not included in flex hours calculations. If you want to know your flex saldo including today, you have to add it manually. <abbr title=""><small><span data-toggle="tooltip" data-placement="top" title="This way, if you mark your hours daily, you will know your exact balance, instead of 'on the morning it is -7.5h'.">Why?</span></small></abbr></p>
-<p><strong>Slack tip:</strong>: use <code>/flex-hours</code> to quickly see your flex saldo.</p>
+<p><strong>Slack tip:</strong> use <code>/flex-hours</code> to quickly see your flex saldo.</p>
 </div>
 
 
