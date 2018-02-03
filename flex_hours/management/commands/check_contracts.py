@@ -55,7 +55,6 @@ class Command(BaseCommand):
 
         message = "Following errors with flex hour contracts were found:\n"
         for error in errors:
-            print(error)
             message += "- " + error + "\n"
 
         if errors:
@@ -63,6 +62,6 @@ class Command(BaseCommand):
             message += "<{}{}|Edit in {}>".format(settings.DOMAIN, reverse("admin:index"), settings.DOMAIN)
             for user in settings.SLACK_NOTIFICATIONS_ADMIN:
                 slack.chat.post_message(channel=user, text=message, as_user="finance-bot")
-                print("Sent report to {}".format(user))
+                self.stdout.write("Sent report to {}".format(user))
 
         Event(event_type="check_contracts", succeeded=True, message="Found {} issues".format(len(errors))).save()
