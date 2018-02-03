@@ -10,15 +10,8 @@
 
 <h2>People</h2>
 
-<div class="row top-buttons-row">
-  <div class="col-md-12">
-    <a class="btn btn-info" href="{% url "users_charts" %}">Charts</a>
-  </div>
-</div>
-
 <div class="row">
   <div class="col-md-12">
-    <p class="well">This table is excluding all leaves.</p>
 
     <form method="get" action="?">
       <input type="number" name="month" value="{{ month }}">
