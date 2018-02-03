@@ -46,6 +46,10 @@ class HourEntry(models.Model):
     project_tags = models.CharField(max_length=1024, null=True, blank=True)
     status = models.CharField(max_length=30)
 
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+    upstream_id = models.IntegerField(null=True, blank=True, unique=True)
+
     calculated_is_billable = models.BooleanField(blank=True, default=False, verbose_name="Billable")
     calculated_has_notes = models.BooleanField(blank=True, default=True, verbose_name="Has notes")
     calculated_has_phase = models.BooleanField(blank=True, default=True, verbose_name="Has phase")

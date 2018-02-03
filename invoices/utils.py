@@ -221,6 +221,36 @@ class HourEntryUpdate(object):
     def match_user(self, email):
         return self.user_data.get(email)
 
+    def update_10000ft_api_hours(self, date):
+        upstream_hours = tenkfeet_api.fetch_api_hour_entries(date, date)
+        print(upstream_hours)
+        stored_hours = HourEntry.objects.filter(date=date).select_related("project_m")
+        for upstream_entry in upstream_hours:
+            if upstream_entry["hours"] == 0:
+                continue
+            upstream_date = parse_date(upstream_entry["date"])
+            for stored_entry in stored_hours:
+                if stored_entry.date != upstream_date:
+                    continue
+                if stored_entry.user_id != upstream_entry["user_id"]:
+                    continue
+                if stored_entry.incurred_hours != upstream_entry["hours"]:
+                    continue
+                if stored_entry.bill_rate != upstream_entry["bill_rate"]:
+                    continue
+                if stored_entry.notes != upstream_entry["notes"] or upstream_entry["notes"] is None or len(upstream_entry["notes"]) < 5:
+                    continue
+                if stored_entry.category != upstream_entry["task"]:
+                    continue
+                created_at = parse_datetime(upstream_entry["created_at"])
+                updated_at = parse_datetime(upstream_entry["updated_at"])
+                upstream_id = upstream_entry["id"]
+                if stored_entry.created_at != created_at or stored_entry.updated_at != updated_at or stored_entry.upstream_id != upstream_id:
+                    stored_entry.created_at = created_at
+                    stored_entry.updated_at = updated_at
+                    stored_entry.upstream_id = upstream_id
+                    stored_entry.save()
+
     def update(self):
         self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
         now = timezone.now()
@@ -242,6 +272,7 @@ class HourEntryUpdate(object):
         checksums = {k.date: k.sha256 for k in HourEntryChecksum.objects.filter(date__in=dates)}
         deleted_entries = 0
         delete_days = set()
+        updated_days = set()
         for date in dates:
             if date not in per_date_data:
                 logger.info("No entries for %s - delete all existing entries.", date)
@@ -298,6 +329,7 @@ class HourEntryUpdate(object):
                     hour_entry.update_calculated_fields()
                     entries.append(hour_entry)
                     delete_days.add(entry_date)
+                    updated_days.add(entry_date)
 
                 item, created = HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})
                 if not created:
@@ -314,7 +346,9 @@ class HourEntryUpdate(object):
             logger.info("Deleting old 10k entries.")
             deleted_entries, _ = HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, date__in=list(delete_days), last_updated_at__lt=now).delete()
             logger.info("All old 10k entries deleted: %s.", deleted_entries)
-        Event(event_type="sync_10000ft_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
+        Event(event_type="sync_10000ft_report_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
+        for date in updated_days:
+            self.update_10000ft_api_hours(date)
         return (self.first_entry, self.last_entry, deleted_entries + len(entries))
 
 
