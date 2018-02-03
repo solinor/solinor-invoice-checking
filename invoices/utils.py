@@ -174,25 +174,15 @@ def sync_10000ft_projects():
 
 
 def get_projects():
-    projects_data = {}
-    for project in Project.objects.all():
-        projects_data[project.project_id] = project
-    return projects_data
+    projects_data = {project.project_id: project for project in Project.objects.all()}
 
 
 def get_invoices():
-    invoices_data = {}
-    for invoice in Invoice.objects.all():
-        invoice_key = "{}-{} {} - {}".format(invoice.year, invoice.month, invoice.client, invoice.project)
-        invoices_data[invoice_key] = invoice
-    return invoices_data
+    return {"{}-{} {} - {}".format(invoice.year, invoice.month, invoice.client, invoice.project): invoice for invoice in Invoice.objects.all()}
 
 
 def get_users():
-    users = {}
-    for user in TenkfUser.objects.all():
-        users[user.email] = user
-    return users
+    return {user.email: user for user in TenkfUser.objects.all()}
 
 
 class HourEntryUpdate(object):
