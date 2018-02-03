@@ -15,7 +15,7 @@ from django.utils.dateparse import parse_datetime as parse_datetime_django
 from flex_hours.models import PublicHoliday
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
 from invoices.models import Event, HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
-from invoices.slack import send_slack_notification
+from invoices.slack import send_new_project_to_slack
 from invoices.tenkfeet_api import TenkFeetApi
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -159,7 +159,7 @@ def sync_10000ft_projects():
         projects.append(project_obj)
         if created:
             created_count += 1
-            send_slack_notification(project_obj)
+            send_new_project_to_slack(project_obj)
     logger.info("Finished updating projects (n=%s)", len(projects))
     linked_invoices = 0
     for invoice in Invoice.objects.filter(project_m=None):

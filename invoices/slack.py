@@ -172,7 +172,7 @@ def refresh_slack_channels():
     Event(event_type="sync_slack_channels", succeeded=True, message="Got {} channels from Slack".format(len(slack_channels))).save()
 
 
-def send_slack_notification(project):
+def send_new_project_to_slack(project):
     message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id={}|{} - {}> (created at {})""".format(project.project_id, project.client, project.name, project.created_at)
     for channel in SlackChannel.objects.filter(new_project_notification=True):
         slack.chat.post_message(channel.channel_id, message)
