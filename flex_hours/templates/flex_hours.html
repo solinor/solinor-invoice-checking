@@ -4,7 +4,7 @@
 
 {% block header %}
 <script>
-$(function () {
+$(document).on('turbolinks:load', function () {
   var saldo_sum = 0;
   var kiky_sum = 0;
   $(".flex-row").each(function () {
