@@ -41,15 +41,18 @@ def update_10kf_data(logger, data, redis_instance):
     logger.info("Updating data.")
     update_obj.started_at = timezone.now()
     hour_entry_update = HourEntryUpdate(start_date, end_date)
-    hour_entry_update.update()
+    _, _, updated_entries_count = hour_entry_update.update()
     logger.info("Data update done.")
-    logger.info("Update statistics.")
-    refresh_stats(start_date, end_date)
+    if updated_entries_count > 0:
+        logger.info("Update statistics.")
+        refresh_stats(start_date, end_date)
+        logger.info("Statistics updated.")
+    else:
+        logger.info("No entries were updated - skipped updating statistics")
     update_obj.finished_at = timezone.now()
     update_obj.aborted = False
     update_obj.save()
     redis_instance.set("last-data-update", str(timezone.now()))
-    logger.info("Statistics updated.")
 
 
 def time_since_last_slack_notification(notification_type):
