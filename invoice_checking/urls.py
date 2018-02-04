@@ -34,6 +34,7 @@ urlpatterns = [
     path("users/<uuid:user_guid>/flexhours/json", flex_hours.views.person_flex_hours_json, name="person_flex_hours_json"),
     path("you/flexhours", flex_hours.views.your_flex_hours, name="your_flex_hours"),
     path("you/flexhours/json", flex_hours.views.your_flex_hours_json, name="your_flex_hours_json"),
+    path("you/stats", invoices.views.your_stats, name="your_stats"),
 
     path("search", invoices.views.search, name="search"),
 

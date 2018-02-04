@@ -12,7 +12,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
@@ -355,16 +355,7 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
 
 
 @login_required
-def frontpage(request):
-    last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"])
-    filters = InvoiceFilter(request.GET, queryset=all_invoices)
-    table = FrontpageInvoices(filters.qs)
-    RequestConfig(request, paginate={
-        "per_page": 100
-    }).configure(table)
-    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
-
+def your_stats(request):
     try:
         your_last_hour_marking = HourEntry.objects.filter(user_email=request.user.email).values_list("date", flat=True).latest("date")
     except HourEntry.DoesNotExist:
@@ -385,6 +376,26 @@ def frontpage(request):
             print(repr(billing_rate_data[0]["billable_hours"]), repr(total_hours))
             your_billing_rate = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
 
+    return JsonResponse({
+        "your_last_hour_marking": your_last_hour_marking,
+        "your_last_hour_marking_day": your_last_hour_marking.strftime("%A"),
+        "your_hours_this_week": your_hours_this_week,
+        "your_billing_rate": your_billing_rate,
+        "your_unsubmitted_entries": your_unsubmitted_entries,
+    })
+
+
+@login_required
+def frontpage(request):
+    last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"])
+    filters = InvoiceFilter(request.GET, queryset=all_invoices)
+    table = FrontpageInvoices(filters.qs)
+    RequestConfig(request, paginate={
+        "per_page": 100
+    }).configure(table)
+    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
+
     try:
         last_update_finished_at = REDIS.get("last-data-update").decode()
     except TypeError:
@@ -395,9 +406,6 @@ def frontpage(request):
         "filters": filters,
         "your_invoices": your_invoices,
         "last_update_finished_at": last_update_finished_at,
-        "your_last_hour_marking": your_last_hour_marking,
-        "your_hours_this_week": your_hours_this_week,
-        "your_billing_rate": your_billing_rate,
     }
     return render(request, "frontpage.html", context)
 
