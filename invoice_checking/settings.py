@@ -120,6 +120,8 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 MIDDLEWARE = (
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "invoice_checking.middleware.DomainRedirectMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -127,8 +129,10 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
 )
+
+COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
 if CSP_ENABLED:
     MIDDLEWARE += ("csp.middleware.CSPMiddleware",)
