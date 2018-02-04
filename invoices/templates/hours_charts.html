@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
-{% block header %}
-<script>
+{% block pageJs %}
 google.charts.load("current", {packages:["treemap", "corechart", "calendar"]});
 google.charts.setOnLoadCallback(drawChart);
 
@@ -10,7 +9,6 @@ function drawChart() {
   {% include "snippets/line_charts.js" %}
   {% include "snippets/calendar_charts.js" %}
 }
-</script>
 {% endblock %}
 
 {% block title %}People - Solinor{% endblock %}

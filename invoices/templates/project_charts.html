@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
-{% block header %}
-<script>
+{% block pageJs %}
 google.charts.load("current", {packages:["calendar", "corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
@@ -9,7 +8,6 @@ function drawChart() {
   {% include "snippets/calendar_charts.js" %}
   {% include "snippets/line_charts.js" %}
 }
-</script>
 {% endblock %}
 
 {% block title %}{{ project.client }} - Solinor{% endblock %}

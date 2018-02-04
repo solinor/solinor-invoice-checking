@@ -18,14 +18,15 @@
     <link href="{% static "django_tables2/bootstrap.css" %}" rel="stylesheet">
     <link href="{% static "css/invoice_page.css" %}" rel="stylesheet">
     {% endcompress %}
+
+    <script defer type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     {% compress js %}
-    <script src="{% static "js/jquery.1.12.4.min.js" %}"></script>
-    <script src="{% static "js/bootstrap.min.js" %}"></script>
-    <script src="{% static "js/base.js" %}"></script>
-    <script src="{% static "js/header_flex_hours.js" %}"></script>
-    <script src="{% static "js/turbolinks.js" %}"></script>
+    <script defer src="{% static "js/turbolinks.js" %}"></script>
+    <script defer src="{% static "js/jquery.1.12.4.min.js" %}"></script>
+    <script defer src="{% static "js/bootstrap.min.js" %}"></script>
+    <script defer src="{% static "js/base.js" %}"></script>
+    <script defer src="{% static "js/header_flex_hours.js" %}"></script>
     {% endcompress %}
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     {% block header %}{% endblock %}
 </head>
 
@@ -97,5 +98,12 @@
       {% block content %}{% endblock %}
     </div>
   </div>
+<script type="text/javascript">
+pageJs = function() {
+  {% block pageJs %}
+  console.log("Placeholder pageJs");
+  {% endblock %}
+}
+</script>
 </body>
 </html>

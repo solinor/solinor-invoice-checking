@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
-{% block header %}
-<script>
+{% block pageJs %}
 google.charts.load("current", {"packages":["corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
@@ -19,9 +18,7 @@ function drawChart() {
     var per_person_categories_chart_{{ item.0 }} = new google.visualization.PieChart(document.getElementById("per_person_categories_{{ item.0 }}"));
     per_person_categories_chart_{{ item.0 }}.draw(per_person_categories_data_{{ item.0 }}, per_person_categories_options_{{ item.0 }});
   {% endfor %}
-
 }
-</script>
 {% endblock %}
 
 {% block title %}{{ invoice.full_name }} - {{ invoice.date }} - Solinor{% endblock %}

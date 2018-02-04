@@ -1,28 +1,4 @@
 {% extends "base.html" %}
-{% block header %}
-<script type="text/javascript">
-google.charts.load("current", {packages:["calendar", "corechart"]});
-google.charts.setOnLoadCallback(drawChart);
-
-function drawChart() {
-  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff destination_id="flex_diff_calendar" title="Flex saldo changes" %}
-
-  {% if monthly_summary_linechart %}
-  var data = google.visualization.arrayToDataTable({{ monthly_summary_linechart|safe }});
-  var options = {
-   title: "Flex saldo at the end of the month",
-   curveType: "function",
-   height: 400,
-   legend: {
-     position: "none",
-   }
-  };
-  var chart = new google.visualization.LineChart(document.getElementById("monthly_summary_linechart"));
-  chart.draw(data, options);
-  {% endif %}
-}
-</script>
-{% endblock %}
 
 {% block title %}{% if cumulative_saldo %}{{ cumulative_saldo|floatformat:"2" }}h{% endif %} - flex time - {{ person.first_name }}{% endblock %}
 
@@ -180,4 +156,28 @@ function drawChart() {
 </tbody>
 </table>
 </div>
+
+{% endblock %}
+
+{% block pageJs %}
+google.charts.load("current", {packages:["calendar", "corechart"]});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+  {% include "snippets/calendar_chart.js" with calendar_height=calendar_height number_header="Flex diff" entries=daily_diff destination_id="flex_diff_calendar" title="Flex saldo changes" %}
+
+  {% if monthly_summary_linechart %}
+  var data = google.visualization.arrayToDataTable({{ monthly_summary_linechart|safe }});
+  var options = {
+   title: "Flex saldo at the end of the month",
+   curveType: "function",
+   height: 400,
+   legend: {
+     position: "none",
+   }
+  };
+  var chart = new google.visualization.LineChart(document.getElementById("monthly_summary_linechart"));
+  chart.draw(data, options);
+  {% endif %}
+}
 {% endblock %}

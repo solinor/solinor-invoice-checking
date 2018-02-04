@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block title %}Amazon invoices - Solinor{% endblock %}
-{% block header %}
-<script>
+{% block pageJs %}
 google.charts.load("current", {"packages":["corechart"]});
 google.charts.setOnLoadCallback(drawChart);
 
@@ -18,7 +17,6 @@ function drawChart() {
   linking_chart.draw(linking_data, linking_options);
   billing_chart.draw(billing_data, billing_options);
 }
-</script>
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
