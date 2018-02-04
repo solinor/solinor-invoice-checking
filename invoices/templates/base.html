@@ -62,7 +62,7 @@
             </ul>
           </li>
           <li><a href="{% url "amazon_overview" %}">Amazon</a></li>
-          <li><a href="{% url "your_flex_hours" %}">Flex <span class="label label-default" id="flex_hours_count">New</span></a></li>
+          <li><a href="{% url "your_flex_hours" %}">Flex <span class="label label-default" id="flex_hours_count" data-turbolinks-permanent>New</span></a></li>
           {% endif %}
           {% block navbar_items %}{% endblock %}
         </ul>
