@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
@@ -55,6 +56,49 @@ def manifest(request):
         "description": "Invoices, flex saldos, hour reports and checks.",
         "short_name": "SolFinance",
         "theme_color": "#222",
+        "start_url": "/",
+        "icons": [
+            {
+              "src": static("icons/icon-72x72.png"),
+              "sizes": "72x72",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-96x96.png"),
+              "sizes": "96x96",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-128x128.png"),
+              "sizes": "128x128",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-144x144.png"),
+              "sizes": "144x144",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-152x152.png"),
+              "sizes": "152x152",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-192x192.png"),
+              "sizes": "192x192",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-384x384.png"),
+              "sizes": "384x384",
+              "type": "image/png"
+            },
+            {
+              "src": static("icons/icon-512x512.png"),
+              "sizes": "512x512",
+              "type": "image/png"
+            },
+        ],
     }
     return HttpResponse(json.dumps(data), content_type="application/manifest+json")
 
