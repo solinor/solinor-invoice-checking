@@ -5,7 +5,7 @@
   <span class="text-right">
   <form method="post" class="form-inline" action="{% url "queue_update" %}">
     {% csrf_token %}
-    <input type="hidden" name="back" value="{{ request.get_full_path }}">
+    <input type="hidden" name="back" value="{% url "frontpage" %}{{ request.GET.q }}">
     <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>
   </form>
   </span></h2>
