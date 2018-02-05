@@ -185,11 +185,10 @@ def get_users():
     return {user.email: user for user in TenkfUser.objects.all()}
 
 
-def parse_upstream_id(id):
-    # 108957-2018-01-20-865336-717868858
-    if not id:
-        return
-    return id.split("-")[-1]
+def parse_upstream_id(upstream_id):
+    if not upstream_id:
+        return None
+    return upstream_id.split("-")[-1]
 
 
 class HourEntryUpdate(object):
@@ -266,6 +265,7 @@ class HourEntryUpdate(object):
         self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
         now = timezone.now()
         tenkfeet_entries = tenkfeet_api.fetch_hour_entries(self.start_date, self.end_date)
+        tenkfeet_api_entries = {entry["id"]: entry for entry in tenkfeet_api.fetch_api_hour_entries(self.start_date, self.end_date)}
         entries = []
 
         per_date_data = defaultdict(lambda: {"items": [], "sha256": hashlib.sha256()})
@@ -275,9 +275,9 @@ class HourEntryUpdate(object):
                 logger.debug("Skipping hour entry with 0 incurred hours: %s", entry)
                 continue
             entry_date = parse_date(entry[40])
-
-            per_date_data[entry_date]["sha256"].update(json.dumps(entry).encode())
-            per_date_data[entry_date]["items"].append(entry)
+            entry_data = {"reporting": entry, "api": tenkfeet_api_entries.get(parse_upstream_id(entry[59]), {})}
+            per_date_data[entry_date]["sha256"].update(json.dumps(entry_data).encode())
+            per_date_data[entry_date]["items"].append(entry_data)
 
         dates = list(daterange(self.start_date, self.end_date))
         checksums = {k.date: k.sha256 for k in HourEntryChecksum.objects.filter(date__in=dates)}
@@ -294,35 +294,37 @@ class HourEntryUpdate(object):
                 logger.info("Something changed for %s", date)
 
                 for entry in per_date_data[date]["items"]:
-                    entry_date = parse_date(entry[40])
+                    entry_date = parse_date(entry["reporting"][40])
                     data = {
                         "date": entry_date,
-                        "user_id": int(entry[0]),
-                        "user_name": entry[1],
-                        "assignable_id": entry[2],
-                        "approved_at": parse_date(entry[55]),
-                        "upstream_id": parse_upstream_id(entry[59]),
-                        "approved_by": entry[53],
-                        "submitted_by": entry[54],
-                        "client": entry[6],
-                        "project": entry[3],
-                        "incurred_hours": parse_float(entry[8]),
-                        "incurred_money": parse_float(entry[11]),
-                        "category": entry[14],
-                        "notes": entry[15],
-                        "entry_type": entry[17],
-                        "discipline": entry[18],
-                        "role": entry[19],
-                        "bill_rate": parse_float(entry[28]),
-                        "leave_type": entry[16],
-                        "phase_name": entry[31],
-                        "billable": entry[21] in ("1", 1),
-                        "approved": entry[52] == "Approved",
-                        "status": entry[52],
-                        "user_email": entry[29].lower(),
-                        "project_tags": entry[34],
+                        "user_id": int(entry["reporting"][0]),
+                        "user_name": entry["reporting"][1],
+                        "assignable_id": entry["reporting"][2],
+                        "approved_at": parse_date(entry["reporting"][55]),
+                        "upstream_id": parse_upstream_id(entry["reporting"][59]),
+                        "approved_by": entry["reporting"][53],
+                        "submitted_by": entry["reporting"][54],
+                        "updated_at": parse_datetime(entry["api"].get("updated_at")),
+                        "created_at": parse_datetime(entry["api"].get("created_at")),
+                        "client": entry["reporting"][6],
+                        "project": entry["reporting"][3],
+                        "incurred_hours": parse_float(entry["reporting"][8]),
+                        "incurred_money": parse_float(entry["reporting"][11]),
+                        "category": entry["reporting"][14],
+                        "notes": entry["reporting"][15],
+                        "entry_type": entry["reporting"][17],
+                        "discipline": entry["reporting"][18],
+                        "role": entry["reporting"][19],
+                        "bill_rate": parse_float(entry["reporting"][28]),
+                        "leave_type": entry["reporting"][16],
+                        "phase_name": entry["reporting"][31],
+                        "billable": entry["reporting"][21] in ("1", 1),
+                        "approved": entry["reporting"][52] == "Approved",
+                        "status": entry["reporting"][52],
+                        "user_email": entry["reporting"][29].lower(),
+                        "project_tags": entry["reporting"][34],
                         "last_updated_at": now,
-                        "calculated_is_billable": is_phase_billable(entry[31], entry[3]),
+                        "calculated_is_billable": is_phase_billable(entry["reporting"][31], entry["reporting"][3]),
                     }
 
                     assert data["date"].year > 2000
@@ -334,7 +336,7 @@ class HourEntryUpdate(object):
                     self.update_range(entry_date)
 
                     try:
-                        project_id = int(entry[32])
+                        project_id = int(entry["reporting"][32])
                         data["project_m"] = self.match_project(project_id)
                     except (ValueError, TypeError):
                         pass
