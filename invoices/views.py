@@ -357,7 +357,7 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
 @login_required
 def your_unsubmitted_hours(request):
     user = TenkfUser.objects.get(email=request.user.email)
-    unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(incurred_hours=0).order_by("-date")
+    unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(project_m__archived=True).exclude(incurred_hours=0).order_by("-date")
     return render(request, "unsubmitted_hours.html", {"person": user, "unsubmitted_entries": unsubmitted_entries})
 
 
