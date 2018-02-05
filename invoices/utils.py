@@ -357,11 +357,11 @@ class HourEntryUpdate(object):
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
         # Note: this does not call .save() for entries.
         with transaction.atomic():
-            HourEntry.objects.bulk_create(entries)
-            logger.info("All 10k entries added: %s.", len(entries))
             logger.info("Deleting old 10k entries.")
             deleted_entries, _ = HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, date__in=list(delete_days), last_updated_at__lt=now).delete()
             logger.info("All old 10k entries deleted: %s.", deleted_entries)
+            HourEntry.objects.bulk_create(entries)
+            logger.info("All 10k entries added: %s.", len(entries))
         Event(event_type="sync_10000ft_report_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
         return (self.first_entry, self.last_entry, deleted_entries + len(entries))
 
