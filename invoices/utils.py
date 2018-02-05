@@ -264,6 +264,11 @@ class HourEntryUpdate(object):
 
                 for entry in per_date_data[date]["items"]:
                     entry_date = parse_date(entry["reporting"][40])
+                    upstream_approvable_id = upstream_approvable_updated_at = None
+                    approval_data = entry.get("api", {}).get("approvals", {}).get("data", None)
+                    if approval_data:
+                        upstream_approvable_id = approval_data[0]["id"]
+                        upstream_approvable_updated_at = parse_datetime(approval_data[0]["updated_at"])
                     data = {
                         "date": entry_date,
                         "user_id": int(entry["reporting"][0]),
@@ -294,6 +299,8 @@ class HourEntryUpdate(object):
                         "project_tags": entry["reporting"][34],
                         "last_updated_at": now,
                         "calculated_is_billable": is_phase_billable(entry["reporting"][31], entry["reporting"][3]),
+                        "upstream_approvable_id": upstream_approvable_id,
+                        "upstream_approvable_updated_at": upstream_approvable_updated_at,
                     }
 
                     assert data["date"].year > 2000

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import datetime
 import uuid
 
 import reversion
@@ -50,6 +51,9 @@ class HourEntry(models.Model):
     approved_by = models.CharField(max_length=255, blank=True, null=True)
     submitted_by = models.CharField(max_length=255, blank=True, null=True)
 
+    upstream_approvable_id = models.IntegerField(null=True, blank=True)
+    upstream_approvable_updated_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     upstream_id = models.IntegerField(null=True, blank=True, unique=True)
@@ -73,6 +77,14 @@ class HourEntry(models.Model):
         self.calculated_has_proper_price = self.bill_rate > 50 and self.bill_rate < 170
         self.calculated_has_category = self.category != "No category" and self.category != "[none]"
         self.calculated_is_overtime = "overtime" in self.phase_name.lower()
+
+    @property
+    def can_submit_automatically(self):
+        if self.calculated_has_notes and self.calculated_has_phase and self.calculated_has_category:
+            if (self.upstream_approvable_id and self.upstream_approvable_updated_at) or (self.updated_at and self.upstream_id):
+                if self.date > datetime.date.today() - datetime.timedelta(days=60):
+                    return True
+        return False
 
     def __str__(self):
         return "{} - {} - {} - {} - {}h - {}e".format(self.date, self.user_name, self.client, self.project, self.incurred_hours, self.incurred_money)

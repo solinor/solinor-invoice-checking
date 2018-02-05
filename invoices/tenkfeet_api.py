@@ -149,6 +149,19 @@ class TenkFeetApi(object):
         self.apikey = apikey
         self.logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
+    def submit_hours(self, entries):
+        url = "https://api.10000ft.com/api/v1/approvals?auth={}".format(self.apikey)
+        approvables = [{"id": entry["id"], "type": "TimeEntry", "updated_at": entry["updated_at"]} for entry in entries]
+
+        data = {
+            "approvables": approvables,
+            "status": "pending",
+        }
+        return requests.post(url, json=data).json()
+
+    def get_unsubmitted_hours(self, user_id):
+        url = "https://api.10000ft.com/api/v1/users/1/time_entries?fields=approvals"
+
     def fetch_endpoint(self, next_page):
         entries = []
         while next_page:
@@ -167,7 +180,7 @@ class TenkFeetApi(object):
 
     def fetch_api_hour_entries(self, start_date, end_date):
         self.logger.info("Fetching hour entries from the API: %s - %s", start_date, end_date)
-        url = "/api/v1/time_entries?with_suggestions=false&from={:%Y-%m-%d}&to={:%Y-%m-%d}&per_page=250".format(start_date, end_date)
+        url = "/api/v1/time_entries?fields=approvals&with_suggestions=false&from={:%Y-%m-%d}&to={:%Y-%m-%d}&per_page=250".format(start_date, end_date)
         return self.fetch_endpoint(url)
 
     def fetch_projects(self):

@@ -29,6 +29,7 @@ from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, Da
                              InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
 from invoices.slack import refresh_slack_channels, refresh_slack_users
 from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
+from invoices.tenkfeet_api import TenkFeetApi
 from invoices.utils import sync_10000ft_projects, sync_10000ft_users
 
 REDIS = redis.from_url(settings.REDIS)
@@ -357,8 +358,46 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
 @login_required
 def your_unsubmitted_hours(request):
     user = TenkfUser.objects.get(email=request.user.email)
+    if request.method == "POST":
+        if request.POST.get("action") == "submit":
+            ids = request.POST.get("ids")
+            if not ids:
+                return HttpResponseBadRequest("Missing IDs")
+            ids = ids.split(",")
+            entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").filter(upstream_id__in=ids).exclude(project_m__archived=True).exclude(incurred_hours=0).exclude(updated_at=None).filter(date__gte=datetime.date.today() - datetime.timedelta(days=60))
+            tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)
+            update_entries = []
+            for entry in entries:
+                updated_at = entry.updated_at.isoformat().replace("+00:00", "Z")
+                update_entries.append({
+                    "id": entry.upstream_id,
+                    "updated_at": updated_at
+                })
+                print(entry.upstream_id, entry.updated_at, entry.upstream_approvable_updated_at)
+                print(update_entries)
+            response = tenkfeet_api.submit_hours(update_entries)
+            print(response)
+            if "data" in response:
+                update_items = []
+                for item in response["data"]:
+                    if item["status"] == "pending":
+                        update_items.append(item["approvable_id"])
+                HourEntry.objects.filter(upstream_id__in=update_items).update(status="Pending Approval")
+            start_date = min([entry.date for entry in entries])
+            end_date = max([entry.date for entry in entries])
+            if end_date - start_date < datetime.timedelta(days=180):
+                update_data = {
+                    "type": "data-update",
+                    "start_date": start_date.strftime("%Y-%m-%d"),
+                    "end_date": end_date.strftime("%Y-%m-%d"),
+                }
+                REDIS.publish("request-refresh", json.dumps(update_data))
+                messages.add_message(request, messages.INFO, "Hours submitted and update queued - updating this page will take a few moments (usually <10s, but in some rare cases up to 30 minutes)")
+            else:
+                messages.add_message(request, messages.INFO, "Hours submitted. Data entry was not queued, as entries are spread over 6 months period.")
+
     unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(project_m__archived=True).exclude(incurred_hours=0).order_by("-date")
-    return render(request, "unsubmitted_hours.html", {"person": user, "unsubmitted_entries": unsubmitted_entries})
+    return render(request, "unsubmitted_hours.html", {"person": user, "unsubmitted_entries": unsubmitted_entries, "ids": ",".join(str(entry.upstream_id) for entry in unsubmitted_entries if entry.can_submit_automatically)})
 
 
 @login_required
