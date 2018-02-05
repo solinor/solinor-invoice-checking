@@ -253,6 +253,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ALLOWED_HOSTS = ["*"]
 
 COMPRESS_CSS_HASHING_METHOD = None
+CONN_MAX_AGE = 120 if not DEBUG else 0
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
