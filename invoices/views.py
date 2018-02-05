@@ -133,7 +133,7 @@ def hours_browser(request):
         month_start_date = date_utils.month_start_date(today.year, today.month)
         month_end_date = date_utils.month_end_date(today.year, today.month)
         return HttpResponseRedirect("{}?date__gte={}&date__lte={}".format(reverse("hours_browser"), month_start_date, month_end_date))
-    hours = HourEntry.objects.filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
+    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
     RequestConfig(request, paginate={
@@ -152,7 +152,7 @@ def hours_browser(request):
 def person_details(request, user_guid):
     person = get_object_or_404(TenkfUser, guid=user_guid)
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(day=1, month=1)
-    entries = person.hourentry_set
+    entries = person.hourentry_set.exclude(status="Unsubmitted")
     filters = request.GET.get("filters", "").split(",")
     if "exclude_leaves" in filters:
         entries = entries.exclude(client="[none]")
@@ -172,7 +172,7 @@ def person_details(request, user_guid):
     treemaps.append(gen_treemap_data_projects(person.hourentry_set.all()))
     treemaps.append(gen_treemap_data_projects(person.hourentry_set.filter(calculated_is_billable=True), "incurred_money", "Money"))
 
-    months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
+    months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
     return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
 
@@ -182,8 +182,8 @@ def person_details_month(request, year, month, user_guid):
     year = int(year)
     month = int(month)
     person = get_object_or_404(TenkfUser, guid=user_guid)
-    entries = person.hourentry_set.exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
-    months = HourEntry.objects.filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
+    entries = person.hourentry_set.exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
+    months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
 
 
@@ -195,7 +195,7 @@ def users_list(request):
     people_data = {}
     for person in TenkfUser.objects.filter(archived=False):
         people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "person": person, "issues": 0}
-    for entry in HourEntry.objects.exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
+    for entry in HourEntry.objects.exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
         if entry.user_email not in people_data:
             continue  # TODO: logging
         if entry.calculated_is_billable:
@@ -235,7 +235,7 @@ def hours_sickleaves(request):
 
     start_date = datetime.date.today() - datetime.timedelta(days=365)
     short_period_start_date = datetime.date.today() - datetime.timedelta(days=120)
-    sick_leaves = HourEntry.objects.filter(date__gte=start_date).exclude(user_m=None).filter(leave_type="Sick leave").order_by("user_m", "date").values("user_m__email", "user_m__display_name", "user_m__pk", "date").annotate(incurred_hours_sum=Sum("incurred_hours"))
+    sick_leaves = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=start_date).exclude(user_m=None).filter(leave_type="Sick leave").order_by("user_m", "date").values("user_m__email", "user_m__display_name", "user_m__pk", "date").annotate(incurred_hours_sum=Sum("incurred_hours"))
 
     per_person_info = defaultdict(lambda: {"short": 0, "long": 0, "short_periods": []})
     for item in sick_leaves:
@@ -403,16 +403,16 @@ def your_unsubmitted_hours(request):
 @login_required
 def your_stats(request):
     try:
-        your_last_hour_marking = HourEntry.objects.filter(user_email=request.user.email).values_list("date", flat=True).latest("date")
+        your_last_hour_marking = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).values_list("date", flat=True).latest("date")
     except HourEntry.DoesNotExist:
         your_last_hour_marking = "No entries"
 
     today = datetime.date.today()
-    your_hours_this_week = HourEntry.objects.filter(user_email=request.user.email).filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
+    your_hours_this_week = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
 
     your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
 
-    billing_rate_data = HourEntry.objects.filter(user_email="olli.jarva@solinor.com").filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+    billing_rate_data = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email="olli.jarva@solinor.com").filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
     your_billing_rate = "?"
     if billing_rate_data:
         total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
@@ -463,7 +463,7 @@ def frontpage(request):
 @login_required
 def invoice_hours(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
-    entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0).select_related("user_m")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0).select_related("user_m")
 
     previous_invoices = []
     if invoice.project_m:
@@ -523,27 +523,27 @@ def hours_charts(request):
     linecharts = []
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
-    treemaps.append(gen_treemap_data_projects(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_projects(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Gross income per project"))
-    treemaps.append(gen_treemap_data_users(HourEntry.objects.all()))
-    treemaps.append(gen_treemap_data_users(HourEntry.objects.filter(calculated_is_billable=True), "incurred_money", "Gross income per person"))
+    treemaps.append(gen_treemap_data_projects(HourEntry.objects.exclude(status="Unsubmitted")))
+    treemaps.append(gen_treemap_data_projects(HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True), "incurred_money", "Gross income per project"))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.exclude(status="Unsubmitted")))
+    treemaps.append(gen_treemap_data_users(HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True), "incurred_money", "Gross income per person"))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).order_by("date").values("date").annotate(hours=Sum("incurred_hours"))
     hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).filter(calculated_is_billable=True).order_by("date").values("date").annotate(money=Sum("incurred_money"))
     money_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["money"], "{:.2f}€".format(entry["money"])) for entry in entries if entry["money"] > 0]
 
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg (billable hours)", json.dumps(monthly_avg_billing)))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     money_per_month_data = [["Date", "Gross income (billing)"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Gross income (billing) per month", json.dumps(money_per_month_data)))
-    entries = HourEntry.objects.filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
     return render(request, "hours_charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
@@ -555,11 +555,11 @@ def users_charts(request):
     calendar_charts = []
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(month=1, day=1)
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type__in=["Annual holiday", "Flex time Leave", "Other paid leave", "Parental leave", "Unpaid leave", "Vuosiloma"]).order_by("date").values("date").annotate(hours=Count("incurred_hours"))
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).filter(leave_type__in=["Annual holiday", "Flex time Leave", "Other paid leave", "Parental leave", "Unpaid leave", "Vuosiloma"]).order_by("date").values("date").annotate(hours=Count("incurred_hours"))
     hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("annual_holiday_calendar", "People enjoying holidays per day", "People", hours_calendar_data))
 
-    entries = HourEntry.objects.filter(date__gte=year_ago).filter(leave_type="Sick leave").order_by("date").values("date").annotate(hours=Count("incurred_hours"))
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).filter(leave_type="Sick leave").order_by("date").values("date").annotate(hours=Count("incurred_hours"))
     hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("sick_leaves_calendar", "People on sick leave per day", "People", hours_calendar_data))
 
@@ -570,7 +570,7 @@ def users_charts(request):
 def hours_overview(request):
     today = datetime.date.today()
     period_start = today - datetime.timedelta(days=30)
-    hour_markings = HourEntry.objects.filter(date__gte=period_start).exclude(user_m=None).values("user_m__guid", "user_name", "date").annotate(hours=Sum("incurred_hours"))
+    hour_markings = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=period_start).exclude(user_m=None).values("user_m__guid", "user_name", "date").annotate(hours=Sum("incurred_hours"))
     days = []
     current_day = period_start
     while True:
@@ -607,12 +607,12 @@ def project_charts(request, project_id):
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
-    entries = HourEntry.objects.filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
     money_per_month_data = [["Date", "Gross income"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Gross income per month", json.dumps(money_per_month_data)))
-    entries = HourEntry.objects.filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
@@ -647,22 +647,22 @@ def invoice_charts(request, invoice_id):
 
     charts = {
         "per_category_hours": {
-            "queryset": HourEntry.objects.values_list("category").annotate(hours=Sum("incurred_hours")),
+            "queryset": HourEntry.objects.exclude(status="Unsubmitted").values_list("category").annotate(hours=Sum("incurred_hours")),
             "callback": get_chart_data,
             "title": "Incurred hours per category",
         },
         "per_category_billing": {
-            "queryset": HourEntry.objects.values_list("category").filter(calculated_is_billable=True).annotate(hours=Sum("incurred_money")),
+            "queryset": HourEntry.objects.exclude(status="Unsubmitted").values_list("category").filter(calculated_is_billable=True).annotate(hours=Sum("incurred_money")),
             "callback": get_chart_data,
             "title": "Incurred billing per category",
         },
         "per_person_hours": {
-            "queryset": HourEntry.objects.values_list("user_name").annotate(hours=Sum("incurred_hours")),
+            "queryset": HourEntry.objects.exclude(status="Unsubmitted").values_list("user_name").annotate(hours=Sum("incurred_hours")),
             "callback": get_chart_data,
             "title": "Incurred hours per person",
         },
         "per_person_billing": {
-            "queryset": HourEntry.objects.values_list("user_name").filter(calculated_is_billable=True).annotate(hours=Sum("incurred_money")),
+            "queryset": HourEntry.objects.exclude(status="Unsubmitted").values_list("user_name").filter(calculated_is_billable=True).annotate(hours=Sum("incurred_money")),
             "callback": get_chart_data,
             "title": "Incurred billing per person",
         },
@@ -673,7 +673,7 @@ def invoice_charts(request, invoice_id):
         chart_data["data"] = chart_data["callback"](chart_data["queryset"])
         chart_data["json_data"] = json.dumps(chart_data["data"])
 
-    per_person_categories = get_2d_chart_data(HourEntry.objects.values_list("user_name", "category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice).filter(date__gte=first_day).filter(date__lte=last_day))
+    per_person_categories = get_2d_chart_data(HourEntry.objects.exclude(status="Unsubmitted").values_list("user_name", "category").annotate(hours=Sum("incurred_hours")).filter(invoice=invoice).filter(date__gte=first_day).filter(date__lte=last_day))
 
     categories = set()
     for data in per_person_categories.values():
@@ -734,7 +734,7 @@ def invoice_page(request, invoice_id, **_):
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
-    entries = HourEntry.objects.filter(invoice=invoice).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0)
     aws_entries = None
     if invoice.project_m:
         aws_accounts = invoice.project_m.amazon_account.all()

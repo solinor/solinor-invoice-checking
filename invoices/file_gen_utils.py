@@ -14,7 +14,7 @@ def generate_hours_xls_for_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
     title = "{} - {} - {}-{}".format(invoice.client, invoice.project, invoice.year, invoice.month)
 
-    entries = HourEntry.objects.filter(project=invoice.project, client=invoice.client, date__year__gte=invoice.year, date__month=invoice.month).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project=invoice.project, client=invoice.client, date__year__gte=invoice.year, date__month=invoice.month).filter(incurred_hours__gt=0)
     with tempfile.TemporaryDirectory() as dirname:
         filename = dirname + "/hourlist.xlsx"
         workbook = xlsxwriter.Workbook(filename)
@@ -79,7 +79,7 @@ def generate_hours_pdf_for_invoice(request, invoice):
     title = "{} - {} - {}-{}".format(invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
     title = title.replace("\xe4", "a").replace("\xb6", "o").replace("\x84", "A").replace("\x96", "O").replace("\xf6", "o")
 
-    entries = HourEntry.objects.filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=invoice_data.year, date__month=invoice_data.month).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=invoice_data.year, date__month=invoice_data.month).filter(incurred_hours__gt=0)
     phases = {}
     for entry in entries:
         if entry.phase_name not in phases:

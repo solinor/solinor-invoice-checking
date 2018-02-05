@@ -134,7 +134,7 @@ def find_last_process_date(data_list, contracts, today):
 
 
 def calculate_kiky_stats(person, contracts, first_process_day, last_process_day):
-    hours = HourEntry.objects.filter(user_m=person).filter(date__gte=datetime.date(2017, 9, 1)).filter(project="KIKY - Make Finland Great again").aggregate(Sum("incurred_hours"))["incurred_hours__sum"]
+    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).filter(date__gte=datetime.date(2017, 9, 1)).filter(project="KIKY - Make Finland Great again").aggregate(Sum("incurred_hours"))["incurred_hours__sum"]
     if hours is None:
         hours = 0
     first_process_day = max(datetime.date(2017, 11, 1), first_process_day.replace(day=1))
@@ -188,7 +188,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_e
 
     holidays = get_holidays(today)
 
-    data_list = list(HourEntry.objects.filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).values("date").order_by("date")
+    data_list = list(HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).filter(date__gte=start_hour_markings_from_date).exclude(date__gte=today).values("date").order_by("date")
                      .annotate(incurred_working_hours=Sum("incurred_hours", filter=~Q(phase_name__icontains="overtime") & Q(leave_type="[project]") & ~Q(project="KIKY - Make Finland Great again")))
                      .annotate(incurred_leave_hours=Sum("incurred_hours", filter=~Q(leave_type="Flex time Leave") & ~Q(leave_type="[project]") & ~Q(leave_type="Unpaid leave")))
                      .annotate(incurred_unpaid_leave=Sum("incurred_hours", filter=Q(leave_type="Unpaid leave")))
