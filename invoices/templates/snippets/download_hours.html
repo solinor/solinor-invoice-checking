@@ -4,7 +4,7 @@
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-    <li><a href="{% url "get_invoice_pdf" invoice.invoice_id "hours" %}">PDF</a></li>
-    <li><a href="{% url "get_invoice_xls" invoice.invoice_id "hours" %}">XLS</a></li>
+    <li><a href="{% url "get_invoice_pdf" invoice.invoice_id "hours" %}" data-turbolinks="false">PDF</a></li>
+    <li><a href="{% url "get_invoice_xls" invoice.invoice_id "hours" %}" data-turbolinks="false">XLS</a></li>
   </ul>
 </div>
