@@ -41,7 +41,7 @@ def send_unsubmitted_hours_notifications():
     for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
         fallback_message = """<https://finance.solinor.com{}|You> have *unsubmitted hours*: {} hour markings with total of {} hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""".format(reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         message = "You need to submit or remove following hours:"
-        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).order_by("date")
+        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).exclude(project_m__archived=True).order_by("date")
         for unsubmitted_hour in unsubmitted_hours:
             project_name_field = "{} - {}".format(unsubmitted_hour.client, unsubmitted_hour.project)
             if unsubmitted_hour.project_m:
