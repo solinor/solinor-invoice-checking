@@ -12,15 +12,23 @@ $.get("{% url "your_stats" %}", function(data) {
     $("#your_unsubmitted_entries").html(data.your_unsubmitted_entries + " <span class='glyphicon glyphicon-ok-sign'>");
   }
   $("#your_last_hour_marking").html(data.your_last_hour_marking + " (" + data.your_last_hour_marking_day + ")");
-  $("#your_hours_this_week").html(data.your_hours_this_week.toFixed(2) + "h");
-  $("#your_billing_rate").html(data.your_billing_rate.toFixed(0) + "%");
+  if (typeof data.your_hours_this_week === "number") {
+    $("#your_hours_this_week").html(data.your_hours_this_week.toFixed(2) + "h");
+  } else {
+    $("#your_hours_this_week").html("?");
+  }
+  if (typeof data.your_billing_rate === "number") {
+    $("#your_billing_rate").html(data.your_billing_rate.toFixed(0) + "%");
+  } else {
+    $("#your_billing_rate").html("?");
+  }
 })
 
 {% endblock %}
 {% block content %}
 
 <div class="row well">
-  <div class="col-md-3">
+  <div class="col-md-3 clickable-area" onclick="Turbolinks.visit('{% url "your_unsubmitted_hours" %}');">
     <h3>Unsubmitted entries</h3>
     <p class="lead" id="your_unsubmitted_entries">Loading</p>
   </div>
@@ -29,7 +37,7 @@ $.get("{% url "your_stats" %}", function(data) {
     <p class="lead" id="your_last_hour_marking">Loading</p>
   </div>
   <div class="col-md-3">
-    <h3>Hours this week</h3>
+    <h3>Hours for past 7 days</h3>
     <p class="lead" id="your_hours_this_week">Loading</p>
   </div>
   <div class="col-md-3">

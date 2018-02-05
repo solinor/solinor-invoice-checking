@@ -355,6 +355,13 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
 
 
 @login_required
+def your_unsubmitted_hours(request):
+    user = TenkfUser.objects.get(email=request.user.email)
+    unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(incurred_hours=0).order_by("-date")
+    return render(request, "unsubmitted_hours.html", {"person": user, "unsubmitted_entries": unsubmitted_entries})
+
+
+@login_required
 def your_stats(request):
     try:
         your_last_hour_marking = HourEntry.objects.filter(user_email=request.user.email).values_list("date", flat=True).latest("date")
@@ -362,11 +369,9 @@ def your_stats(request):
         your_last_hour_marking = "No entries"
 
     today = datetime.date.today()
-    week_start = today - datetime.timedelta(days=today.weekday())
-    week_end = week_start + datetime.timedelta(days=6)
-    your_hours_this_week = HourEntry.objects.filter(user_email=request.user.email).filter(date__gte=week_start, date__lte=week_end).aggregate(hours=Sum("incurred_hours"))["hours"]
+    your_hours_this_week = HourEntry.objects.filter(user_email=request.user.email).filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
 
-    your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).filter(status="Unsubmitted").count()
+    your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
 
     billing_rate_data = HourEntry.objects.filter(user_email="olli.jarva@solinor.com").filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
     your_billing_rate = "?"

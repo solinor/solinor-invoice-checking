@@ -35,6 +35,7 @@ urlpatterns = [
     path("you/flexhours", flex_hours.views.your_flex_hours, name="your_flex_hours"),
     path("you/flexhours/json", flex_hours.views.your_flex_hours_json, name="your_flex_hours_json"),
     path("you/stats", invoices.views.your_stats, name="your_stats"),
+    path("you/hours/unsubmitted", invoices.views.your_unsubmitted_hours, name="your_unsubmitted_hours"),
 
     path("search", invoices.views.search, name="search"),
 

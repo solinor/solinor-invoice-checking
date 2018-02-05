@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Unsubmitted hours - Solinor Finance{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li><a href="{% url "frontpage" %}">Home</a></li>
+  <li><a href="{% url "users_list" %}">People</a></li>
+  <li><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="active">Unsubmitted hours</li>
+</ol>
+
+<h2>Unsubmitted hours</h2>
+
+<div class="row top-buttons-row">
+  <div class="col-md-12">
+    <a rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-info">View {{ person.first_name }} in 10000ft</a>
+  </div>
+</div>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Client</th>
+      <th>Project</th>
+      <th>Category</th>
+      <th>Phase</th>
+      <th>Notes</th>
+      <th class="number-column">Hours</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in unsubmitted_entries %}
+    <tr>
+      <td>{{ entry.date }}</td>
+      <td>{{ entry.client }}</td>
+      <td>{{ entry.project }}</td>
+      <td>{{ entry.category }}</td>
+      <td>{{ entry.phase_name }}</td>
+      <td>{{ entry.notes }}</td>
+      <td class="number-column">{{ entry.incurred_hours|floatformat:"2" }}h</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}
