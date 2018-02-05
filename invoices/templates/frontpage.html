@@ -23,7 +23,9 @@ $.get("{% url "your_stats" %}", function(data) {
     $("#your_billing_rate").html("?");
   }
 })
-
+$.get("{% url "frontpage_invoice_table" %}" + window.location.search, function(data) {
+  $("#all-invoices-table").html(data);
+}, "html");
 {% endblock %}
 {% block content %}
 
@@ -53,29 +55,7 @@ $.get("{% url "your_stats" %}", function(data) {
 {% include "snippets/frontpage_table.html" with invoices=your_invoices %}
 
 {% endif %}
-<h2>All invoices <small><span data-toggle="collapse" data-target="#invoice-table-filters"><span class="glyphicon glyphicon-filter"></span></span></small>
-  <span class="text-right">
-  <form method="post" class="form-inline" action="{% url "queue_update" %}">
-    {% csrf_token %}
-    <input type="hidden" name="back" value="{{ request.get_full_path }}">
-    <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>
-  </form>
-  </span></h2>
 
-<div id="invoice-table-filters" class="collapse">
-<form action="" method="get" class="form-inline">
-  <div class="row">
-  {% for field in filters.form %}
-  <div class="col-md-3">
-    <h4>{{ field.label_tag }}</h4>
-    <p class="list-group-item-text">{{ field }}</p>
-  </div>
-  {% endfor %}
-  </div>
-  <button class="btn btn-primary" type="submit">Filter</button>
-</form>
-</div>
-
-{% render_table invoices %}
+<div id="all-invoices-table"><h2>Loading...</h2></div>
 
 {% endblock %}

@@ -63,9 +63,14 @@ def send_unsubmitted_hours_notifications():
                 {
                     "type": "button",
                     "text": "Submit your hours",
-                    "url": "https://app.10000ft.com",
+                    "url": "https://finance.solinor.com{}".format(reverse("your_unsubmitted_hours")),
                     "style": "primary",
-                }
+                },
+                {
+                    "type": "button",
+                    "text": "Edit in 10000ft",
+                    "url": "https://app.10000ft.com",
+                },
             ],
             "footer": "This notification is sent weekly if you have unsubmitted hours."
         }

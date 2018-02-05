@@ -429,14 +429,23 @@ def your_stats(request):
 
 
 @login_required
-def frontpage(request):
-    last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+def frontpage_invoice_table(request):
     all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"])
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={
         "per_page": 100
     }).configure(table)
+    context = {
+        "invoices": table,
+        "filters": filters,
+    }
+    return render(request, "snippets/invoices_table.html", context)
+
+
+@login_required
+def frontpage(request):
+    last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
 
     try:
@@ -445,8 +454,6 @@ def frontpage(request):
         last_update_finished_at = "?"
     last_update_finished_at = parse_datetime(last_update_finished_at) or "?"
     context = {
-        "invoices": table,
-        "filters": filters,
         "your_invoices": your_invoices,
         "last_update_finished_at": last_update_finished_at,
     }

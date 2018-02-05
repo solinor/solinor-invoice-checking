@@ -49,6 +49,7 @@ urlpatterns = [
     url(r"^accounts/profile/$", RedirectView.as_view(pattern_name="frontpage", permanent=False)),
     url(r"^accounts/", include("googleauth.urls")),
     path("", invoices.views.frontpage, name="frontpage"),
+    path("frontpage/invoices", invoices.views.frontpage_invoice_table, name="frontpage_invoice_table"),
     url(r"^admin/", admin.site.urls),
 
     # Deprecated paths
