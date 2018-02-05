@@ -14,6 +14,13 @@
     <meta name="format-detection" content="telephone=no">
     <title>{% block title %}{% endblock %}</title>
     <link rel="manifest" href="{% url "manifest" %}">
+    <link rel="subresource" href="{% static "fonts/glyphicons-halflings-regular.woff2" %}" as="font">
+    <link rel="dns-prefetch" href="//app.10000ft.com">
+    <link rel="dns-prefetch" href="//ajax.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//www.google-analytics.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
 
     {% compress css %}
     <link href="{% static "css/base.css" %}" rel="stylesheet">
