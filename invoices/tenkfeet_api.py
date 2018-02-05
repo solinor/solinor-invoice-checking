@@ -167,7 +167,7 @@ class TenkFeetApi(object):
 
     def fetch_api_hour_entries(self, start_date, end_date):
         self.logger.info("Fetching hour entries from the API: %s - %s", start_date, end_date)
-        url = "/api/v1/time_entries?with_suggestions=false&from={:%Y-%m-%d}&to={:%Y-%m-%d}".format(start_date, end_date)
+        url = "/api/v1/time_entries?with_suggestions=false&from={:%Y-%m-%d}&to={:%Y-%m-%d}&per_page=250".format(start_date, end_date)
         return self.fetch_endpoint(url)
 
     def fetch_projects(self):
