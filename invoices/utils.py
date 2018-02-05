@@ -233,7 +233,6 @@ class HourEntryUpdate(object):
 
     def update_10000ft_api_hours(self, date):
         upstream_hours = tenkfeet_api.fetch_api_hour_entries(date, date)
-        print(upstream_hours)
         stored_hours = HourEntry.objects.filter(date=date).select_related("project_m")
         for upstream_entry in upstream_hours:
             if upstream_entry["hours"] == 0:

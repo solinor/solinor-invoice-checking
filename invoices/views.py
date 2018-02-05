@@ -378,7 +378,6 @@ def your_stats(request):
     if billing_rate_data:
         total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
         if total_hours > 0:
-            print(repr(billing_rate_data[0]["billable_hours"]), repr(total_hours))
             your_billing_rate = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
 
     return JsonResponse({
