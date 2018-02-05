@@ -188,7 +188,7 @@ def get_users():
 def parse_upstream_id(upstream_id):
     if not upstream_id:
         return None
-    return upstream_id.split("-")[-1]
+    return int(upstream_id.split("-")[-1])
 
 
 class HourEntryUpdate(object):
@@ -229,37 +229,6 @@ class HourEntryUpdate(object):
 
     def match_user(self, email):
         return self.user_data.get(email)
-
-    def update_10000ft_api_hours(self, date):
-        upstream_hours = tenkfeet_api.fetch_api_hour_entries(date, date)
-        stored_hours = HourEntry.objects.filter(date=date).select_related("project_m")
-        for upstream_entry in upstream_hours:
-            if upstream_entry["hours"] == 0:
-                continue
-            upstream_date = parse_date(upstream_entry["date"])
-            for stored_entry in stored_hours:
-                if stored_entry.date != upstream_date:
-                    continue
-                if stored_entry.user_id != upstream_entry["user_id"]:
-                    continue
-                if stored_entry.incurred_hours != upstream_entry["hours"]:
-                    continue
-                if stored_entry.bill_rate != upstream_entry["bill_rate"]:
-                    continue
-                if stored_entry.notes != upstream_entry["notes"] or upstream_entry["notes"] is None or len(upstream_entry["notes"]) < 5:
-                    continue
-                if stored_entry.category != upstream_entry["task"]:
-                    continue
-                if stored_entry.assignable_id != upstream_entry["assignable_id"]:
-                    continue
-                created_at = parse_datetime(upstream_entry["created_at"])
-                updated_at = parse_datetime(upstream_entry["updated_at"])
-                upstream_id = upstream_entry["id"]
-                if stored_entry.created_at != created_at or stored_entry.updated_at != updated_at or stored_entry.upstream_id != upstream_id:
-                    stored_entry.created_at = created_at
-                    stored_entry.updated_at = updated_at
-                    stored_entry.upstream_id = upstream_id
-                    stored_entry.save()
 
     def update(self):
         self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
