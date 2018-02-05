@@ -238,8 +238,8 @@ SHORT_DATE_FORMAT = "Y-m-d"
 DATETIME_FORMAT = "Y-m-d H:i"
 SHORT_DATETIME_FORMAT = "Y-m-d H:i"
 
-handler404 = "invoices.views.handler404"  # pylint:ignore=invalid-name
-handler500 = "invoices.views.handler500"  # pylint:ignore=invalid-name
+handler404 = "invoices.views.handler404"  # pylint:disable=invalid-name
+handler500 = "invoices.views.handler500"  # pylint:disable=invalid-name
 
 # Update database configuration with $DATABASE_URL.
 DATABASES["default"].update(dj_database_url.config(conn_max_age=500))

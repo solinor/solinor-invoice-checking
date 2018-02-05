@@ -156,6 +156,7 @@ class Invoice(models.Model):
     def get_tags(self):
         if self.tags:
             return self.tags.split(",")
+        return []
 
     def compare(self, other):
         def calc_stats(field_name):

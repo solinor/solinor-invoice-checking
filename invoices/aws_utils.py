@@ -36,25 +36,25 @@ AWS_URLS = {
 }
 
 
-def parse_aws_invoice(f):
-    reader = csv.reader(f)
+def parse_aws_invoice(file_obj):
+    reader = csv.reader(file_obj)
     header = next(reader)
     for line in reader:
         yield dict(zip(header, line))
 
 
-def parse_date_record(d):
-    if d == "":
+def parse_date_record(timestamp):
+    if timestamp == "":
         return None
-    unaware = datetime.datetime.strptime(d, "%Y/%m/%d %H:%M:%S")
+    unaware = datetime.datetime.strptime(timestamp, "%Y/%m/%d %H:%M:%S")
     return pytz.utc.localize(unaware)
 
 
-def import_aws_invoice(f, year, month):
+def import_aws_invoice(file_obj, year, month):
     invoice_month = datetime.date(year, month, 1)
     linked_accounts = {}
     c = 0
-    for record in parse_aws_invoice(f):
+    for record in parse_aws_invoice(file_obj):
         c += 1
         linked_account_id = record["LinkedAccountId"]
         if record["UsageQuantity"]:

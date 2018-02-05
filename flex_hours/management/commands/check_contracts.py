@@ -7,8 +7,7 @@ from django.core.management.base import BaseCommand
 from django.urls import reverse
 
 from flex_hours.models import FlexTimeCorrection, WorkContract
-from flex_hours.utils import FlexHourException, calculate_flex_saldo
-from invoices.models import Event, HourEntry, TenkfUser
+from invoices.models import Event, HourEntry
 
 
 class Command(BaseCommand):
