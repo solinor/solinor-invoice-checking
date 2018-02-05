@@ -50,7 +50,7 @@ function drawChart() {
     </div>
     {% endif %}
     {% if invoice.project_m %}
-    <a class="btn btn-info" href="{% url "project_charts" invoice.project_m.guid %}">Project charts</a>
+    <a class="btn btn-default" href="{% url "project_charts" invoice.project_m.guid %}">Project charts</a>
     {% endif %}
   </div>
 </div>

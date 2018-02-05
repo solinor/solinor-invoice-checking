@@ -15,9 +15,9 @@
     <div class="row top-buttons-row">
       <div class="col-md-12">
         {% include "snippets/previous_invoices.html" %}
-        <a class="btn btn-info" href="{% url "invoice_charts" invoice.invoice_id %}" role="button">Charts</a>
+        <a class="btn btn-default" href="{% url "invoice_charts" invoice.invoice_id %}" role="button">Charts</a>
         {% include "snippets/download_hours.html" %}
-        <a class="btn btn-info" href="{% url "invoice_hours" invoice.invoice_id %}" role="button">View hours</a>
+        <a class="btn btn-default" href="{% url "invoice_hours" invoice.invoice_id %}" role="button">View hours</a>
         {% include "snippets/10000ft_project_links.html" %}
         {% include "snippets/update_data_button.html" %}
       </div>
