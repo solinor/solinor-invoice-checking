@@ -436,9 +436,15 @@ def frontpage_invoice_table(request):
     RequestConfig(request, paginate={
         "per_page": 100
     }).configure(table)
+    try:
+        last_update_finished_at = REDIS.get("last-data-update").decode()
+    except TypeError:
+        last_update_finished_at = "?"
+    last_update_finished_at = parse_datetime(last_update_finished_at) or "?"
     context = {
         "invoices": table,
         "filters": filters,
+        "last_update_finished_at": last_update_finished_at,
     }
     return render(request, "snippets/invoices_table.html", context)
 
@@ -448,14 +454,8 @@ def frontpage(request):
     last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
 
-    try:
-        last_update_finished_at = REDIS.get("last-data-update").decode()
-    except TypeError:
-        last_update_finished_at = "?"
-    last_update_finished_at = parse_datetime(last_update_finished_at) or "?"
     context = {
         "your_invoices": your_invoices,
-        "last_update_finished_at": last_update_finished_at,
     }
     return render(request, "frontpage.html", context)
 
