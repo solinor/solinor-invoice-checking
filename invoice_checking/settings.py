@@ -134,6 +134,7 @@ MIDDLEWARE = (
 )
 
 COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+WHITENOISE_MAX_AGE = 60 * 60 * 24 * 30
 
 if CSP_ENABLED:
     MIDDLEWARE += ("csp.middleware.CSPMiddleware",)
