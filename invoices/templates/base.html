@@ -8,8 +8,11 @@
     {% tag_manager_snippet %}
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="google" content="notranslate">
+    <meta name="format-detection" content="telephone=no">
     <title>{% block title %}{% endblock %}</title>
+    <link rel="manifest" href="{% url "manifest" %}">
 
     {% compress css %}
     <link href="{% static "css/base.css" %}" rel="stylesheet">

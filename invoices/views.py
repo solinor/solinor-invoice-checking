@@ -47,6 +47,18 @@ def handler500(request):
     return response
 
 
+def manifest(request):
+    data = {
+        "name": "Solinor Finance",
+        "display": "standalone",
+        "background_color": "#fff",
+        "description": "Invoices, flex saldos, hour reports and checks.",
+        "short_name": "SolFinance",
+        "theme_color": "#222",
+    }
+    return HttpResponse(json.dumps(data), content_type="application/manifest+json")
+
+
 @login_required
 def search(request):
     q = request.GET.get("q")

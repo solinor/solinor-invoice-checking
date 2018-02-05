@@ -81,7 +81,7 @@ class HourEntry(models.Model):
     @property
     def can_submit_automatically(self):
         if self.calculated_has_notes and self.calculated_has_phase and self.calculated_has_category:
-            if (self.upstream_approvable_id and self.upstream_approvable_updated_at) or (self.updated_at and self.upstream_id):
+            if self.updated_at and self.upstream_id:
                 if self.date > datetime.date.today() - datetime.timedelta(days=60):
                     return True
         return False
