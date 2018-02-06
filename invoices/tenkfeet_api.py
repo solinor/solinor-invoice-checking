@@ -159,9 +159,6 @@ class TenkFeetApi(object):
         }
         return requests.post(url, json=data).json()
 
-    def get_unsubmitted_hours(self, user_id):
-        url = "https://api.10000ft.com/api/v1/users/1/time_entries?fields=approvals"
-
     def fetch_endpoint(self, next_page):
         entries = []
         while next_page:

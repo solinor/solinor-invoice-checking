@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_date, parse_datetime
 
 from flex_hours.models import FlexTimeCorrection, PublicHoliday, WorkContract
-from invoices.models import Event, HourEntry, SlackNotificationBundle, TenkfUser
+from invoices.models import Event, HourEntry, TenkfUser
 from invoices.slack import slack
 from invoices.tenkfeet_api import TenkFeetApi
 
@@ -80,6 +80,7 @@ def fetch_contract(contracts, current_day):
     for contract in contracts:
         if contract.start_date <= current_day and (contract.end_date is None or contract.end_date >= current_day):
             return contract
+    return None
 
 
 def fetch_first_contract(contracts):
@@ -287,7 +288,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_e
     per_month_stats.reverse()
     kiky_stats = calculate_kiky_stats(person, contracts, start_hour_markings_from_date, last_process_day)
 
-    if len(per_month_stats):
+    if per_month_stats:
         months = [["{:%Y-%m}".format(entry["month"]), entry["cumulative_saldo"]] for entry in per_month_stats]
         months.reverse()
         monthly_summary_linechart_data = json.dumps([["Date", "Flex saldo (h)"]] + months)
@@ -314,7 +315,7 @@ def sync_public_holidays():
         holiday["date"] = parse_date(holiday["date"])
         holiday["created_at"] = parse_datetime(holiday["created_at"])
         holiday["updated_at"] = parse_datetime(holiday["updated_at"])
-        del(holiday["id"])
+        del holiday["id"]
         return holiday
 
     tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)
@@ -330,7 +331,7 @@ def sync_public_holidays():
                 for arg, val in holiday.items():
                     setattr(saved_holiday, arg, val)
                 saved_holiday.save()
-            del(stored_holidays[holiday["date"]])
+            del stored_holidays[holiday["date"]]
         else:
             print("Creating {}".format(holiday["date"]))
             added += 1
