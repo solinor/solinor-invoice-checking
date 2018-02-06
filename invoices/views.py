@@ -395,7 +395,7 @@ def get_invoice_xls(request, invoice_id, xls_type):
         return HttpResponseBadRequest("Invalid XLS type")
 
     response = HttpResponse(xls, content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = "attachment; filename='Hours for {}.xlsx'".format(title)
+    response["Content-Disposition"] = "attachment; filename=\"Hours for {}.xlsx\"".format(title)
     return response
 
 
@@ -407,7 +407,7 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
         return HttpResponseBadRequest("Invalid PDF type")
 
     response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = "attachment; filename='Hours for {}.pdf'".format(title)
+    response["Content-Disposition"] = "attachment; filename=\"Hours for {}.pdf\"".format(title)
     return response
 
 
