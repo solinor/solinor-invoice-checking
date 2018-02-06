@@ -26,7 +26,7 @@ class Command(BaseCommand):
                 start_date_by_user[correction.user.email] = correction.date
         for correction in flex_time_corrections:
             if correction.user.email not in per_user_contracts:
-                errors.append("Flex saldo correction ({}) for user {} but no contracts defined.".format(correction, correction.user.email))
+                errors.append(f"Flex saldo correction ({correction}) for user {correction.user.email} but no contracts defined.")
                 continue
             if correction.adjust_by is not None:
                 for contract in per_user_contracts[correction.user.email]:
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                         break
                 else:
                     if correction.date < start_date_by_user[correction.user.email]:
-                        errors.append("Flex saldo adjustment ({}) for user {} but no valid contract defined.".format(correction, correction.user.email))
+                        errors.append(f"Flex saldo adjustment ({correction}) for user {correction.user.email} but no valid contract defined.")
 
         hour_entries = HourEntry.objects.exclude(user_m=None).filter(date__gte=datetime.datetime(2017, 10, 1)).values("user_m__email", "date").order_by("user_m__email", "date").distinct()
         users_with_no_contracts = set()
@@ -61,6 +61,6 @@ class Command(BaseCommand):
             message += "<{}{}|Edit in {}>".format(settings.DOMAIN, reverse("admin:index"), settings.DOMAIN)
             for user in settings.SLACK_NOTIFICATIONS_ADMIN:
                 slack.chat.post_message(channel=user, text=message, as_user="finance-bot")
-                self.stdout.write("Sent report to {}".format(user))
+                self.stdout.write(f"Sent report to {user}")
 
-        Event(event_type="check_contracts", succeeded=True, message="Found {} issues".format(len(errors))).save()
+        Event(event_type="check_contracts", succeeded=True, message=f"Found {len(errors)} issues").save()

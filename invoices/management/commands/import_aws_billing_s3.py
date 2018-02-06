@@ -19,7 +19,7 @@ class Command(BaseCommand):
         month = options["month"][0]
         s3_client = boto3.client("s3", aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_KEY)
         with tempfile.NamedTemporaryFile(mode="w+b") as data:
-            s3_client.download_fileobj("solinor-hostmaster-billing", "321914701408-aws-billing-csv-{}-{}.csv".format(year, month), data)
+            s3_client.download_fileobj("solinor-hostmaster-billing", f"321914701408-aws-billing-csv-{year}-{month}.csv", data)
             data.seek(0)
             infile = open(data.name, mode="rt")
             import_aws_invoice(infile, int(year), int(month))

@@ -170,7 +170,7 @@ def sync_10000ft_projects():
                 invoice.project_m = project
                 invoice.save()
                 break
-    Event(event_type="sync_10000ft_projects", succeeded=True, message="Updated {} projects, created {} projects and linked {} invoices to projects".format(len(projects), created_count, linked_invoices)).save()
+    Event(event_type="sync_10000ft_projects", succeeded=True, message=f"Updated {len(projects)} projects, created {created_count} projects and linked {linked_invoices} invoices to projects").save()
 
 
 def get_projects():
@@ -178,7 +178,7 @@ def get_projects():
 
 
 def get_invoices():
-    return {"{}-{} {} - {}".format(invoice.year, invoice.month, invoice.client, invoice.project): invoice for invoice in Invoice.objects.all()}
+    return {f"{invoice.year}-{invoice.month} {invoice.client} - {invoice.project}": invoice for invoice in Invoice.objects.all()}
 
 
 def get_users():
@@ -382,4 +382,4 @@ def refresh_stats(start_date, end_date):
             invoice.bill_rate_avg = 0
         invoice.save()
         logger.debug("Updated statistics for %s", invoice)
-    Event(event_type="refresh_invoice_statistics", succeeded=True, message="Refreshed {} invoices between {:%Y-%m-%d} and {:%Y-%m-%d}.".format(c, start_date, end_date)).save()
+    Event(event_type="refresh_invoice_statistics", succeeded=True, message=f"Refreshed {c} invoices between {start_date:%Y-%m-%d} and {end_date:%Y-%m-%d}.").save()

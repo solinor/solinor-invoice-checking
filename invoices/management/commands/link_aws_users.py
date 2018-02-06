@@ -9,6 +9,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for user in TenkfUser.objects.all():
-            accounts = AmazonLinkedAccount.objects.filter(name="{} {}".format(user.first_name, user.last_name))
+            accounts = AmazonLinkedAccount.objects.filter(name=f"{user.first_name} {user.last_name}")
             if len(accounts) == 1:
                 user.amazon_account.add(accounts[0])

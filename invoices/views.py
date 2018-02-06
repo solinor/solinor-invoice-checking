@@ -343,11 +343,11 @@ def queue_slack_notification(request):
             return HttpResponseBadRequest()
         start_date = datetime.datetime.strptime(request.POST.get("start_date"), "%Y-%m-%d") if request.POST.get("start_date") else start_date
         end_date = datetime.datetime.strptime(request.POST.get("end_date"), "%Y-%m-%d") if request.POST.get("end_date") else end_date
-        REDIS.publish("request-refresh", json.dumps({"type": "slack-{}-notification".format(notification_type),
+        REDIS.publish("request-refresh", json.dumps({"type": f"slack-{notification_type}-notification",
                                                      "start_date": start_date.strftime("%Y-%m-%d"),
                                                      "end_date": end_date.strftime("%Y-%m-%d")}))
 
-        messages.add_message(request, messages.INFO, "Slack notifications for {} queued.".format(notification_type))
+        messages.add_message(request, messages.INFO, f"Slack notifications for {notification_type} queued.")
         return HttpResponseRedirect(return_url)
 
     notification_history = SlackNotificationBundle.objects.all()
@@ -408,7 +408,7 @@ def get_invoice_xls(request, invoice_id, xls_type):
         return HttpResponseBadRequest("Invalid XLS type")
 
     response = HttpResponse(xls, content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = "attachment; filename=\"Hours for {}.xlsx\"".format(title)
+    response["Content-Disposition"] = f"attachment; filename=\"Hours for {title}.xlsx\""
     return response
 
 
@@ -420,7 +420,7 @@ def get_invoice_pdf(request, invoice_id, pdf_type):
         return HttpResponseBadRequest("Invalid PDF type")
 
     response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = "attachment; filename=\"Hours for {}.pdf\"".format(title)
+    response["Content-Disposition"] = f"attachment; filename=\"Hours for {title}.pdf\""
     return response
 
 

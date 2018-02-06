@@ -12,7 +12,7 @@ from invoices.models import HourEntry, Invoice
 
 def generate_hours_xls_for_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
-    title = "{} - {} - {}-{}".format(invoice.client, invoice.project, invoice.year, invoice.month)
+    title = f"{invoice.client} - {invoice.project} - {invoice.year}-{invoice.month:02d}"
 
     entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project=invoice.project, client=invoice.client, date__year__gte=invoice.year, date__month=invoice.month).filter(incurred_hours__gt=0)
     with tempfile.TemporaryDirectory() as dirname:
@@ -74,12 +74,12 @@ def generate_pdf(title, content):
                               )
 
 
-def generate_hours_pdf_for_invoice(request, invoice):
-    invoice_data = get_object_or_404(Invoice, invoice_id=invoice)
-    title = "{} - {} - {}-{}".format(invoice_data.client, invoice_data.project, invoice_data.year, invoice_data.month)
+def generate_hours_pdf_for_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
+    title = f"{invoice.client} - {invoice.project} - {invoice.year}-{invoice.month:02d}"
     title = title.replace("\xe4", "a").replace("\xb6", "o").replace("\x84", "A").replace("\x96", "O").replace("\xf6", "o")
 
-    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project=invoice_data.project, client=invoice_data.client, date__year__gte=invoice_data.year, date__month=invoice_data.month).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project=invoice.project, client=invoice.client, date__year__gte=invoice.year, date__month=invoice.month).filter(incurred_hours__gt=0)
     phases = {}
     for entry in entries:
         if entry.phase_name not in phases:

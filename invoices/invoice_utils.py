@@ -42,7 +42,7 @@ def calculate_stats_for_hours(entries):
 
     for entry in entries:
         total_entries += 1
-        phase_name = "{} - {}".format(entry.phase_name, entry.bill_rate)
+        phase_name = f"{entry.phase_name} - {entry.bill_rate}"
         if phase_name not in phases:
             phases[phase_name] = {"users": {}, "billable": entry.calculated_is_billable, "incurred_hours": 0, "incurred_money": 0}
         phase_details = phases[phase_name]
@@ -130,9 +130,9 @@ def calculate_stats_for_aws_entries(aws_entries):
             if account_key not in phases:
                 phases[account_key] = {"entries": {}, "billable": True}
             for aws_entry in aws_entries_list:
-                total_key = "aws_{}".format(aws_entry.currency)
+                total_key = f"aws_{aws_entry.currency}"
                 if total_key not in total_rows:
-                    total_rows[total_key] = {"description": "Amazon billing ({})".format(aws_entry.currency), "incurred_money": 0, "currency": aws_entry.currency}
+                    total_rows[total_key] = {"description": "Amazon billing ({aws_entry.currency})", "incurred_money": 0, "currency": aws_entry.currency}
 
                 total_rows[total_key]["incurred_money"] += aws_entry.total_cost
                 phases[account_key]["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}

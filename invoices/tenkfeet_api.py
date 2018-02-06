@@ -150,7 +150,7 @@ class TenkFeetApi(object):
         self.logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
     def submit_hours(self, entries):
-        url = "https://api.10000ft.com/api/v1/approvals?auth={}".format(self.apikey)
+        url = f"https://api.10000ft.com/api/v1/approvals?auth={self.apikey}"
         approvables = [{"id": entry["id"], "type": "TimeEntry", "updated_at": entry["updated_at"]} for entry in entries]
 
         data = {
@@ -163,7 +163,7 @@ class TenkFeetApi(object):
         entries = []
         while next_page:
             self.logger.debug("Processing page %s", next_page)
-            url = "https://api.10000ft.com{}&auth={}".format(next_page, self.apikey)
+            url = f"https://api.10000ft.com{next_page}&auth={self.apikey}"
             tenkfeet_data = requests.get(url).json()
             next_page = tenkfeet_data["paging"]["next"]
             entries.extend(tenkfeet_data["data"])
@@ -177,7 +177,7 @@ class TenkFeetApi(object):
 
     def fetch_api_hour_entries(self, start_date, end_date):
         self.logger.info("Fetching hour entries from the API: %s - %s", start_date, end_date)
-        url = "/api/v1/time_entries?fields=approvals&with_suggestions=false&from={:%Y-%m-%d}&to={:%Y-%m-%d}&per_page=250".format(start_date, end_date)
+        url = f"/api/v1/time_entries?fields=approvals&with_suggestions=false&from={start_date:%Y-%m-%d}&to={end_date:%Y-%m-%d}&per_page=250"
         return self.fetch_endpoint(url)
 
     def fetch_projects(self):
@@ -188,7 +188,7 @@ class TenkFeetApi(object):
     def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
         self.logger.info("Fetching hour entries reporting API: %s - %s", start_date, end_date)
         now = timezone.now()
-        url = "https://api.10000ft.com/api/v1/reports.json?startdate={:%Y-%m-%d}&enddate={:%Y-%m-%d}&today={:%Y-%m-%d}&auth={}".format(start_date, end_date, now, self.apikey)
+        url = f"https://api.10000ft.com/api/v1/reports.json?startdate={start_date:%Y-%m-%d}&enddate={end_date:%Y-%m-%d}&today={now:%Y-%m-%d}&auth={self.apikey}"
         tenkfeet_data = requests.get(url).json()["time_entries"]
         self.logger.info("Fetched %s hour entries", len(tenkfeet_data))
         if validate_schema:

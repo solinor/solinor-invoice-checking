@@ -37,7 +37,7 @@ def send_flex_saldo_notifications(year, month):
         try:
             flex_info = calculate_flex_saldo(user, end_date, only_active=True)
         except FlexHourException as error:
-            print("Unable to calculate the report for {}: {}".format(user, error))
+            print(f"Unable to calculate the report for {user}: {error}")
             continue
         if not flex_info.get("active", True):
             continue
@@ -60,7 +60,7 @@ def send_flex_saldo_notifications(year, month):
                 "title_link": "https://" + settings.DOMAIN + reverse("your_flex_hours"),
                 "text": notification_text,
                 "fields": [
-                    {"title": "Flex saldo at the end of last month", "value": "{:.2f}h".format(saldo), "short": False},
+                    {"title": "Flex saldo at the end of last month", "value": f"{saldo:.2f}h", "short": False},
                     {"title": "Change from month before", "value": "{:.2f}h".format(context["last_month_diff"]), "short": False},
                     {"title": "KIKY saldo", "value": "{:.2f}h".format(context["kiky_saldo"]), "short": False},
                 ]
@@ -69,10 +69,10 @@ def send_flex_saldo_notifications(year, month):
                 c += 1
                 slack.chat.post_message(user.slack_id, attachments=[attachment], as_user="finance-bot")
                 for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
-                    slack.chat.post_message(admin, text="Following message was sent to {}:".format(user.full_name), attachments=[attachment], as_user="finance-bot")
+                    slack.chat.post_message(admin, text=f"Following message was sent to {user.full_name}:", attachments=[attachment], as_user="finance-bot")
             else:
-                print("Unable to send flex saldo notification to {} - no slack ID available.".format(user.guid))
-    Event(event_type="send_flex_saldo_notifications", succeeded=True, message="Sent {} flex saldo notifications".format(c)).save()
+                print(f"Unable to send flex saldo notification to {user.guid} - no slack ID available.")
+    Event(event_type="send_flex_saldo_notifications", succeeded=True, message=f"Sent {c} flex saldo notifications").save()
 
 
 def fetch_contract(contracts, current_day):
@@ -161,7 +161,7 @@ def calculate_kiky_stats(person, contracts, first_process_day, last_process_day)
 
 
 def get_holidays(today):
-    cache_key = "holidays-{:%Y-%m-%d}".format(today)
+    cache_key = f"holidays-{today:%Y-%m-%d}"
     holidays = cache.get(cache_key)
     if holidays:
         return pickle.loads(holidays)
@@ -341,4 +341,4 @@ def sync_public_holidays():
     if removed_holidays:
         print("Deleting {}".format(", ".join([holiday.strftime("%Y-%m-%d") for holiday in removed_holidays])))
         deleted, _ = PublicHoliday.objects.filter(date__in=removed_holidays).delete()
-    Event(event_type="sync_public_holidays", succeeded=True, message="Added {}, updated {}, deleted {}".format(added, updated, deleted)).save()
+    Event(event_type="sync_public_holidays", succeeded=True, message=f"Added {added}, updated {updated}, deleted {deleted}").save()

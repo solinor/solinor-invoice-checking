@@ -32,9 +32,9 @@ class Command(BaseCommand):
             try:
                 flex_info = calculate_flex_saldo(user, end_date, ignore_events=options.get("ignore_events", False))
             except FlexHourException as error:
-                self.stdout.write(self.style.WARNING("Unable to calculate the report for {}: {}".format(user, error)))
+                self.stdout.write(self.style.WARNING(f"Unable to calculate the report for {user}: {error}"))
                 continue
             users.append((flex_info["person"].email, flex_info["cumulative_saldo"]))
         users = sorted(users, key=lambda k: k[1])
         for email, flex_hours in users:
-            self.stdout.write("{} - {}h".format(email, flex_hours))
+            self.stdout.write(f"{email} - {flex_hours}h")

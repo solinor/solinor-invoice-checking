@@ -94,4 +94,4 @@ def import_aws_invoice(file_obj, year, month):
         record_data["linked_account"] = linked_account
         record_id = record["RecordID"] + invoice_month.strftime("%Y-%m-%d")
         AmazonInvoiceRow.objects.update_or_create(record_id=record_id, defaults=record_data)
-    Event(event_type="sync_aws_invoice", succeeded=True, message="Synced {}. {} entries.".format(invoice_month, c)).save()
+    Event(event_type="sync_aws_invoice", succeeded=True, message=f"Synced {invoice_month}. {c} entries.").save()

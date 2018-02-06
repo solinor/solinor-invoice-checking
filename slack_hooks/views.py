@@ -65,7 +65,7 @@ def get_slack_flex_response(person, ephemeral=True):
 @csrf_exempt
 def incoming_event(request):
     data = json.loads(request.body.decode("utf-8"))
-    print("Incoming slack event: {}".format(data))
+    print(f"Incoming slack event: {data}")
     if data.get("token") != settings.SLACK_VERIFICATION_TOKEN:
         return HttpResponseForbidden("Invalid verification token")
     if data.get("type") == "url_verification":
@@ -88,7 +88,7 @@ def incoming_event(request):
                     message, attachment = get_slack_flex_response(person)
                 except FlexNotEnabledException:
                     unfurls[link["url"]] = {
-                        "text": "Flex saldo is not enabled for {}.".format(person.full_name),
+                        "text": f"Flex saldo is not enabled for {person.full_name}.",
                     }
                     continue
                 attachment["text"] = message
@@ -105,7 +105,7 @@ def incoming_event(request):
                     }
                     continue
                 unfurls[link["url"]] = {
-                    "title": "Solinor Invoice - {} - {}".format(invoice.full_name, invoice.date),
+                    "title": f"Solinor Invoice - {invoice.full_name} - {invoice.date}",
                     "title_link": link["url"],
                     "fields": [
                         {
@@ -121,12 +121,12 @@ def incoming_event(request):
                         {
                             "title": "Incurred hours",
                             "short": True,
-                            "value": "{:.2f}h".format(invoice.incurred_hours),
+                            "value": f"{invoice.incurred_hours:.2f}h",
                         },
                         {
                             "title": "Incurred billing",
                             "short": True,
-                            "value": "{:.2f}€".format(invoice.incurred_money),
+                            "value": f"{invoice.incurred_money:.2f}€",
                         },
                         {
                             "title": "Incorrect hour entries",
@@ -163,29 +163,29 @@ def incoming_event(request):
                 else:
                     message += "No invoices."
                 unfurls[link["url"]] = {
-                    "title": "Solinor project - {}".format(project.full_name),
+                    "title": f"Solinor project - {project.full_name}",
                     "title_link": link["url"],
                     "text": message,
                     "mrkdwn_in": ["text"],
                     "fields": [
                         {
                             "title": "Start date",
-                            "value": "{:%Y-%m-%d}".format(project.starts_at),
+                            "value": f"{project.starts_at:%Y-%m-%d}",
                             "short": True,
                         },
                         {
                             "title": "End date",
-                            "value": "{:%Y-%m-%d}".format(project.ends_at),
+                            "value": f"{project.ends_at:%Y-%m-%d}",
                             "short": True,
                         },
                         {
                             "title": "Incurred hours",
-                            "value": "{:.2f}h".format(total_incurred_hours),
+                            "value": f"{total_incurred_hours:.2f}h",
                             "short": True,
                         },
                         {
                             "title": "Incurred billing",
-                            "value": "{:.2f}€".format(total_incurred_billing),
+                            "value": f"{total_incurred_billing:.2f}€",
                             "short": True,
                         },
                         {
@@ -197,11 +197,11 @@ def incoming_event(request):
                 }
 
         if unfurls:
-            print("Unfurl request: {}".format(unfurls))
+            print(f"Unfurl request: {unfurls}")
             try:
                 slack.chat.unfurl(data["event"]["channel"], data["event"]["message_ts"], json.dumps(unfurls))
             except slacker.Error as err:
-                print("An error occurred while unfurling: request={}, response={}".format(unfurls, err))
+                print(f"An error occurred while unfurling: request={unfurls}, response={err}")
         return HttpResponse("ok")
 
 
