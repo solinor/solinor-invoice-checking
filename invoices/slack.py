@@ -35,13 +35,13 @@ def create_slack_mpim(members_list):
     return chat_id
 
 
-def send_unsubmitted_hours_notifications():
+def send_unsubmitted_hours_notifications(first_day, last_day):
     today = datetime.date.today()
     c = 0
-    for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lt=today).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
+    for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lte=last_day, hourentry__date__gte=first_day).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
         fallback_message = """<https://finance.solinor.com{}|You> have *unsubmitted hours*: {} hour markings with total of {} hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""".format(reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         message = "You need to submit or remove following hours:"
-        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lt=today).exclude(project_m__archived=True).order_by("date")
+        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lte=last_day, date__gte=first_day).exclude(project_m__archived=True).order_by("date")
         for unsubmitted_hour in unsubmitted_hours:
             project_name_field = "{} - {}".format(unsubmitted_hour.client, unsubmitted_hour.project)
             if unsubmitted_hour.project_m:
@@ -91,9 +91,9 @@ def send_unsubmitted_hours_notifications():
     Event(event_type="send_unsubmitted_hours_notifications", succeeded=True, message="Sent {} notifications".format(c)).save()
 
 
-def send_unapproved_hours_notifications(year, month):
+def send_unapproved_hours_notifications(first_day, last_day):
     c = 0
-    for project in Project.objects.filter(hourentry__approved=False, hourentry__date__year=year, hourentry__date__month=month).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
+    for project in Project.objects.filter(hourentry__approved=False, hourentry__date__lte=last_day, hourentry__date__gte=first_day).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
         message = """You are marked as a responsible person for {} - {}. You need to approve hours for the project weekly.""".format(project.client, project.name)
         fallback_message = """You are marked as a responsible person for {} - {}. You need to approve hours for the project weekly. Go to https://app.10000ft.com to do so.""".format(project.client, project.name)
 

@@ -332,12 +332,20 @@ def hours_sickleaves(request):
 
 @staff_member_required
 def queue_slack_notification(request):
+    today = datetime.date.today()
+    end_date = today - datetime.timedelta(days=today.isoweekday())
+    start_date = end_date - datetime.timedelta(days=60)
+
     if request.method == "POST":
         return_url = request.POST.get("back") or reverse("queue_slack_notification")
         notification_type = request.POST.get("type")
         if not notification_type:
             return HttpResponseBadRequest()
-        REDIS.publish("request-refresh", json.dumps({"type": "slack-{}-notification".format(notification_type)}))
+        start_date = datetime.datetime.strptime(request.POST.get("start_date"), "%Y-%m-%d") if request.POST.get("start_date") else start_date
+        end_date = datetime.datetime.strptime(request.POST.get("end_date"), "%Y-%m-%d") if request.POST.get("end_date") else end_date
+        REDIS.publish("request-refresh", json.dumps({"type": "slack-{}-notification".format(notification_type),
+                                                     "start_date": start_date.strftime("%Y-%m-%d"),
+                                                     "end_date": end_date.strftime("%Y-%m-%d")}))
 
         messages.add_message(request, messages.INFO, "Slack notifications for {} queued.".format(notification_type))
         return HttpResponseRedirect(return_url)
@@ -351,10 +359,15 @@ def queue_slack_notification(request):
             last_unapproved_notification_at = item.sent_at
         if last_unapproved_notification_at and last_unsubmitted_notification_at:
             break
+
     context = {
         "slack_notification_history": notification_history,
         "last_unsubmitted_notification_at": last_unsubmitted_notification_at,
         "last_unapproved_notification_at": last_unapproved_notification_at,
+        "unsubmitted_end_date": end_date,
+        "unsubmitted_start_date": start_date,
+        "unapproved_end_date": end_date,
+        "unapproved_start_date": start_date,
     }
     return render(request, "slack_notifications.html", context)
 

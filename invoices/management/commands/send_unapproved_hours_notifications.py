@@ -10,4 +10,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         today = datetime.date.today()
-        send_unapproved_hours_notifications(today.year, today.month)
+        last_day = today - datetime.timedelta(today.isoweekday())
+        first_day = last_day - datetime.timedelta(days=60)
+        send_unapproved_hours_notifications(first_day, last_day)

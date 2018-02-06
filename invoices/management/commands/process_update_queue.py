@@ -63,11 +63,17 @@ def time_since_last_slack_notification(notification_type):
     return timezone.now() - last_notification.sent_at
 
 
-def slack_unapproved_notifications(logger):
+def slack_unapproved_notifications(logger, data):
     if time_since_last_slack_notification("unapproved") < datetime.timedelta(hours=12):
         logger.error("Skip sending unapproved slack notifications - last notification sent too recently.")
     today = datetime.date.today()
-    send_unapproved_hours_notifications(today.year, today.month)
+    if "start_date" not in data:
+        end_date = today - datetime.timedelta(today.isoweekday())
+        start_date = end_date - datetime.timedelta(days=60)
+    else:
+        start_date = datetime.datetime.strptime(data["start_date"], "%Y-%m-%d").date()
+        end_date = datetime.datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+    send_unapproved_hours_notifications(start_date, end_date)
 
 
 def slack_flex_saldo_notifications(logger):
@@ -77,10 +83,17 @@ def slack_flex_saldo_notifications(logger):
     send_flex_saldo_notifications(today.year, today.month)
 
 
-def slack_unsubmitted_notifications(logger):
+def slack_unsubmitted_notifications(logger, data):
     if time_since_last_slack_notification("unsubmitted") < datetime.timedelta(hours=12):
         logger.error("Skip sending unsubmitted slack notifications - last notification sent too recently.")
-    send_unsubmitted_hours_notifications()
+    today = datetime.date.today()
+    if "start_date" not in data:
+        end_date = today - datetime.timedelta(today.isoweekday())
+        start_date = end_date - datetime.timedelta(days=60)
+    else:
+        start_date = datetime.datetime.strptime(data["start_date"], "%Y-%m-%d").date()
+        end_date = datetime.datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+    send_unsubmitted_hours_notifications(start_date, end_date)
 
 
 class Command(BaseCommand):
@@ -98,9 +111,9 @@ class Command(BaseCommand):
             if data["type"] == "data-update":
                 update_10kf_data(logger, data, redis_instance)
             elif data["type"] == "slack-unsubmitted-notification":
-                slack_unsubmitted_notifications(logger)
+                slack_unsubmitted_notifications(logger, data)
             elif data["type"] == "slack-unapproved-notification":
-                slack_unapproved_notifications(logger)
+                slack_unapproved_notifications(logger, data)
             elif data["type"] == "slack-flex-saldo-notification":
                 slack_flex_saldo_notifications(logger)
             else:
