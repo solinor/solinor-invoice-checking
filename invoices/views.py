@@ -468,7 +468,7 @@ def your_stats(request):
 
     your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
 
-    billing_rate_data = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email="olli.jarva@solinor.com").filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+    billing_rate_data = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
     your_billing_rate = "?"
     if billing_rate_data:
         total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
