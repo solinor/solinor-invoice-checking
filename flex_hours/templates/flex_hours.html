@@ -5,6 +5,10 @@
 {% block pageJs %}
 var saldo_sum = 0;
 var kiky_sum = 0;
+var range_map = $.range_map({
+  ":-50": "red",
+  "100:": "yellow"
+})
 $(".flex-row").each(function () {
   var user_guid = $(this).data("guid");
   $.get("/users/" + user_guid + "/flexhours/json?onlyActive=true", null, "json")
@@ -24,6 +28,7 @@ $(".flex-row").each(function () {
       if (data.flex_hours > 100) {
         $("#" + user_guid + "-row").addClass("warning");
       }
+      $("#" + user_guid + "-saldo-sparkline").sparkline(data.monthly_saldos, {"colorMap": range_map, "height": "3em", "fillColor": false})
     }
     })
     .fail(function(data, status) {
@@ -45,6 +50,7 @@ $(".flex-row").each(function () {
       <th>Name</th>
       <th class="number-column">Saldo</th>
       <th class="number-column">KIKY</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -53,6 +59,7 @@ $(".flex-row").each(function () {
       <td><a href="{% url "person_flex_hours" person.guid %}">{{ person.full_name }}</a></td>
       <td class="number-column" id="{{ person.guid }}-saldo"></td>
       <td class="number-column" id="{{ person.guid }}-kiky"></td>
+      <td id="{{ person.guid }}-saldo-sparkline"></td>
     </tr>
     {% endfor %}
   </tbody>

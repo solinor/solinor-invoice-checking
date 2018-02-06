@@ -31,7 +31,7 @@ from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, Da
 from invoices.slack import refresh_slack_channels, refresh_slack_users
 from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.utils import sync_10000ft_projects, sync_10000ft_users
+from invoices.utils import daterange, sync_10000ft_projects, sync_10000ft_users
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -471,29 +471,43 @@ def your_unsubmitted_hours(request):
 
 @login_required
 def your_stats(request):
+    base_query = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).exclude(incurred_hours=0)
     try:
-        your_last_hour_marking = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).values_list("date", flat=True).latest("date")
+        your_last_hour_marking = base_query.values_list("date", flat=True).latest("date")
     except HourEntry.DoesNotExist:
         your_last_hour_marking = "No entries"
 
     today = datetime.date.today()
-    your_hours_this_week = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
+    your_hours_this_week = base_query.filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
 
     your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
 
-    billing_rate_data = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).filter(date__gte=today - datetime.timedelta(days=30)).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
-    your_billing_rate = "?"
+    billing_rate_data = base_query.filter(date__gte=today - datetime.timedelta(days=30), date__lte=today).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+    your_billing_ratio = "?"
     if billing_rate_data:
         total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
         if total_hours > 0:
-            your_billing_rate = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
+            your_billing_ratio = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
 
+    start_date = today - datetime.timedelta(days=95)
+    daily_billing_ratio = {item["date"]: item for item in base_query.filter(date__gte=start_date, date__lte=today).values("date").order_by("date").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))}
+    your_daily_billing_ratio = []
+    for i, date in enumerate(daterange(start_date, today)):
+        date_entry = daily_billing_ratio.get(date)
+        if date_entry:
+            total_hours = (date_entry["billable_hours"] or 0) + (date_entry["nonbillable_hours"] or 0)
+            if total_hours > 0:
+                ratio = (date_entry["billable_hours"] or 0) / total_hours * 100
+
+        your_daily_billing_ratio.append(ratio)
+    your_daily_billing_ratio = [(your_daily_billing_ratio[i] + your_daily_billing_ratio[i + 1] + your_daily_billing_ratio[i + 2] + your_daily_billing_ratio[i + 3] + your_daily_billing_ratio[i + 4]) / 5 for i in range(0, len(your_daily_billing_ratio) - 5, 5)]
     return JsonResponse({
         "your_last_hour_marking": your_last_hour_marking,
         "your_last_hour_marking_day": your_last_hour_marking.strftime("%A"),
         "your_hours_this_week": your_hours_this_week,
-        "your_billing_rate": your_billing_rate,
+        "your_billing_ratio": your_billing_ratio,
         "your_unsubmitted_entries": your_unsubmitted_entries,
+        "your_daily_billing_ratio": your_daily_billing_ratio[-90:],
     })
 
 

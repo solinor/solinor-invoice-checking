@@ -17,11 +17,12 @@ $.get("{% url "your_stats" %}", function(data) {
   } else {
     $("#your_hours_this_week").html("?");
   }
-  if (typeof data.your_billing_rate === "number") {
-    $("#your_billing_rate").html(data.your_billing_rate.toFixed(0) + "%");
+  if (typeof data.your_billing_ratio === "number") {
+    $("#your_billing_ratio").html(data.your_billing_ratio.toFixed(0) + "%");
   } else {
-    $("#your_billing_rate").html("?");
+    $("#your_billing_ratio").html("?");
   }
+  $("#your_billing_ratio_sparkline").sparkline(data.your_daily_billing_ratio, {"disableTooltips": true});
 })
 $.get("{% url "frontpage_invoice_table" %}" + window.location.search, function(data) {
   $("#all-invoices-table").html(data);
@@ -44,7 +45,7 @@ $.get("{% url "frontpage_invoice_table" %}" + window.location.search, function(d
   </div>
   <div class="col-md-3">
     <h3>Your billing rate <small>Past 30d</small></h3>
-    <p class="lead" id="your_billing_rate">Loading</p>
+    <p class="lead"><span id="your_billing_ratio">Loading</span> <span id="your_billing_ratio_sparkline"></span></p>
   </div>
 </div>
 
