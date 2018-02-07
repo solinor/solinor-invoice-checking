@@ -7,9 +7,9 @@
 $.get("{% url "your_stats" %}", function(data) {
   if (data.your_unsubmitted_entries > 0) {
     $("#your_unsubmitted_entries").addClass("text-danger");
-    $("#your_unsubmitted_entries").html(data.your_unsubmitted_entries + " <span class='glyphicon glyphicon-exclamation-sign'></span>");
+    $("#your_unsubmitted_entries").html(data.your_unsubmitted_entries + " <i class='fa fa-exclamation-circle'></i>");
   } else {
-    $("#your_unsubmitted_entries").html(data.your_unsubmitted_entries + " <span class='glyphicon glyphicon-ok-sign'>");
+    $("#your_unsubmitted_entries").html(data.your_unsubmitted_entries + " <i class='fa fa-check-circle'></i>");
   }
   $("#your_last_hour_marking").html(data.your_last_hour_marking + " (" + data.your_last_hour_marking_day + ")");
   if (typeof data.your_hours_this_week === "number") {
