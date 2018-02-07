@@ -12,6 +12,13 @@
 
 <h2>{{ project.client }} - {{ project.name}} </h2>
 
+{% if project.description %}
+<blockquote class="blockquote">
+  <p class="mb-0">{{ project.description }}</p>
+  <footer class="blockquote-footer">10000ft description</footer>
+</blockquote>
+{% endif %}
+
 <div class="row top-buttons-row">
   <div class="col-md-12">
     <a class="btn btn-light" rel="noopener" href="https://app.10000ft.com/viewproject?id={{ project.project_id }}" role="button">View in 10000ft</a>

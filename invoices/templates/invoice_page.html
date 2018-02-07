@@ -12,6 +12,14 @@
     </ol>
 
     <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
+
+    {% if invoice.project_m.description %}
+    <blockquote class="blockquote">
+      <p class="mb-0">{{ invoice.project_m.description }}</p>
+      <footer class="blockquote-footer">10000ft description</footer>
+    </blockquote>
+    {% endif %}
+
     <div class="row top-buttons-row">
       <div class="col-md-12">
         {% include "snippets/previous_invoices.html" %}
