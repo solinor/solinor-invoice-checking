@@ -47,7 +47,7 @@ def send_flex_saldo_notifications(year, month):
         if flex_info["monthly_summary"]:
             for item in flex_info["monthly_summary"]:
                 if item["month"].strftime("%Y-%m") == previous_month.strftime("%Y-%m"):
-                    context["last_month_diff"] = item["cumulative_saldo"] - saldo
+                    context["last_month_diff"] = saldo - item["cumulative_saldo"]
                     break
         notification_text = render_to_string("notifications/flex_saldo.txt", context).strip()
 
@@ -61,8 +61,8 @@ def send_flex_saldo_notifications(year, month):
                 "text": notification_text,
                 "fields": [
                     {"title": "Flex saldo at the end of last month", "value": f"{saldo:.2f}h", "short": False},
-                    {"title": "Change from month before", "value": "{:.2f}h".format(context["last_month_diff"]), "short": False},
-                    {"title": "KIKY saldo", "value": "{:.2f}h".format(context["kiky_saldo"]), "short": False},
+                    {"title": "Change from the month before", "value": "{:.2f}h".format(context["last_month_diff"]), "short": False},
+                    {"title": "KIKY deduction", "value": "{:.2f}h".format(context["kiky_saldo"]), "short": False},
                 ]
             }
             if user.slack_id:
