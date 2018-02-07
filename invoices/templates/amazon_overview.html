@@ -27,11 +27,11 @@ function drawChart() {
     <h2>AWS accounts: {{ today.year }}-{{ today.month }}</h2>
 
     <div class="dropdown top-bar-dropdown">
-      <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button class="btn btn-light dropdown-toggle" type="button" id="selectAmazonInvoiceMonth" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select month
         <span class="caret"></span>
       </button>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <div class="dropdown-menu" aria-labelledby="selectAmazonInvoiceMonth">
         {% for entries_month in months %}
         <a class="dropdown-item" href="{% url "amazon_overview" %}?year={{ entries_month.year }}&month={{ entries_month.month }}">{{ entries_month }}</a>
         {% endfor %}

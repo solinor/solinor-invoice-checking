@@ -38,11 +38,11 @@ function drawChart() {
   <div class="col-md-12">
     {% if previous_invoices %}
     <div class="dropdown top-bar-dropdown">
-      <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button class="btn btn-light dropdown-toggle" type="button" id="selectInvoiceMonth" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select month
         <span class="caret"></span>
       </button>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <div class="dropdown-menu" aria-labelledby="selectInvoiceMonth">
         {% for previous_invoice in previous_invoices %}
         <a class="dropdown-item" href="{% url "invoice_charts" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a>
         {% endfor %}

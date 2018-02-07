@@ -12,11 +12,11 @@
     <h2>Amazon invoice details for {{ linked_account.name }}</h2>
 
     <div class="dropdown top-bar-dropdown">
-      <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-        Select month
+      <button class="btn btn-light dropdown-toggle" type="button" id="selectAwsInvoiceMonth" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Browse AWS invoices
         <span class="caret"></span>
       </button>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <div class="dropdown-menu" aria-labelledby="selectAwsInvoiceMonth">
         {% for entries_month in months %}
         <a class="dropdown-item" href="{% url "amazon_invoice" linked_account.linked_account_id entries_month.year entries_month.month %}">{{ entries_month }}</a>
         {% endfor %}
@@ -37,11 +37,11 @@
       <div class="col-md-12">
         {% if previous_invoices %}
         <div class="dropdown top-bar-dropdown">
-          <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Select month
+          <button class="btn btn-light dropdown-toggle" type="button" id="selectInvoiceMonth" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Browse invoices
             <span class="caret"></span>
           </button>
-          <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <div class="dropdown-menu" aria-labelledby="selectInvoiceMonth">
             {% for previous_invoice in previous_invoices %}
             <a class="dropdown-item" href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a>
             {% endfor %}
