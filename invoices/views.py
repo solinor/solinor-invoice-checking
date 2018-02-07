@@ -492,6 +492,7 @@ def your_stats(request):
     start_date = today - datetime.timedelta(days=95)
     daily_billing_ratio = {item["date"]: item for item in base_query.filter(date__gte=start_date, date__lte=today).values("date").order_by("date").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))}
     your_daily_billing_ratio = []
+    ratio = 0
     for i, date in enumerate(daterange(start_date, today)):
         date_entry = daily_billing_ratio.get(date)
         if date_entry:
