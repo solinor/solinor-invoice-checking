@@ -11,9 +11,9 @@ function drawChart() {
 {% endblock %}
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "users_list" %}">People</a></li>
-  <li class="active">Person: {{ person.first_name }}</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "users_list" %}">People</a></li>
+  <li class="breadcrumb-item active">Person: {{ person.first_name }}</li>
 </ol>
 
 <h2>{{ person.display_name }}</h2>
@@ -22,17 +22,17 @@ function drawChart() {
 <div class="row top-buttons-row">
   <div class="col-md-12">
   <div class="dropdown top-bar-dropdown">
-    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
       Select month
       <span class="caret"></span>
     </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
       {% for entries_month in months %}
-      <li><a href="{% url "person_month" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+      <a class="dropdown-item" href="{% url "person_month" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a>
       {% endfor %}
-    </ul>
+    </div>
   </div>
-    <a  rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-default">View {{ person.first_name }} in 10000ft</a>
+    <a  rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-light">View {{ person.first_name }} in 10000ft</a>
     <a class="btn btn-info" href="{% url "person_flex_hours" person.guid %}">Flex hours</a>
   </div>
 </div>

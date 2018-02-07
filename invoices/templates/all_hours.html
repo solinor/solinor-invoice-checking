@@ -5,20 +5,20 @@
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li class="active">Hours</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item active">Hours</li>
 </ol>
 
 <h2>Hours</h2>
 
 <div class="row top-buttons-row">
   <div class="col-md-12">
-    <a class="btn btn-default" href="{% url "users_charts" %}">Charts for people</a>
-    <a class="btn btn-default" href="{% url "hours_charts" %}">Charts for hours</a>
+    <a class="btn btn-light" href="{% url "users_charts" %}">Charts for people</a>
+    <a class="btn btn-light" href="{% url "hours_charts" %}">Charts for hours</a>
   </div>
 </div>
 
-<form action="" method="get" class="form-inline">
+<form action="" method="get" class="form-inline" style="display:inline">
   <div class="row">
   {% for field in filters.form %}
   <div class="col-md-3">

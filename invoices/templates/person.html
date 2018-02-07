@@ -8,10 +8,10 @@ $("#person-hours a").click(function (e) {
 {% block title %}{{ person.display_name }}{% endblock %}
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "users_list" %}">People</a></li>
-  <li><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
-  <li class="active">{{ year }}-{{ month }}</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "users_list" %}">People</a></li>
+  <li class="breadcrumb-item"><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="breadcrumb-item active">{{ year }}-{{ month }}</li>
 </ol>
 
 <h2>{{ person.display_name }} - {{ year }}-{{ month }}</h2>
@@ -21,23 +21,23 @@ $("#person-hours a").click(function (e) {
 <div class="row top-buttons-row">
   <div class="col-md-12">
   <div class="dropdown top-bar-dropdown">
-    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
       Select month
       <span class="caret"></span>
     </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
       {% for entries_month in months %}
-      <li><a href="{% url "person_month" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+      <a class="dropdown-item" href="{% url "person_month" person.guid entries_month.year entries_month.month %}">{{ entries_month }}</a>
       {% endfor %}
-    </ul>
+    </div>
   </div>
-    <a rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-default">View {{ person.first_name }} in 10000ft</a>
+    <a rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-light">View {{ person.first_name }} in 10000ft</a>
     {% if person.amazon_account %}
     {% for account in person.amazon_account.all %}
-    <a href="{% url "amazon_invoice" account.linked_account_id year month %}" role="button" class="btn btn-default">Amazon: {{ account.name }}</a>
+    <a href="{% url "amazon_invoice" account.linked_account_id year month %}" role="button" class="btn btn-light">Amazon: {{ account.name }}</a>
     {% endfor %}
     {% endif %}
-    <a class="btn btn-default" href="{% url "person_details" person.guid %}">Charts</a>
+    <a class="btn btn-light" href="{% url "person_details" person.guid %}">Charts</a>
     <a class="btn btn-info" href="{% url "person_flex_hours" person.guid %}">Flex hours</a>
   </div>
 </div>
@@ -46,34 +46,43 @@ $("#person-hours a").click(function (e) {
   <div class="col-md-12">
     <div id="person-hours">
 
-      <!-- Nav tabs -->
-      <ul class="nav nav-tabs" role="tablist">
-        <li role="presentation" class="active"><a href="#all_entries" role="tab" data-toggle="tab">All hours <span class="badge">{{ stats.total_entries }}</span></a></li>
-        <li role="presentation"><a href="#non_phase_specific" role="tab" data-toggle="tab">Non-phase specific hours <span class="badge">{{ stats.non_phase_specific_count }}</span></a></li>
-        <li role="presentation"><a href="#empty_descriptions" role="tab" data-toggle="tab">Empty descriptions <span class="badge">{{ stats.empty_descriptions_count }}</span></a></li>
-        <li role="presentation"><a href="#billable_incorrect_price" role="tab" data-toggle="tab">Incorrect prices <span class="badge">{{ stats.billable_incorrect_price_count }}</span></a></li>
-        <li role="presentation"><a href="#not_approved_hours" role="tab" data-toggle="tab">Not approved  <span class="badge">{{ stats.not_approved_hours_count }}</span></a></li>
-        <li role="presentation"><a href="#no_category" role="tab" data-toggle="tab">No category  <span class="badge">{{ stats.no_category_count }}</span></a></li>
+      <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="all-entries-tab" data-toggle="pill" href="#all-entries" role="tab" aria-controls="all-entries" aria-selected="true">All hours <span class="badge badge-secondary">{{ stats.total_entries }}</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="non-phase-specific-tab" data-toggle="pill" href="#non-phase-specific" role="tab" aria-controls="non-phase-specific" aria-selected="false">Non-phase specific <span class="badge badge-secondary">{{ stats.non_phase_specific_count }}</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="empty-descriptions-tab" data-toggle="pill" href="#empty-descriptions" role="tab" aria-controls="empty-descriptions" aria-selected="false">Empty descriptions <span class="badge badge-secondary">{{ stats.empty_descriptions_count }}</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="billable-incorrect-price-tab" data-toggle="pill" href="#billable-incorrect-price" role="tab" aria-controls="billable-incorrect-price" aria-selected="false">Incorrect price <span class="badge badge-secondary">{{ stats.billable_incorrect_price_count }}</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="not-approved-hours-tab" data-toggle="pill" href="#not-approved-hours" role="tab" aria-controls="not-approved-hours" aria-selected="false">Not approved <span class="badge badge-secondary">{{ stats.not_approved_hours_count }}</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="no-category-tab" data-toggle="pill" href="#no-category" role="tab" aria-controls="no-category" aria-selected="false">No category <span class="badge badge-secondary">{{ stats.no_category_count }}</span></a>
+        </li>
       </ul>
-
-      <!-- Tab panes -->
-      <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="all_entries">
+      <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="all-entries" role="tabpanel" aria-labelledby="pills-home-tab">
           {% include "snippets/person_hour_table.html" with entries=hour_entries %}
         </div>
-        <div role="tabpanel" class="tab-pane" id="non_phase_specific">
+        <div class="tab-pane fade" id="non-phase-specific" role="tabpanel" aria-labelledby="non-phase-specific-tab">
           {% include "snippets/person_hour_table.html" with entries=stats.non_phase_specific %}
         </div>
-        <div role="tabpanel" class="tab-pane" id="empty_descriptions">
+        <div class="tab-pane fade" id="empty-descriptions" role="tabpanel" aria-labelledby="empty-descriptions-tab">
           {% include "snippets/person_hour_table.html" with entries=stats.empty_descriptions %}
         </div>
-        <div role="tabpanel" class="tab-pane" id="billable_incorrect_price">
+        <div role="tabpanel" class="tab-pane fade" id="billable-incorrect-price" aria-labelledby="billable-incorrect-price-tab">
           {% include "snippets/person_hour_table.html" with entries=stats.billable_incorrect_price %}
         </div>
-        <div role="tabpanel" class="tab-pane" id="not_approved_hours">
+        <div role="tabpanel" class="tab-pane fade" id="not-approved-hours" aria-labelledby="not-approved-hours-tab">
           {% include "snippets/person_hour_table.html" with entries=stats.not_approved_hours %}
         </div>
-        <div role="tabpanel" class="tab-pane" id="no_category">
+        <div role="tabpanel" class="tab-pane fade" id="no-category" aria-labelledby="no-category-tab">
           {% include "snippets/person_hour_table.html" with entries=stats.no_category %}
         </div>
       </div>

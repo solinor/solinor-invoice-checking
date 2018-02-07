@@ -5,10 +5,10 @@
 {% block content %}
 
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "users_list" %}">People</a></li>
-  <li><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
-  <li class="active">Flex hours</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "users_list" %}">People</a></li>
+  <li class="breadcrumb-item"><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="breadcrumb-item active">Flex hours</li>
 </ol>
 
 
@@ -29,7 +29,7 @@
 
 <h3>Summary</h3>
 
-<table class="table">
+<table class="table table-responsive">
   <thead>
     <tr>
       <th>Month</th>
@@ -62,7 +62,7 @@
 
 <h3>KIKY</h3>
 
-<table class="table" style="max-width: 30em">
+<table class="table table-responsive" style="max-width: 30em">
   <tbody>
     <tr>
       <td>KIKY hours you should have done so far</td>
@@ -107,7 +107,7 @@
 
 
 <h3>Calculations log</h3>
-<table class="table table-condensed">
+<table class="table-responsive table table-sm">
   <thead>
     <tr>
       <th>Date</th>

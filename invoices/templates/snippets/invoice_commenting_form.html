@@ -1,66 +1,78 @@
 <form method="post">
-  {% csrf_token %}
-  <h3>Team lead</h3>
-  <table>
-    <tr>
-      <td class="invoice-check"><input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}></td>
-      <td><label for="invoiceChecked">I have checked this invoice, and I approve this (with comments I can put below)</label></td>
-    </tr>
-    {% if non_phase_specific_count > 0 %}
-    <tr>
-      <td><input type="checkbox" id="nonPhaseSpecificOk" name="nonPhaseSpecificOk" {% if form_data.checked_phases_ok %}checked="checked"{% endif %}></td>
-      <td><label for="nonPhaseSpecificOk">All ({{ non_phase_specific_count }}) non-phase specific entries should be there</label></td>
-    </tr>
-    {% endif %}
-    {% if non_billable_hours_count > 0 %}
-    <tr>
-      <td><input type="checkbox" id="nonBillableHoursOk" name="nonBillableHoursOk" {% if form_data.checked_non_billable_ok %}checked="checked"{% endif %}></td>
-      <td><label for="nonBillableHoursOk">All ({{ non_billable_hours_count }}) non-billable entries should stay non-billable.</label></td>
-    </tr>
-    {% endif %}
-    {% if billable_incorrect_price_count > 0 %}
-    <tr>
-      <td><input type="checkbox" id="billableIncorrectPriceOk" name="billableIncorrectPriceOk" {% if form_data.checked_bill_rates_ok %}checked="checked"{% endif %}></td>
-      <td><label for="billableIncorrectPrice">All ({{ billable_incorrect_price_count }}) entries with weird hour rates are correct.</label></td>
-    </tr>
-    {% endif %}
-    {% if no_category_count > 0 %}
-    <tr>
-      <td><input type="checkbox" id="noCategoryOk" name="noCategoryOk" {% if form_data.checked_no_category_ok %}checked="checked"{% endif %}></td>
-      <td><label for="noCategoryOk">All ({{ no_category_count }}) entries with no categories should be there.</label></td>
-    </tr>
-    {% endif %}
-    {% if last_month_invoice %}
-    {% if diff_last_month.remarkable %}
-    <tr>
-      <td><input type="checkbox" id="remarkableChangesOk" name="remarkableChangesOk" {% if form_data.checked_changes_last_month %}checked="checked"{% endif %}></td>
-      <td><label for="remarkableChangesOk">Remarkable changes since last month are ok (I know why, and client understands why).</label></td>
-    </tr>
-    {% endif %}
-    {% endif %}
-  </table>
-
-  <div class="form-group">
-    <label for="changesForInvoice">Comments/additions/changes before this will be sent out:</label>
-    <textarea class="form-control" id="changesForInvoice" name="changesForInvoice" rows="10">{{ form_data.comments }}</textarea>
+<div class="card mb-4 box-shadow">
+  <div class="card-header">
+    <h5>Team lead</h5>
   </div>
-  <button type="submit" class="btn btn-primary">Save</button>
+  <div class="card-body">
+    {% csrf_token %}
+    <table>
+      <tr>
+        <td class="invoice-check"><input type="checkbox" id="invoiceChecked" name="invoiceChecked" {% if form_data.checked %}checked="checked"{% endif %}></td>
+        <td><label for="invoiceChecked">I have checked this invoice, and I approve this (with comments I can put below)</label></td>
+      </tr>
+      {% if non_phase_specific_count > 0 %}
+      <tr>
+        <td><input type="checkbox" id="nonPhaseSpecificOk" name="nonPhaseSpecificOk" {% if form_data.checked_phases_ok %}checked="checked"{% endif %}></td>
+        <td><label for="nonPhaseSpecificOk">All ({{ non_phase_specific_count }}) non-phase specific entries should be there</label></td>
+      </tr>
+      {% endif %}
+      {% if non_billable_hours_count > 0 %}
+      <tr>
+        <td><input type="checkbox" id="nonBillableHoursOk" name="nonBillableHoursOk" {% if form_data.checked_non_billable_ok %}checked="checked"{% endif %}></td>
+        <td><label for="nonBillableHoursOk">All ({{ non_billable_hours_count }}) non-billable entries should stay non-billable.</label></td>
+      </tr>
+      {% endif %}
+      {% if billable_incorrect_price_count > 0 %}
+      <tr>
+        <td><input type="checkbox" id="billableIncorrectPriceOk" name="billableIncorrectPriceOk" {% if form_data.checked_bill_rates_ok %}checked="checked"{% endif %}></td>
+        <td><label for="billableIncorrectPrice">All ({{ billable_incorrect_price_count }}) entries with weird hour rates are correct.</label></td>
+      </tr>
+      {% endif %}
+      {% if no_category_count > 0 %}
+      <tr>
+        <td><input type="checkbox" id="noCategoryOk" name="noCategoryOk" {% if form_data.checked_no_category_ok %}checked="checked"{% endif %}></td>
+        <td><label for="noCategoryOk">All ({{ no_category_count }}) entries with no categories should be there.</label></td>
+      </tr>
+      {% endif %}
+      {% if last_month_invoice %}
+      {% if diff_last_month.remarkable %}
+      <tr>
+        <td><input type="checkbox" id="remarkableChangesOk" name="remarkableChangesOk" {% if form_data.checked_changes_last_month %}checked="checked"{% endif %}></td>
+        <td><label for="remarkableChangesOk">Remarkable changes since last month are ok (I know why, and client understands why).</label></td>
+      </tr>
+      {% endif %}
+      {% endif %}
+    </table>
+
+    <div class="form-group">
+      <label for="changesForInvoice">Comments/additions/changes before this will be sent out:</label>
+      <textarea class="form-control" id="changesForInvoice" name="changesForInvoice" rows="10">{{ form_data.comments }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+  </div>
   {% if form_data %}
-  <p>Last submitted by {{ form_data.user }} at {{ form_data.timestamp }}</p>
+  <div class="card-footer">
+    Last submitted by {{ form_data.user }} at {{ form_data.timestamp }}
+  </div>
   {% endif %}
 </div>
-<div class="well">
-  <h3>Finances/controller</h3>
-  <p>Do not modify this section unless you have entered this data to accounting.</p>
-  <div class="form-group">
-    <label for="invoiceNumber">Invoice number in accounting:</label>
-    <input type="text" class="form-control" id="invoiceNumber" name="invoiceNumber" value="{{ form_data.invoice_number|default_if_none:"" }}" />
+<div class="card mb-4 box-shadow">
+  <div class="card-header">
+    <h5>Finances/controller</h5>
   </div>
-  <table>
-    <tr>
-      <td class="invoice-check"><input type="checkbox" id="invoiceSentToCustomer" name="invoiceSentToCustomer" {% if form_data.invoice_sent_to_customer %}checked="checked"{% endif %} ></td>
-      <td><label for="invoiceSentToCustomer">Invoice sent to customer (official, not the preview).</label></td>
-    </tr>
-  </table>
-  <button type="submit" class="btn btn-default">Save</button>
+  <div class="card-body">
+    <p>Do not modify this section unless you have entered this data to accounting.</p>
+    <div class="form-group">
+      <label for="invoiceNumber">Invoice number in accounting:</label>
+      <input type="text" class="form-control" id="invoiceNumber" name="invoiceNumber" value="{{ form_data.invoice_number|default_if_none:"" }}" />
+    </div>
+    <table>
+      <tr>
+        <td class="invoice-check"><input type="checkbox" id="invoiceSentToCustomer" name="invoiceSentToCustomer" {% if form_data.invoice_sent_to_customer %}checked="checked"{% endif %} ></td>
+        <td><label for="invoiceSentToCustomer">Invoice sent to customer (official, not the preview).</label></td>
+      </tr>
+    </table>
+    <button type="submit" class="btn btn-light">Save</button>
+  </div>
+</div>
 </form>

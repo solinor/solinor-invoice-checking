@@ -5,19 +5,19 @@
 
 {% block content %}
     <ol class="breadcrumb">
-      <li><a href="{% url "frontpage" %}">Home</a></li>
-      <li><a href="{% url "projects_list" %}">Projects</a></li>
-      <li>{% if invoice.project_m %}<a href="{% url "project" invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
-      <li class="active"><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
+      <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url "projects_list" %}">Projects</a></li>
+      <li class="breadcrumb-item">{% if invoice.project_m %}<a href="{% url "project" invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+      <li class="breadcrumb-item active"><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
     </ol>
 
     <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
     <div class="row top-buttons-row">
       <div class="col-md-12">
         {% include "snippets/previous_invoices.html" %}
-        <a class="btn btn-default" href="{% url "invoice_charts" invoice.invoice_id %}" role="button">Charts</a>
+        <a class="btn btn-light" href="{% url "invoice_charts" invoice.invoice_id %}" role="button">Charts</a>
         {% include "snippets/download_hours.html" %}
-        <a class="btn btn-default" href="{% url "invoice_hours" invoice.invoice_id %}" role="button">View hours</a>
+        <a class="btn btn-light" href="{% url "invoice_hours" invoice.invoice_id %}" role="button">View hours</a>
         {% include "snippets/10000ft_project_links.html" %}
         {% include "snippets/update_data_button.html" %}
       </div>
@@ -32,9 +32,7 @@
       </div>
 
       <div class="col-md-4">
-        <div class="well">
           {% include "snippets/invoice_commenting_form.html" %}
-        </div>
       </div>
     </div>
   </div>

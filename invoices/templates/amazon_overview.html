@@ -20,22 +20,22 @@ function drawChart() {
 {% endblock %}
 {% block content %}
     <ol class="breadcrumb">
-      <li><a href="{% url "frontpage" %}">Home</a></li>
-      <li class="active">Amazon Invoices</li>
+      <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+      <li class="breadcrumb-item active">Amazon Invoices</li>
     </ol>
 
     <h2>AWS accounts: {{ today.year }}-{{ today.month }}</h2>
 
     <div class="dropdown top-bar-dropdown">
-      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select month
         <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
         {% for entries_month in months %}
-        <li><a href="{% url "amazon_overview" %}?year={{ entries_month.year }}&month={{ entries_month.month }}">{{ entries_month }}</a></li>
+        <a class="dropdown-item" href="{% url "amazon_overview" %}?year={{ entries_month.year }}&month={{ entries_month.month }}">{{ entries_month }}</a>
         {% endfor %}
-      </ul>
+      </div>
     </div>
 
     <div class="row">
@@ -49,7 +49,7 @@ function drawChart() {
 
     <div class="row">
       <div class="col-md-12">
-        <table class="table invoices-table">
+        <table class="table invoices-table table-responsive">
           <thead>
             <tr>
               <th>AWS account</th>

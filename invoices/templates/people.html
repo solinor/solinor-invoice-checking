@@ -4,8 +4,8 @@
 {% block content %}
 
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li class="active">People</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item active">People</li>
 </ol>
 
 <h2>People</h2>
@@ -21,7 +21,7 @@
   </div>
 </div>
 
-<table class="table table-striped">
+<table class="table table-striped table-responsive">
   <thead>
     <tr>
       <th>Name</th>

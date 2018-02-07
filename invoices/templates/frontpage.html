@@ -30,22 +30,38 @@ $.get("{% url "frontpage_invoice_table" %}" + window.location.search, function(d
 {% endblock %}
 {% block content %}
 
-<div class="row well">
+<div class="row">
   <div class="col-md-3 clickable-area" onclick="Turbolinks.visit('{% url "your_unsubmitted_hours" %}');">
-    <h3>Unsubmitted entries</h3>
-    <p class="lead" id="your_unsubmitted_entries">Loading</p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Unsubmitted entries</h5>
+        <p class="lead" id="your_unsubmitted_entries">Loading</p>
+        </div>
+    </div>
   </div>
   <div class="col-md-3">
-    <h3>Last hour marking</h3>
-    <p class="lead" id="your_last_hour_marking">Loading</p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Last hour marking</h5>
+        <p class="lead" id="your_last_hour_marking">Loading</p>
+      </div>
+    </div>
   </div>
   <div class="col-md-3">
-    <h3>Hours for past 7 days</h3>
-    <p class="lead" id="your_hours_this_week">Loading</p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Hours for past 7 days</h3>
+        <p class="lead" id="your_hours_this_week">Loading</p>
+      </div>
+    </div>
   </div>
   <div class="col-md-3">
-    <h3>Your billing rate <small>Past 30d</small></h3>
-    <p class="lead"><span id="your_billing_ratio">Loading</span> <span id="your_billing_ratio_sparkline"></span></p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Your billing rate <small>Past 30d</small></h3>
+        <p class="lead"><span id="your_billing_ratio">Loading</span> <span id="your_billing_ratio_sparkline"></span></p>
+      </div>
+    </div>
   </div>
 </div>
 

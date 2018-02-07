@@ -1,13 +1,13 @@
 {% if previous_invoices %}
 <div class="dropdown top-bar-dropdown">
-  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    Open another invoice
+  <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Select month
     <span class="caret"></span>
   </button>
-  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+  <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
     {% for previous_invoice in previous_invoices %}
-    <li><a href="{% url previous_invoice_url|default:"invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a></li>
+    <a class="dropdown-item" href="{% url previous_invoice_url|default:"invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a>
     {% endfor %}
-  </ul>
+  </div>
 </div>
 {% endif %}

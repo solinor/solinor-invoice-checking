@@ -1,26 +1,30 @@
 {% load humanize %}
 {% load django_tables2 %}
 
-<h2>All invoices <small><span data-toggle="collapse" data-target="#invoice-table-filters"><span class="glyphicon glyphicon-filter"></span></span></small>
+<h2>All invoices <small><span data-toggle="collapse" data-target="#invoice-table-filters"><i class="fa fa-filter" aria-hidden="true"></i></span></small>
   <span class="text-right">
-  <form method="post" class="form-inline" action="{% url "queue_update" %}">
+  <form method="post" class="form-inline" action="{% url "queue_update" %}" style="display:inline">
     {% csrf_token %}
     <input type="hidden" name="back" value="{% url "frontpage" %}{{ request.GET.q }}">
-    <button role="submit" name="Request data update" class="btn btn-default">Request data update (last update finished {{ last_update_finished_at|naturaltime }})</button>
+    <button role="submit" name="Resync" class="btn btn-light">Resync ({{ last_update_finished_at|naturaltime }})</button>
   </form>
   </span></h2>
 
-<div id="invoice-table-filters" class="collapse">
-<form action="" method="get" class="form-inline">
+<div id="invoice-table-filters" style="margin-bottom: 1em" class="collapse">
+<form action="" method="get" class="form-inline" style="display:inline">
   <div class="row">
-  {% for field in filters.form %}
-  <div class="col-md-3">
-    <h4>{{ field.label_tag }}</h4>
-    <p class="list-group-item-text">{{ field }}</p>
+    {% for field in filters.form %}
+    <div class="col-md-3">
+      <div class="form-group">
+      <h5>{{ field.label_tag }}</h5>
+      {{ field }}
+      </div>
+    </div>
+    {% endfor %}
+    <div class="col-md-3">
+      <button style="margin-top:0.8em" class="btn btn-primary" type="submit">Filter</button>
+    </div>
   </div>
-  {% endfor %}
-  </div>
-  <button class="btn btn-primary" type="submit">Filter</button>
 </form>
 </div>
 

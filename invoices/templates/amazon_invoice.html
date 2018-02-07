@@ -4,32 +4,32 @@
 
 {% block content %}
     <ol class="breadcrumb">
-      <li><a href="{% url "frontpage" %}">Home</a></li>
-      <li><a href="{% url "amazon_overview" %}">Amazon</a></li>
-      <li class="active">Invoice: {{ linked_account.name }}</li>
+      <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url "amazon_overview" %}">Amazon</a></li>
+      <li class="breadcrumb-item active">Invoice: {{ linked_account.name }}</li>
     </ol>
 
     <h2>Amazon invoice details for {{ linked_account.name }}</h2>
 
     <div class="dropdown top-bar-dropdown">
-      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Select month
         <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
         {% for entries_month in months %}
-        <li><a href="{% url "amazon_invoice" linked_account.linked_account_id entries_month.year entries_month.month %}">{{ entries_month }}</a></li>
+        <a class="dropdown-item" href="{% url "amazon_invoice" linked_account.linked_account_id entries_month.year entries_month.month %}">{{ entries_month }}</a>
         {% endfor %}
-      </ul>
+      </div>
     </div>
     {% if linked_users %}
     {% for linked_user in linked_users %}
-      <a href="{% url "person_month" linked_user.guid year month %}" role="button" class="btn btn-default">User: {{ linked_user.display_name }}</a>
+      <a href="{% url "person_month" linked_user.guid year month %}" role="button" class="btn btn-light">User: {{ linked_user.display_name }}</a>
     {% endfor %}
     {% endif %}
     {% if linked_projects %}
     {% for linked_project in linked_projects %}
-    <a href="{% url "project" linked_project.guid %}" role="button" class="btn btn-default">Project: {{ linked_project.client }} - {{ linked_project.name }}</a>
+    <a href="{% url "project" linked_project.guid %}" role="button" class="btn btn-light">Project: {{ linked_project.client }} - {{ linked_project.name }}</a>
     {% endfor %}
     {% endif %}
 
@@ -37,15 +37,15 @@
       <div class="col-md-12">
         {% if previous_invoices %}
         <div class="dropdown top-bar-dropdown">
-          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Open another invoice
+          <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Select month
             <span class="caret"></span>
           </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+          <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
             {% for previous_invoice in previous_invoices %}
-            <li><a href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a></li>
+            <a class="dropdown-item" href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a>
             {% endfor %}
-          </ul>
+          </div>
         </div>
         {% endif %}
       </div>

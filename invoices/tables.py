@@ -16,7 +16,7 @@ from invoices.models import HourEntry, Invoice, Project
 class HourListTable(tables.Table):
     class Meta:
         model = HourEntry
-        attrs = {"class": "table table-striped table-hover hours-table"}
+        attrs = {"class": "table table-striped table-hover hours-table table-responsive"}
         fields = ("date", "user_name", "client", "project", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_billable", "calculated_has_notes", "calculated_has_phase", "calculated_is_approved", "calculated_has_proper_price", "calculated_has_category", "calculated_is_overtime")
 
     def render_user_name(self, value, record):
@@ -48,14 +48,14 @@ class FrontpageInvoices(tables.Table):
 
     class Meta:
         model = Invoice
-        attrs = {"class": "table table-striped table-hover invoices-table"}
+        attrs = {"class": "table table-striped table-hover invoices-table table-responsive"}
         fields = ("full_name", "date", "processed_tags", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
 
     def render_full_name(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
 
     def render_processed_tags(self, value):
-        return format_html(" ".join(["<span class='label label-default'>{}</span> ".format(tag) for tag in value]))
+        return format_html(" ".join(["<span class='badge badge-secondary'>{}</span> ".format(tag) for tag in value]))
 
     def render_incurred_hours(self, value):
         return "{}h".format(intcomma(floatformat(value, 0)))
@@ -73,7 +73,7 @@ class FrontpageInvoices(tables.Table):
 class ProjectsTable(tables.Table):
     class Meta:
         model = Project
-        attrs = {"class": "table table-striped table-hover projects-table"}
+        attrs = {"class": "table table-striped table-hover projects-table table-responsive"}
         fields = ("client", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
 
     def render_name(self, value, record):
@@ -89,7 +89,7 @@ class ProjectsTable(tables.Table):
         return "{}€".format(intcomma(floatformat(value, 0)))
 
     def render_admin_users(self, value):
-        return format_html(" ".join(["<span class='label label-default'>{} {}</span>".format(a.first_name, a.last_name) for a in value.all()]))
+        return format_html(" ".join(["<span class='badge badge-secondary'>{} {}</span>".format(a.first_name, a.last_name) for a in value.all()]))
 
     def render_guid(self, value):
         return format_html("<a href='{}'>Details</a>".format(reverse("project", args=[value])))
@@ -116,7 +116,7 @@ class ProjectDetailsTable(tables.Table):
 
     class Meta:
         model = Invoice
-        attrs = {"class": "table table-striped table-hover invoice-table"}
+        attrs = {"class": "table table-striped table-hover invoice-table table-responsive"}
         fields = ("date", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage", "invoice_id")
 
     def render_invoice_id(self, value):

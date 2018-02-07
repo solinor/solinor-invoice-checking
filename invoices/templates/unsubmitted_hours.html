@@ -4,15 +4,15 @@
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "users_list" %}">People</a></li>
-  <li><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
-  <li class="active">Unsubmitted hours</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "users_list" %}">People</a></li>
+  <li class="breadcrumb-item"><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="breadcrumb-item active">Unsubmitted hours</li>
 </ol>
 
 <h2>Unsubmitted hours</h2>
 
-<table class="table table-hover">
+<table class="table table-hover table-responsive">
   <thead>
     <tr>
       <th>Date</th>
@@ -48,7 +48,7 @@
 <div class="row">
   <div class="col-md-12">
     {% if ids %}
-    <form method="post" class="form-inline">{% csrf_token %}<input type="hidden" name="ids" value="{{ ids }}"><input type="hidden" name="action" value="submit"><button role="submit" class="btn btn-primary">Submit your hours</button></form> {% endif %}<a rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-default">Edit in 10000ft</a>
+    <form method="post" class="form-inline" style="display:inline">{% csrf_token %}<input type="hidden" name="ids" value="{{ ids }}"><input type="hidden" name="action" value="submit"><button role="submit" class="btn btn-primary">Submit your hours</button></form> {% endif %}<a rel="noopener" href="https://app.10000ft.com/?user_id={{ person.guid }}" role="button" class="btn btn-light">Edit in 10000ft</a>
   </div>
 </div>
 

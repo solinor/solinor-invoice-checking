@@ -15,16 +15,16 @@ function drawChart() {
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "hours_browser" %}">Hours</a></li>
-  <li class="active">Charts</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "hours_browser" %}">Hours</a></li>
+  <li class="breadcrumb-item active">Charts</li>
 </ol>
 
 <h2>Overview</h2>
 
 <div class="row top-buttons-row">
   <div class="col-md-12">
-    <a class="btn btn-default" href="{% url "users_charts" %}">Charts for people</a>
+    <a class="btn btn-light" href="{% url "users_charts" %}">Charts for people</a>
   </div>
 </div>
 

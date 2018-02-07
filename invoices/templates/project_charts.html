@@ -14,10 +14,10 @@ function drawChart() {
 
 {% block content %}
 <ol class="breadcrumb">
-  <li><a href="{% url "frontpage" %}">Home</a></li>
-  <li><a href="{% url "projects_list" %}">Projects</a></li>
-  <li><a href="{% url "project" project.guid %}">Project</a></li>
-  <li class="active">Charts</li>
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "projects_list" %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url "project" project.guid %}">Project</a></li>
+  <li class="breadcrumb-item active">Charts</li>
 </ol>
 
 <h2>Project charts for {{ project.client }} -- {{ project.name }}</h2>

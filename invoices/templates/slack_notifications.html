@@ -16,7 +16,7 @@
     <label for="end_date">Last day for notifications</label>
     <input class="form-control" type="date" name="end_date" value="{{ unsubmitted_end_date }}">
   </div>
-  <button role="submit" name="Send notifications for unsubmitted hours" class="btn btn-default">Send notifications for unsubmitted hours (last update finished {{ last_unsubmitted_notification_at|naturaltime }})</button>
+  <button role="submit" name="Send notifications for unsubmitted hours" class="btn btn-light">Send notifications for unsubmitted hours (last update finished {{ last_unsubmitted_notification_at|naturaltime }})</button>
 </form>
 
 <h2>Unapproved hours notification</h2>
@@ -32,7 +32,7 @@
     <label for="end_date">Last day for notifications</label>
     <input class="form-control" type="date" name="end_date" value="{{ unapproved_end_date }}">
   </div>
-  <button role="submit" name="Send notifications for unapproved hours" class="btn btn-default">Send notifications for unapproved hours (last update finished {{ last_unapproved_notification_at|naturaltime }})</button>
+  <button role="submit" name="Send notifications for unapproved hours" class="btn btn-light">Send notifications for unapproved hours (last update finished {{ last_unapproved_notification_at|naturaltime }})</button>
 </form>
 
 

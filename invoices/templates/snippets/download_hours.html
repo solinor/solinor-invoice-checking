@@ -1,10 +1,10 @@
 <div class="dropdown top-bar-dropdown">
-  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+  <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
     Hours <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
     <span class="caret"></span>
   </button>
-  <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-    <li><a href="{% url "get_invoice_pdf" invoice.invoice_id "hours" %}" data-turbolinks="false">PDF</a></li>
-    <li><a href="{% url "get_invoice_xls" invoice.invoice_id "hours" %}" data-turbolinks="false">XLS</a></li>
-  </ul>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+    <a class="dropdown-item" href="{% url "get_invoice_pdf" invoice.invoice_id "hours" %}" data-turbolinks="false">PDF</a></li>
+    <a class="dropdown-item" href="{% url "get_invoice_xls" invoice.invoice_id "hours" %}" data-turbolinks="false">XLS</a></li>
+  </div>
 </div>

@@ -34,6 +34,7 @@
     {% compress js %}
     <script defer src="{% static "js/turbolinks.js" %}"></script>
     <script defer src="{% static "js/jquery.3.2.1.min.js" %}"></script>
+    <script defer src="{% static "js/popper.min.js" %}"></script>
     <script defer src="{% static "js/bootstrap.min.js" %}"></script>
     <script defer src="{% static "js/base.js" %}"></script>
     <script defer src="{% static "js/header_flex_hours.js" %}"></script>
@@ -43,62 +44,47 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="{% if request.user.is_authenticated %}{% url "frontpage" %}{% else %}#{% endif %}">Solinor Financials</a>
-      </div>
-      <div id="navbar" class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          {% if request.user.is_authenticated %}
-          <li><a href="{% url "frontpage" %}">Home</a></li>
-          <li><a href="{% url "projects_list" %}">Projects</a></li>
-          <li><a href="{% url "users_list" %}">People</a></li>
-          <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Hours <b class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li><a href="{% url "hours_browser" %}">Browser</a></li>
-              <li><a href="{% url "users_charts" %}">Charts (people)</a></li>
-              <li><a href="{% url "hours_charts" %}">Charts (hours/projects)</a></li>
-              {% if request.user.is_staff %}
-              <li class="divider"></li>
-              <li><a href="{% url "hours_sickleaves" %}">Sick leaves <i class="fa fa-lock" aria-hidden="true"></i></a></li>
-              <li><a href="{% url "flex_overview" %}">Flex saldos <i class="fa fa-lock" aria-hidden="true"></i></a></li>
-              <li><a href="{% url "hours_overview" %}">Overview</a></li>
-              {% endif %}
-            </ul>
-          </li>
-          <li><a href="{% url "amazon_overview" %}">Amazon</a></li>
-          <li><a href="{% url "your_flex_hours" %}">Flex <span class="label label-default" id="flex_hours_count" data-turbolinks-permanent>New</span></a></li>
-          {% endif %}
-          {% block navbar_items %}{% endblock %}
-        </ul>
-        <form class="navbar-form navbar-right" action="{% url 'search' %}" method="get">
-          <input type="text" class="form-control" placeholder="Search..." name="q">
-        </form>
-        {% if request.user.is_staff %}
-        <ul class="nav navbar-nav pull-right">
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              Actions
-              <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu">
-              <li><a href="{% url "queue_slack_notification" %}">Slack notifications <i class="fa fa-lock" aria-hidden="true"></i></a></li>
-              <li><a href="{% url "admin_sync" %}">Sync <i class="fa fa-lock" aria-hidden="true"></i></a></li>
-              <li><a href="{% url "admin:index" %}">Admin <i class="fa fa-lock" aria-hidden="true"></i></a></li>
-            </ul>
-          </li>
-        </ul>
-        {% endif %}
-      </div><!--/.nav-collapse -->
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="{% url "frontpage" %}">Solinor Finance</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url "projects_list" %}">Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url "users_list" %}">People</a></li>
+        <li class="nav-item dropdown">
+         <a class="nav-link dropdown-toggle" href="{% url "hours_browser" %}" id="navDropdownHours" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hours</a>
+         <div class="dropdown-menu" aria-labelledby="navDropdownHours">
+           <a class="dropdown-item" href="{% url "hours_browser" %}">Browser</a>
+           <a class="dropdown-item" href="{% url "users_charts" %}">Charts (people)</a>
+           <a class="dropdown-item" href="{% url "hours_charts" %}">Charts (hours/projects)</a>
+           {% if request.user.is_staff %}
+           <a class="dropdown-item" href="{% url "hours_sickleaves" %}">Sick leaves <i class="fa fa-lock" aria-hidden="true"></i></a>
+           <a class="dropdown-item" href="{% url "flex_overview" %}">Flex saldos <i class="fa fa-lock" aria-hidden="true"></i></a>
+           <a class="dropdown-item" href="{% url "hours_overview" %}">Overview</a>
+           {% endif %}
+         </div>
+       </li>
+       <li class="nav-item"><a class="nav-link" href="{% url "amazon_overview" %}">Amazon</a></li>
+       <li class="nav-item"><a class="nav-link" href="{% url "your_flex_hours" %}">Flex <span class="badge badge-secondary" id="flex_hours_count" data-turbolinks-permanent>New</span></a></li>
+
+       <li class="nav-item dropdown">
+         <a class="nav-link dropdown-toggle" href="{% url "admin:index" %}" id="navDropdownActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</a>
+         <div class="dropdown-menu" aria-labelledby="navDropdownActions">
+           <a class="dropdown-item" href="{% url "queue_slack_notification" %}">Slack notifications <i class="fa fa-lock" aria-hidden="true"></i></a>
+           <a class="dropdown-item" href="{% url "admin_sync" %}">Sync <i class="fa fa-lock" aria-hidden="true"></i></a>
+           <a class="dropdown-item" href="{% url "admin:index" %}">Admin <i class="fa fa-lock" aria-hidden="true"></i></a>
+         </div>
+       </li>
+      </ul>
+      <form method="get" action="{% url 'search' %}" class="form-inline my-2 my-lg-0">
+         <input class="form-control mr-sm-2" type="text" name="q" placeholder="Search" aria-label="Search">
+         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
     </div>
   </nav>
+
   <div class="body-container">
     <div class="container">
       {% if messages %}
