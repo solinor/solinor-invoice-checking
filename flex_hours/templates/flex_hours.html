@@ -44,32 +44,35 @@ $(".flex-row").each(function () {
 
 <h3>Flex saldos</h3>
 
-<table class="table table-striped table-responsive">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th class="number-column">Saldo</th>
-      <th class="number-column">KIKY</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for person in people %}
-    <tr id="{{ person.guid }}-row" class="flex-row" data-guid="{{ person.guid }}">
-      <td><a href="{% url "person_flex_hours" person.guid %}">{{ person.full_name }}</a></td>
-      <td class="number-column" id="{{ person.guid }}-saldo"></td>
-      <td class="number-column" id="{{ person.guid }}-kiky"></td>
-      <td id="{{ person.guid }}-saldo-sparkline"></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-  <tfoot>
-    <tr>
-      <td></td>
-      <td class="number-column" id="saldo-sum"></td>
-      <td class="number-column" id="kiky-sum"></td>
-    </tr>
-  </tfoot>
-</table>
-
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-striped table-responsive">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th class="number-column">Saldo</th>
+          <th class="number-column">KIKY</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for person in people %}
+        <tr id="{{ person.guid }}-row" class="flex-row" data-guid="{{ person.guid }}">
+          <td><a href="{% url "person_flex_hours" person.guid %}">{{ person.full_name }}</a></td>
+          <td class="number-column" id="{{ person.guid }}-saldo"></td>
+          <td class="number-column" id="{{ person.guid }}-kiky"></td>
+          <td id="{{ person.guid }}-saldo-sparkline"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td></td>
+          <td class="number-column" id="saldo-sum"></td>
+          <td class="number-column" id="kiky-sum"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
 {% endblock %}

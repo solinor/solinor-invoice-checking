@@ -68,3 +68,13 @@ h2 {
 .clickable-area {
   cursor: pointer;
 }
+footer {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+  background-color: #f5f5f5;
+}
+
+footer p {
+  margin-bottom: .25rem;
+}
+.box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }

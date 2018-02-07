@@ -85,17 +85,29 @@
     </div>
   </nav>
 
-  <div class="body-container">
-    <div class="container">
-      {% if messages %}
-          {% for message in messages %}
-          <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">{{ message }}</div>
-          {% endfor %}
-      {% endif %}
+  <main role="main">
+    <div class="body-container">
+      <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
-      {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
+      </div>
     </div>
-  </div>
+  </main>
+
+  <footer class="text-muted">
+    <div class="container">
+      <p class="float-right">
+        <a href="#">Back to top</a>
+      </p>
+      <p>Problems? Want to improve something? <a href="https://github.com/solinor/solinor-invoice-checking">Code available in GitHub</a>.</p>
+    </div>
+  </footer>
+
 <script type="text/javascript">
 pageJs = function() {
   {% block pageJs %}
