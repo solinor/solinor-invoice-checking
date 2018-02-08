@@ -291,7 +291,7 @@ def hours_sickleaves(request):
 
     start_date = datetime.date.today() - datetime.timedelta(days=365)
     short_period_start_date = datetime.date.today() - datetime.timedelta(days=120)
-    sick_leaves = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=start_date).exclude(user_m=None).filter(leave_type="Sick leave").order_by("user_m", "date").values("user_m__email", "user_m__display_name", "user_m__pk", "date").annotate(incurred_hours_sum=Sum("incurred_hours"))
+    sick_leaves = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=start_date).exclude(user_m=None).exclude(user_m__archived=True).filter(leave_type="Sick leave").order_by("user_m", "date").values("user_m__email", "user_m__display_name", "user_m__pk", "date").annotate(incurred_hours_sum=Sum("incurred_hours"))
 
     per_person_info = defaultdict(lambda: {"short": 0, "long": 0, "short_periods": []})
     for item in sick_leaves:
