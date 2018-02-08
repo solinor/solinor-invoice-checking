@@ -22,7 +22,9 @@ def get_flex_hours_for_user(request, person, json_responses=False, only_active=F
     if json_responses:
         if not context.get("active", True):
             return HttpResponse(json.dumps({"flex_enabled": False}), content_type="application/json")
-        return JsonResponse({"monthly_saldos": [month.get("cumulative_saldo", 0) for month in context["monthly_summary"]][0:12], "flex_enabled": True, "flex_hours": context["cumulative_saldo"], "kiky_saldo": context.get("kiky", {}).get("saldo")})
+        monthly_saldos = [month.get("cumulative_saldo", 0) for month in context["monthly_summary"]][0:12]
+        monthly_saldos.reverse()
+        return JsonResponse({"monthly_saldos": monthly_saldos, "flex_enabled": True, "flex_hours": context["cumulative_saldo"], "kiky_saldo": context.get("kiky", {}).get("saldo")})
     return render(request, "person_flex_hours.html", context)
 
 
