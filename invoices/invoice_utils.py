@@ -132,7 +132,7 @@ def calculate_stats_for_aws_entries(aws_entries):
             for aws_entry in aws_entries_list:
                 total_key = f"aws_{aws_entry.currency}"
                 if total_key not in total_rows:
-                    total_rows[total_key] = {"description": "Amazon billing ({aws_entry.currency})", "incurred_money": 0, "currency": aws_entry.currency}
+                    total_rows[total_key] = {"description": f"Amazon billing ({aws_entry.currency})", "incurred_money": 0, "currency": aws_entry.currency}
 
                 total_rows[total_key]["incurred_money"] += aws_entry.total_cost
                 phases[account_key]["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}
