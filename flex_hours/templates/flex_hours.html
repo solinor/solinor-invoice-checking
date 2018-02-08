@@ -22,10 +22,10 @@ $(".flex-row").each(function () {
       $("#" + user_guid + "-kiky").html(data.kiky_saldo.toFixed(2) + "h");
       kiky_sum = kiky_sum + data.kiky_saldo;
       $("#kiky-sum").html(kiky_sum.toFixed(2) + "h");
-      if (data.flex_hours < -50) {
+      if (data.flex_hours < -40) {
         $("#" + user_guid + "-row").addClass("table-danger");
       }
-      if (data.flex_hours > 100) {
+      if (data.flex_hours > 120) {
         $("#" + user_guid + "-row").addClass("table-warning");
       }
       $("#" + user_guid + "-saldo-sparkline").sparkline(data.monthly_saldos, {"colorMap": range_map, "height": "3em", "fillColor": false})
