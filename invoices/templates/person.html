@@ -66,27 +66,26 @@ $("#person-hours a").click(function (e) {
           <a class="nav-link" id="no-category-tab" data-toggle="pill" href="#no-category" role="tab" aria-controls="no-category" aria-selected="false">No category <span class="badge badge-secondary">{{ stats.no_category_count }}</span></a>
         </li>
       </ul>
-      <div class="tab-content" id="pills-tabContent">
-        <div class="tab-pane fade show active" id="all-entries" role="tabpanel" aria-labelledby="pills-home-tab">
-          {% include "snippets/person_hour_table.html" with entries=hour_entries %}
-        </div>
-        <div class="tab-pane fade" id="non-phase-specific" role="tabpanel" aria-labelledby="non-phase-specific-tab">
-          {% include "snippets/person_hour_table.html" with entries=stats.non_phase_specific %}
-        </div>
-        <div class="tab-pane fade" id="empty-descriptions" role="tabpanel" aria-labelledby="empty-descriptions-tab">
-          {% include "snippets/person_hour_table.html" with entries=stats.empty_descriptions %}
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="billable-incorrect-price" aria-labelledby="billable-incorrect-price-tab">
-          {% include "snippets/person_hour_table.html" with entries=stats.billable_incorrect_price %}
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="not-approved-hours" aria-labelledby="not-approved-hours-tab">
-          {% include "snippets/person_hour_table.html" with entries=stats.not_approved_hours %}
-        </div>
-        <div role="tabpanel" class="tab-pane fade" id="no-category" aria-labelledby="no-category-tab">
-          {% include "snippets/person_hour_table.html" with entries=stats.no_category %}
-        </div>
+    </div>
+    <div class="tab-content" id="pills-tabContent">
+      <div role="tabpanel" class="tab-pane fade show active" id="all-entries" aria-labelledby="all-entries-tab">
+        {% include "snippets/person_hour_table.html" with entries=hour_entries %}
       </div>
-
+      <div role="tabpanel" class="tab-pane fade" id="non-phase-specific" aria-labelledby="non-phase-specific-tab">
+        {% include "snippets/person_hour_table.html" with entries=stats.non_phase_specific %}
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="empty-descriptions" aria-labelledby="empty-descriptions-tab">
+        {% include "snippets/person_hour_table.html" with entries=stats.empty_descriptions %}
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="billable-incorrect-price" aria-labelledby="billable-incorrect-price-tab">
+        {% include "snippets/person_hour_table.html" with entries=stats.billable_incorrect_price %}
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="not-approved-hours" aria-labelledby="not-approved-hours-tab">
+        {% include "snippets/person_hour_table.html" with entries=stats.not_approved_hours %}
+      </div>
+      <div role="tabpanel" class="tab-pane fade" id="no-category" aria-labelledby="no-category-tab">
+        {% include "snippets/person_hour_table.html" with entries=stats.no_category %}
+      </div>
     </div>
   </div>
 </div>
