@@ -185,6 +185,10 @@ class TenkFeetApi(object):
         next_page = "/api/v1/projects?per_page=250&page=1&with_archived=true"
         return self.PROJECTS_SCHEMA.validate(self.fetch_endpoint(next_page))
 
+    def fetch_project(self, project_id):
+        url = f"https://api.10000ft.com/api/v1/projects/{project_id}?auth={self.apikey}"
+        return requests.get(url).json()
+
     def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
         self.logger.info("Fetching hour entries reporting API: %s - %s", start_date, end_date)
         now = timezone.now()

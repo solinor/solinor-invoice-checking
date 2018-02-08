@@ -21,6 +21,7 @@ urlpatterns = [
     path("invoices/<uuid:invoice_id>/export/xls/<slug:xls_type>", invoices.views.get_invoice_xls, name="get_invoice_xls"),
     path("invoices/amazon/<int:linked_account_id>/<int:year>/<int:month>", invoices.views.amazon_invoice, name="amazon_invoice"),
     path("invoices/amazon", invoices.views.amazon_overview, name="amazon_overview"),
+    path("invoices", invoices.views.invoices_list, name="invoices_list"),
     path("hours/browser", invoices.views.hours_browser, name="hours_browser"),
     path("hours/charts", invoices.views.hours_charts, name="hours_charts"),
     path("hours/overview", invoices.views.hours_overview, name="hours_overview"),
@@ -50,7 +51,6 @@ urlpatterns = [
     url(r"^accounts/", include("googleauth.urls")),
     path("", invoices.views.frontpage, name="frontpage"),
     path("manifest", invoices.views.manifest, name="manifest"),
-    path("frontpage/invoices", invoices.views.frontpage_invoice_table, name="frontpage_invoice_table"),
     url(r"^admin/", admin.site.urls),
 
     # Deprecated paths

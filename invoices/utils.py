@@ -134,6 +134,7 @@ def sync_10000ft_projects():
             "description": project["description"],
             "starts_at": project["starts_at"],
             "ends_at": project["ends_at"],
+            "thumbnail_url": project["thumbnail"],
         }
         project_obj, created = Project.objects.update_or_create(guid=project["guid"],
                                                                 defaults=project_fields)

@@ -269,6 +269,7 @@ class Project(models.Model):
     slack_channel = models.ForeignKey("SlackChannel", null=True, blank=True, on_delete=models.CASCADE)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
     admin_users = models.ManyToManyField("TenkfUser", blank=True)
+    thumbnail_url = models.CharField(max_length=1024, null=True, blank=True)
 
     @property
     def full_name(self):

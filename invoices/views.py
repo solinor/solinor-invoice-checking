@@ -513,7 +513,7 @@ def your_stats(request):
 
 
 @login_required
-def frontpage_invoice_table(request):
+def invoices_list(request):
     all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"])
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
@@ -530,16 +530,71 @@ def frontpage_invoice_table(request):
         "filters": filters,
         "last_update_finished_at": last_update_finished_at,
     }
-    return render(request, "snippets/invoices_table.html", context)
+    return render(request, "invoices.html", context)
 
 
 @login_required
 def frontpage(request):
-    last_month = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    today = datetime.date.today()
+    last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
+
+    active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).filter(year=last_month.year, month=last_month.month).exclude(project_m=None).select_related("project_m")  # TODO: ongoing month
+    projects = [invoice.project_m for invoice in active_invoices]
+    projects_map = {invoice.project_m.guid: (invoice.project_m, invoice) for invoice in active_invoices}
+    billing = defaultdict(dict)
+    for item in HourEntry.objects.filter(project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("project_m__guid", "date").order_by("project_m__guid", "date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")):
+        billing[item["project_m__guid"]][item["date"]] = (item["hours"], item["money"])
+
+    people_entries = defaultdict(lambda: defaultdict(set))
+    for item in HourEntry.objects.filter(project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("project_m__guid", "date", "user_email").order_by("project_m__guid", "date", "user_email"):
+        people_entries[item["project_m__guid"]][item["date"]].add(item["user_email"])
+
+    cards = []
+    for project, invoice in projects_map.values():
+        hours = []
+        money = []
+        people = []
+        hours_workdays_sum = money_workdays_sum = people_workdays_sum = workdays_count = 0
+        for date in daterange(last_month, today):
+            if date in billing[project.guid]:
+                hours.append(billing[project.guid][date][0] or 0)
+                money.append(billing[project.guid][date][1] or 0)
+            else:
+                hours.append(0)
+                money.append(0)
+            if date in people_entries[project.guid]:
+                people.append(len(people_entries[project.guid][date]))
+            else:
+                people.append(0)
+            if date.isoweekday() < 6:
+                people_workdays_sum += people[-1]
+                workdays_count += 1
+        hours_sum = sum(hours)
+        money_sum = sum(money)
+
+        cards.append({
+            "project": project,
+            "invoice": invoice,
+            "hours": hours[-45:],
+            "money": money[-45:],
+            "people": people[-45:],
+            "hours_sum": hours_sum,
+            "money_sum": money_sum,
+            "people_avg": float(people_workdays_sum) / workdays_count,
+        })
+
+    sorting = request.GET.get("sorting", "alphabetically")
+    if sorting == "alphabetically":
+        cards = sorted(cards, key=lambda k: k["project"].full_name)
+    if sorting == "hours":
+        cards = sorted(cards, key=lambda k: k["hours_sum"], reverse=True)
+    if sorting == "billing":
+        cards = sorted(cards, key=lambda k: k["money_sum"], reverse=True)
 
     context = {
         "your_invoices": your_invoices,
+        "cards": cards,
     }
     return render(request, "frontpage.html", context)
 

@@ -1,6 +1,9 @@
+{% extends "base.html" %}
 {% load humanize %}
 {% load django_tables2 %}
+{% block title %}Invoices - Solinor Finance{% endblock %}
 
+{% block content %}
 <h2>All invoices <small><span data-toggle="collapse" data-target="#invoice-table-filters"><i class="fa fa-filter" aria-hidden="true"></i></span></small>
   <span class="text-right">
   <form method="post" class="form-inline" action="{% url "queue_update" %}" style="display:inline">
@@ -29,3 +32,4 @@
 </div>
 
 {% render_table invoices %}
+{% endblock %}

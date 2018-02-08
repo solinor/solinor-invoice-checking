@@ -23,17 +23,16 @@ $.get("{% url "your_stats" %}", function(data) {
     $("#your_billing_ratio").html("?");
   }
   $("#your_billing_ratio_sparkline").sparkline(data.your_daily_billing_ratio, {"disableTooltips": true});
-})
-$.get("{% url "frontpage_invoice_table" %}" + window.location.search, function(data) {
-  $("#all-invoices-table").html(data);
-}, "html");
-$(".sparkline-content").sparkline('html', {"width": "100%"});
+});
+$(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar", "disableTooltips": true});
 {% endblock %}
 {% block content %}
 
+<h3>Your information</h3>
+
 <div class="row">
   <div class="col-md-3 clickable-area" onclick="Turbolinks.visit('{% url "your_unsubmitted_hours" %}');">
-    <div class="card">
+    <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Unsubmitted entries</h5>
         <p class="lead" id="your_unsubmitted_entries">Loading</p>
@@ -41,7 +40,7 @@ $(".sparkline-content").sparkline('html', {"width": "100%"});
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card">
+    <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Last hour marking</h5>
         <p class="lead" id="your_last_hour_marking">Loading</p>
@@ -49,7 +48,7 @@ $(".sparkline-content").sparkline('html', {"width": "100%"});
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card">
+    <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Hours for past 7 days</h3>
         <p class="lead" id="your_hours_this_week">Loading</p>
@@ -57,7 +56,7 @@ $(".sparkline-content").sparkline('html', {"width": "100%"});
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card">
+    <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Your billing rate <small>Past 30d</small></h3>
         <p class="lead"><span id="your_billing_ratio">Loading</span> <span id="your_billing_ratio_sparkline"></span></p>
@@ -66,50 +65,55 @@ $(".sparkline-content").sparkline('html', {"width": "100%"});
   </div>
 </div>
 
+{% if your_invoices %}
+<h3 style="margin-top: 1em">Your projects</h3>
+
+{% include "snippets/frontpage_table.html" with invoices=your_invoices %}
+
+{% endif %}
+
+<h3 style="margin-top: 1em">Our current projects</h3>
+
+<p class="text-muted">Sort <a href="?sorting=alphabetically">alphabetically</a>, <a href="?sorting=billing">by billing</a>, <a href="?sorting=hours">by amount of hours</a></p>
+
 <div class="album py-5 bg-light">
   <div class="container">
     <div class="row">
+      {% for card in cards %}
       <div class="col-md-4">
         <div class="card mb-4 box-shadow">
-          <div class="card-header"><h5>Example project</h5></div>
+          <span style="height:176px;overflow-y:hidden;" class="clickable-area" onclick="Turbolinks.visit('{% url "project" card.project.guid %}')">
+            <img class="card-img-top" src="{{ card.project.thumbnail_url }}">
+          </span>
+          <div class="card-header clickable-area" style="height:86px;overflow-y:hidden" onclick="Turbolinks.visit('{% url "project" card.project.guid %}')"><h5>{{ card.project }}</h5></div>
           <div class="card-body">
             <p class="card-text">
-              This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+              <p style="height:5em;overflow-y:hidden">{{ card.project.description }}</p>
               <div class="row">
-                <div class="col-md-4">Billing</div>
-                <div class="col-md-8"><span class="sparkline-content">1,2,3,4,6,2,3,4,1,2,5,2,3,3,3,3,4,5,6,5,4,5,6,1</span></div>
+                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Billing for previous and current months."><p class="text-floating-left">Billing</p><p class="text-floating-right">{{ card.money_sum|floatformat:"0"|intcomma }}€</p></h6></div>
+                <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.money %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>
               </div>
               <div class="row">
-                <div class="col-md-4">Hours</div>
-                <div class="col-md-8"><span class="sparkline-content">1,2,3,4,6,2,3,4,1,2,5,2,3,3,5,70,1,1,80,80,70,90</span></div>
+                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Incurred hours for previous and current months."><p class="text-floating-left">Hours</p><p class="text-floating-right">{{ card.hours_sum|floatformat:"0"|intcomma }}h</p></h6></div>
+                <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.hours %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>
               </div>
               <div class="row">
-                <div class="col-md-4">People</div>
-                <div class="col-md-8"><span class="sparkline-content">2,3,4,6,2,3,4,1,2,5,2,3,3,3,3,4,5,6,5,4,5,6,1,3,1</span></div>
+                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Average number of people working on the project on weekdays during previous and current months."><p class="text-floating-left">People</p><p class="text-floating-right">{{ card.people_avg|floatformat:"1" }} per weekday</p></h6></div>
+                <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.people %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>
               </div>
-              &nbsp;
+            </p>
             <div class="d-flex justify-content-between align-items-center">
               <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                <a href="https://app.10000ft.com/viewproject?id={{ card.project.project_id }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">10000ft</a>
+                <a href="{% url "project" card.project.guid %}" class="btn btn-sm btn-outline-secondary">View</a>
               </div>
               <small class="text-muted"></small>
             </div>
           </div>
         </div>
       </div>
+      {% endfor %}
     </div>
   </div>
 </div>
-
-
-{% if your_invoices %}
-<h2>Your projects</h2>
-
-{% include "snippets/frontpage_table.html" with invoices=your_invoices %}
-
-{% endif %}
-
-<div id="all-invoices-table"><h2>Loading...</h2></div>
-
 {% endblock %}

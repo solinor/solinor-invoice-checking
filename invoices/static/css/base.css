@@ -74,3 +74,16 @@ h2 {
 }
 
 .box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }
+.your-information-card {
+  min-height: 154px;
+}
+.text-floating-left {
+  width:33%;
+  float:left;
+  text-align: left;
+}
+.text-floating-right {
+  width:66%;
+  float:left;
+  text-align: right;
+}
