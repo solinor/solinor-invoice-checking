@@ -13,7 +13,7 @@
       <li class="breadcrumb-item active">Hours</li>
     </ol>
 
-    <h2>{{ invoice.full_name }}: {{ invoice.date }}</h2>
+    <h2>{{ invoice.full_name }}: {{ invoice.formatted_date }}</h2>
     <div class="row top-buttons-row">
       <div class="col-md-12">
         {% include "snippets/previous_invoices.html" with previous_invoice_url="invoice_hours" %}

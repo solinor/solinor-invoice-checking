@@ -43,7 +43,7 @@
           </button>
           <div class="dropdown-menu" aria-labelledby="selectInvoiceMonth">
             {% for previous_invoice in previous_invoices %}
-            <a class="dropdown-item" href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a>
+            <a class="dropdown-item" href="{% url "invoice" previous_invoice.invoice_id %}">{{ previous_invoice.formatted_date }}</a>
             {% endfor %}
           </div>
         </div>

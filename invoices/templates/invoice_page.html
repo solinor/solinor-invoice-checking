@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ invoice.full_name }} - {{ invoice.date }} - Solinor{% endblock %}
+{% block title %}{{ invoice.full_name }} - {{ invoice.formatted_date }} - Solinor{% endblock %}
 
 
 {% block content %}
@@ -11,7 +11,7 @@
       <li class="breadcrumb-item active"><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
     </ol>
 
-    <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
+    <h2>Invoice details for {{ invoice.full_name }} -- {{ invoice.formatted_date }}</h2>
 
     {% if invoice.project_m.description %}
     <blockquote class="blockquote">

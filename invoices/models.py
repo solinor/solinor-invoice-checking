@@ -105,6 +105,7 @@ class Invoice(models.Model):
 
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
     invoice_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    date = models.DateField(null=True, blank=True)
     year = models.IntegerField()
     month = models.IntegerField()
 
@@ -145,7 +146,7 @@ class Invoice(models.Model):
         return []
 
     @property
-    def date(self):
+    def formatted_date(self):
         return f"{self.year}-{self.month:02d}"
 
     @property
@@ -154,6 +155,10 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.date}"
+
+    def save(self, *args, **kwargs):
+        self.date = datetime.date(self.year, self.month, 1)
+        super(models.Model, self).save(*args, **kwargs)
 
     def update_state(self, comment):
         self.invoice_state = "C"

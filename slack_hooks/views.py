@@ -105,7 +105,7 @@ def incoming_event(request):
                     }
                     continue
                 unfurls[link["url"]] = {
-                    "title": f"Solinor Invoice - {invoice.full_name} - {invoice.date}",
+                    "title": f"Solinor Invoice - {invoice.full_name} - {invoice.formatted_date}",
                     "title_link": link["url"],
                     "fields": [
                         {
@@ -159,7 +159,7 @@ def incoming_event(request):
                         if c > 12:
                             message += "..."
                             break
-                        message += "- <https://{}{}|{} - {:.2f}h - {:.2f}€ - {}>\n".format(settings.DOMAIN, reverse("invoice", args=(invoice.invoice_id,)), invoice.date, invoice.incurred_hours, invoice.incurred_money, invoice.get_invoice_state_display())
+                        message += "- <https://{}{}|{} - {:.2f}h - {:.2f}€ - {}>\n".format(settings.DOMAIN, reverse("invoice", args=(invoice.invoice_id,)), invoice.formatted_date, invoice.incurred_hours, invoice.incurred_money, invoice.get_invoice_state_display())
                 else:
                     message += "No invoices."
                 unfurls[link["url"]] = {

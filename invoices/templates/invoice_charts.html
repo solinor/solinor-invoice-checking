@@ -21,7 +21,7 @@ function drawChart() {
 }
 {% endblock %}
 
-{% block title %}{{ invoice.full_name }} - {{ invoice.date }} - Solinor{% endblock %}
+{% block title %}{{ invoice.full_name }} - {{ invoice.formatted_date }} - Solinor{% endblock %}
 
 {% block content %}
 <ol class="breadcrumb">
@@ -32,7 +32,7 @@ function drawChart() {
   <li class="breadcrumb-item active">Charts</li>
 </ol>
 
-<h2>Invoice charts for {{ invoice.full_name }} -- {{ invoice.date }}</h2>
+<h2>Invoice charts for {{ invoice.full_name }} -- {{ invoice.formatted_date }}</h2>
 
 <div class="row top-buttons-row">
   <div class="col-md-12">
@@ -44,7 +44,7 @@ function drawChart() {
       </button>
       <div class="dropdown-menu" aria-labelledby="selectInvoiceMonth">
         {% for previous_invoice in previous_invoices %}
-        <a class="dropdown-item" href="{% url "invoice_charts" previous_invoice.invoice_id %}">{{ previous_invoice.date }}</a>
+        <a class="dropdown-item" href="{% url "invoice_charts" previous_invoice.invoice_id %}">{{ previous_invoice.formatted_date }}</a>
         {% endfor %}
       </div>
     </div>
