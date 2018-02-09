@@ -158,7 +158,7 @@ class Invoice(models.Model):
 
     def save(self, *args, **kwargs):
         self.date = datetime.date(self.year, self.month, 1)
-        super(models.Model, self).save(*args, **kwargs)
+        super(Invoice, self).save(*args, **kwargs)
 
     def update_state(self, comment):
         self.invoice_state = "C"
