@@ -147,14 +147,14 @@ class Invoice(models.Model):
 
     @property
     def formatted_date(self):
-        return f"{self.year}-{self.month:02d}"
+        return f"{self.date:%Y-%m}"
 
     @property
     def full_name(self):
         return f"{self.client} - {self.project}"
 
     def __str__(self):
-        return f"{self.full_name} - {self.date}"
+        return f"{self.full_name} - {self.date:%Y-%m}"
 
     def save(self, *args, **kwargs):
         self.date = datetime.date(self.year, self.month, 1)

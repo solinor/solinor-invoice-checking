@@ -619,7 +619,7 @@ def invoice_hours(request, invoice_id):
         "invoice": invoice,
         "entries": entries,
         "previous_invoices": previous_invoices,
-        "recent_invoice": abs((datetime.date.today() - datetime.date(invoice.year, invoice.month, 1)).days) < 60,
+        "recent_invoice": abs((datetime.date.today() - invoice.date).days) < 60,
     }
     return render(request, "invoice_hours.html", context)
 
@@ -903,17 +903,13 @@ def invoice_page(request, invoice_id, **_):
         "form_data": latest_comments,
         "invoice": invoice,
         "previous_invoices": previous_invoices,
-        "recent_invoice": abs((datetime.date.today() - datetime.date(invoice.year, invoice.month, 1)).days) < 60,
+        "recent_invoice": abs((datetime.date.today() - invoice.date).days) < 60,
     }
     context.update(entry_data)
 
-    previous_invoice_month = invoice.month - 1
-    previous_invoice_year = invoice.year
-    if previous_invoice_month == 0:
-        previous_invoice_month = 12
-        previous_invoice_year -= 1
+    previous_month = (invoice.date - datetime.timedelta(days=1)).replace(days=1)
     try:
-        last_month_invoice = Invoice.objects.get(project=invoice.project, client=invoice.client, year=previous_invoice_year, month=previous_invoice_month)
+        last_month_invoice = Invoice.objects.get(project=invoice.project, client=invoice.client, date=previous_month)
         context["last_month_invoice"] = last_month_invoice
         context["diff_last_month"] = last_month_invoice.compare(invoice)
     except Invoice.DoesNotExist:

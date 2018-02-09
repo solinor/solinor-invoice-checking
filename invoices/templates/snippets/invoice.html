@@ -60,7 +60,7 @@
               {% if phase.entries %}
                 {% for entry_name, price in phase.entries.items %}
                 <tr class="item">
-                    <td>{% if price.aws_id %}<a href="{% url "amazon_invoice" price.aws_id invoice.year invoice.month %}">{{ entry_name }}</a>
+                    <td>{% if price.aws_id %}<a href="{% url "amazon_invoice" price.aws_id invoice.date.year invoice.date.month %}">{{ entry_name }}</a>
                       {% else %}{{ entry_name }}{% endif %}</td>
                     <td>-</td>
                     <td>-</td>
@@ -81,7 +81,7 @@
                   {% if details.incurred_hours > 0 %}
                     <tr class="item">
                         <td>
-                          {% if person_details.user_m and not customer_preview %}<a href="{% url "person_month" person_details.user_m.guid invoice.year invoice.month %}">{{ person_details.user_name }}</a>
+                          {% if person_details.user_m and not customer_preview %}<a href="{% url "person_month" person_details.user_m.guid invoice.date.year invoice.date.month %}">{{ person_details.user_name }}</a>
                           {% else %}{{ person_details.user_name }}{% endif %}
                         </td>
 

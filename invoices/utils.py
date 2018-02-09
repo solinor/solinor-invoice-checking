@@ -179,7 +179,7 @@ def get_projects():
 
 
 def get_invoices():
-    return {f"{invoice.year}-{invoice.month} {invoice.client} - {invoice.project}": invoice for invoice in Invoice.objects.all()}
+    return {f"{invoice.date:%Y-%m} {invoice.client} - {invoice.project}": invoice for invoice in Invoice.objects.all()}
 
 
 def get_users():
