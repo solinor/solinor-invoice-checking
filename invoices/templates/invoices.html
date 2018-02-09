@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load django_tables2 %}
+{% load widget_tweaks %}
 {% block title %}Invoices - Solinor Finance{% endblock %}
 
 {% block content %}
@@ -14,21 +15,19 @@
   </span></h2>
 
 <div id="invoice-table-filters" style="margin-bottom: 1em" class="collapse">
-<form action="" method="get" class="form-inline" style="display:inline">
-  <div class="row">
-    {% for field in filters.form %}
-    <div class="col-md-3">
-      <div class="form-group">
-      {{ field.label_tag }}
-      {{ field }}
+  <form action="" method="get">
+    <div class="row">
+      {% for field in filters.form %}
+      <div class="col-md-4">
+        <label for="{{ field.id_for_label }}">{{ field.label_tag }}</label>
+        {{ field|add_class:'form-control' }}
+      </div>
+      {% endfor %}
+      <div class="col-md-4">
+        <button style="margin-top:0.8em" class="btn btn-primary" type="submit">Filter</button>
       </div>
     </div>
-    {% endfor %}
-    <div class="col-md-3">
-      <button style="margin-top:0.8em" class="btn btn-primary" type="submit">Filter</button>
-    </div>
-  </div>
-</form>
+  </form>
 </div>
 
 {% render_table invoices %}

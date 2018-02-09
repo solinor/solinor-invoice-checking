@@ -8,6 +8,7 @@ django-filter==1.1.0
 django-googleauth-ng==2.3
 django-reversion==2.0.12
 django-tables2==1.16.0
+django-widget-tweaks==1.4.1
 Django==2.0.0
 gunicorn==19.7.1
 pdfkit==0.6.1

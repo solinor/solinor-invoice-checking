@@ -86,6 +86,7 @@ INSTALLED_APPS = (
     "compressor",
     "reversion",
     "slack_hooks",
+    "widget_tweaks",
 )
 
 if DEBUG:

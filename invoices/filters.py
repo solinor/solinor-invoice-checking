@@ -4,6 +4,8 @@ from invoices.models import HourEntry, Invoice, Project
 
 
 class HourListFilter(django_filters.FilterSet):
+    date = django_filters.DateRangeFilter()
+
     class Meta:
         model = HourEntry
         fields = {
