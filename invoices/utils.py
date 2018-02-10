@@ -174,7 +174,7 @@ def get_projects():
 
 
 def get_invoices():
-    return {f"{invoice.date:%Y-%m} {invoice.client} - {invoice.project}": invoice for invoice in Invoice.objects.all()}
+    return {f"{invoice.date:%Y-%m} {invoice.project_m.project_id}": invoice for invoice in Invoice.objects.all()}
 
 
 def get_users():
@@ -197,6 +197,7 @@ class HourEntryUpdate(object):
         self.invoices_data = get_invoices()
         self.projects_data = get_projects()
         self.clients_data = get_clients()
+        self.leave_project = Project.objects.get(name="[Leave Type]")
         self.user_data = get_users()
         self.start_date = start_date
         self.end_date = end_date
@@ -218,7 +219,7 @@ class HourEntryUpdate(object):
         return self.projects_data.get(project_id, None)
 
     def match_invoice(self, data):
-        invoice_key = "{}-{} {} - {}".format(data["date"].year, data["date"].month, data["client"], data["project"])
+        invoice_key = "{:%Y-%m} {}".format(data["date"], data["project_m"].project_id)
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
             logger.debug("Invoice already exists: %s", invoice_key)
@@ -228,10 +229,8 @@ class HourEntryUpdate(object):
             client = data["client"]
             project = data["project"]
             client_m = self.match_client(data["client"])
-            project_m = self.match_project(data["project"])
-            if not project_m:
-                return None
-            invoice, _ = Invoice.objects.update_or_create(date=data["date"], client_m=client_m, project_m=project_m, defaults={"tags": data["project_tags"], "client": client, "project": project})
+            project_m = data["project_m"]
+            invoice, _ = Invoice.objects.update_or_create(date=data["date"], client_m=client_m, project_m=project_m, defaults={"client": client, "project": project})
             self.invoices_data[invoice_key] = invoice
             return invoice
 
@@ -288,7 +287,6 @@ class HourEntryUpdate(object):
                         "submitted_by": entry["reporting"][54],
                         "updated_at": parse_datetime(entry["api"].get("updated_at")),
                         "created_at": parse_datetime(entry["api"].get("created_at")),
-                        "client": entry["reporting"][6],
                         "project": entry["reporting"][3],
                         "incurred_hours": parse_float(entry["reporting"][8]),
                         "incurred_money": parse_float(entry["reporting"][11]),
@@ -304,7 +302,6 @@ class HourEntryUpdate(object):
                         "approved": entry["reporting"][52] == "Approved",
                         "status": entry["reporting"][52],
                         "user_email": entry["reporting"][29].lower(),
-                        "project_tags": entry["reporting"][34],
                         "last_updated_at": now,
                         "calculated_is_billable": is_phase_billable(entry["reporting"][31], entry["reporting"][3]),
                         "upstream_approvable_id": upstream_approvable_id,
@@ -324,9 +321,14 @@ class HourEntryUpdate(object):
                         data["project_m"] = self.match_project(project_id)
                     except (ValueError, TypeError):
                         pass
+                    if data["project"] == "[Leave Type]":
+                        data["project_m"] = self.leave_project
 
-                    invoice = self.match_invoice(data)
-                    if invoice:
+                    if "project_m" not in data:
+                        logger.info("No matching invoice available - skip entry. data=%s; entry=%s", data, entry)
+                        sha256 = "-" * 64  # Reset checksum to ensure reprocessing
+                    else:
+                        invoice = self.match_invoice(data)
                         data["invoice"] = invoice
                         data["user_m"] = self.match_user(data["user_email"])
                         hour_entry = HourEntry(**data)
@@ -334,9 +336,6 @@ class HourEntryUpdate(object):
                         entries.append(hour_entry)
                         delete_days.add(entry_date)
                         updated_days.add(entry_date)
-                    else:
-                        logger.info("No matching invoice available - skip entry: %s", data)
-                        sha256 = "-" * 64  # Reset checksum to ensure reprocessing
 
                 item, created = HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})
                 if not created:

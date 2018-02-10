@@ -51,7 +51,6 @@ class HourEntry(models.Model):
     phase_name = models.CharField(max_length=100)
     billable = models.BooleanField(blank=True)
     approved = models.BooleanField(blank=True)
-    project_tags = models.CharField(max_length=1024, null=True, blank=True)
     status = models.CharField(max_length=30)
     assignable_id = models.IntegerField(null=True, blank=True)
     approved_at = models.DateField(null=True, blank=True)
@@ -116,8 +115,8 @@ class Invoice(models.Model):
 
     project_m = models.ForeignKey("Project", on_delete=models.CASCADE)
 
-    client = models.CharField(max_length=100)
-    project = models.CharField(max_length=100)
+    client = models.CharField(max_length=100)  # TODO: remove
+    project = models.CharField(max_length=100)  # TODO: remove
 
     is_approved = models.BooleanField(blank=True, default=False)
     has_comments = models.BooleanField(blank=True, default=False)
@@ -257,7 +256,7 @@ class TenkfUser(models.Model):
 @reversion.register()
 class Project(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
-    project_id = models.IntegerField()
+    project_id = models.IntegerField(unique=True)
     project_state = models.CharField(max_length=100)
     parent_id = models.IntegerField(null=True, blank=True)
     phase_name = models.CharField(max_length=1000, null=True, blank=True)
