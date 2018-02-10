@@ -31,9 +31,14 @@ admin.site.register(SlackChannel, SlackChannelAdmin)
 
 
 class ProjectAdmin(DeleteNotAllowedModelAdmin):
+    def get_client_name(self, obj):
+        return obj.client_m.name
+    get_client_name.admin_order_field = "client"
+    get_client_name.short_description = "Client"
+
     fields = ("slack_channel", "amazon_account")
-    list_display = ("client", "name", "slack_channel")
-    search_fields = ("client", "name")
+    list_display = ("get_client_name", "name", "slack_channel")
+    search_fields = ("get_client_name", "name")
 
 
 admin.site.register(Project, ProjectAdmin)

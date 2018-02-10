@@ -10,7 +10,7 @@ function drawChart() {
 }
 {% endblock %}
 
-{% block title %}{{ project.client }} - Solinor{% endblock %}
+{% block title %}{{ project.client_m.name }} - Solinor{% endblock %}
 
 {% block content %}
 <ol class="breadcrumb">
@@ -20,7 +20,7 @@ function drawChart() {
   <li class="breadcrumb-item active">Charts</li>
 </ol>
 
-<h2>Project charts for {{ project.client }} -- {{ project.name }}</h2>
+<h2>Project charts for {{ project.client_m.name }} -- {{ project.name }}</h2>
 
 <div class="row">
   <div class="col-md-12">

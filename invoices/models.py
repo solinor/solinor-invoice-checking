@@ -19,6 +19,13 @@ def is_phase_billable(phase_name, project):
     return True
 
 
+class Client(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class HourEntry(models.Model):
     """ A single hour entry row.
 
@@ -105,15 +112,12 @@ class Invoice(models.Model):
 
     ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
     invoice_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    date = models.DateField(null=True, blank=True)
-    year = models.IntegerField()
-    month = models.IntegerField()
+    date = models.DateField()
 
     project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)
 
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
-    tags = models.CharField(max_length=1024, null=True, blank=True)
 
     is_approved = models.BooleanField(blank=True, default=False)
     has_comments = models.BooleanField(blank=True, default=False)
@@ -133,17 +137,11 @@ class Invoice(models.Model):
 
     @property
     def month_start_date(self):
-        return date_utils.month_start_date(self.year, self.month)
+        return date_utils.month_start_date(self.date.year, self.date.month)
 
     @property
     def month_end_date(self):
-        return date_utils.month_end_date(self.year, self.month)
-
-    @property
-    def processed_tags(self):
-        if self.tags:
-            return self.tags.split(",")
-        return []
+        return date_utils.month_end_date(self.date.year, self.date.month)
 
     @property
     def formatted_date(self):
@@ -156,9 +154,10 @@ class Invoice(models.Model):
     def __str__(self):
         return f"{self.full_name} - {self.date:%Y-%m}"
 
-    def save(self, *args, **kwargs):
-        self.date = datetime.date(self.year, self.month, 1)
-        super(Invoice, self).save(*args, **kwargs)
+    def admin_users(self):
+        if self.project_m:
+            return self.project_m.admin_users.all()
+        return []
 
     def update_state(self, comment):
         self.invoice_state = "C"
@@ -206,8 +205,7 @@ class Invoice(models.Model):
         return fixed_invoice_rows
 
     class Meta:
-        unique_together = ("year", "month", "client", "project")
-        ordering = ("-year", "-month", "client", "project")
+        unique_together = ("date", "project_m")
 
 
 @reversion.register()
@@ -264,7 +262,7 @@ class Project(models.Model):
     parent_id = models.IntegerField(null=True, blank=True)
     phase_name = models.CharField(max_length=1000, null=True, blank=True)
     name = models.CharField(max_length=1000)
-    client = models.CharField(max_length=1000, null=True)
+    client_m = models.ForeignKey("Client", on_delete=models.CASCADE)
     archived = models.BooleanField(blank=True, default=False)
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(null=True, blank=True)
@@ -278,13 +276,13 @@ class Project(models.Model):
 
     @property
     def full_name(self):
-        return f"{self.client} {self.name}"
+        return f"{self.client_m.name} {self.name}"
 
     def __str__(self):
         return self.full_name
 
     class Meta:
-        ordering = ("client", "name")
+        ordering = ("client_m__name", "name")
 
 
 class Phase(models.Model):

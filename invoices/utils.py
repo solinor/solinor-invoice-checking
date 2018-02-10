@@ -13,8 +13,9 @@ from django.utils.dateparse import parse_date as parse_date_django
 from django.utils.dateparse import parse_datetime as parse_datetime_django
 
 from flex_hours.models import PublicHoliday
+from invoices.date_utils import daterange
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
-from invoices.models import Event, HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
+from invoices.models import Client, Event, HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
 from invoices.slack import send_new_project_to_slack
 from invoices.tenkfeet_api import TenkFeetApi
 
@@ -29,11 +30,6 @@ STATS_FIELDS = [
     "not_approved_hours_count",
     "empty_descriptions_count",
 ]
-
-
-def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days) + 1):
-        yield start_date + datetime.timedelta(n)
 
 
 def get_weekend_hours_per_user(start_date, end_date, incurred_hours_threshold):
@@ -120,11 +116,18 @@ def sync_10000ft_projects():
     tenkfeet_projects = tenkfeet_api.fetch_projects()
     projects = []
     created_count = 0
+    clients = {client.name: client for client in Client.objects.all()}
     for project in tenkfeet_projects:
+        if project["client"] is None:
+            project["client"] = "none"
+        client = clients.get(project["client"])
+        if not client:
+            client, _ = Client.objects.get_or_create(name=project["client"])
+            clients[client.name] = client
         project_fields = {
             "project_id": project["id"],
             "project_state": project["project_state"],
-            "client": project["client"],
+            "client_m": client,
             "name": project["name"],
             "parent_id": project["parent_id"],
             "phase_name": project["phase_name"],
@@ -186,6 +189,10 @@ def get_users():
     return {user.email: user for user in TenkfUser.objects.all()}
 
 
+def get_clients():
+    return {item.name: item for item in Client.objects.all()}
+
+
 def parse_upstream_id(upstream_id):
     if not upstream_id:
         return None
@@ -197,6 +204,7 @@ class HourEntryUpdate(object):
         self.logger = logging.getLogger(__name__)
         self.invoices_data = get_invoices()
         self.projects_data = get_projects()
+        self.clients_data = get_clients()
         self.user_data = get_users()
         self.start_date = start_date
         self.end_date = end_date
@@ -207,6 +215,13 @@ class HourEntryUpdate(object):
         self.last_entry = max(self.last_entry, date)
         self.first_entry = min(self.first_entry, date)
 
+    def match_client(self, client_name):
+        if client_name in self.clients_data:
+            return self.clients_data[client_name]
+        client, _ = Client.objects.get_or_create(name=client_name)
+        self.clients_data[client_name] = client
+        return client
+
     def match_project(self, project_id):
         return self.projects_data.get(project_id, None)
 
@@ -215,16 +230,16 @@ class HourEntryUpdate(object):
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
             logger.debug("Invoice already exists: %s", invoice_key)
-            tags = data["project_tags"]
-            if tags:
-                tags = ",".join({tag.strip() for tag in tags.split(",")})
-            if invoice.tags != tags:
-                invoice.tags = tags
-                invoice.save()
             return invoice
         else:
             logger.info("Creating a new invoice: %s", invoice_key)
-            invoice, _ = Invoice.objects.update_or_create(year=data["date"].year, month=data["date"].month, client=data["client"], project=data["project"], defaults={"tags": data["project_tags"]})
+            client = data["client"]
+            project = data["project"]
+            client_m = self.match_client(data["client"])
+            project_m = self.match_project(data["project"])
+            if not project_m:
+                return None
+            invoice, _ = Invoice.objects.update_or_create(date=data["date"], client_m=client_m, project_m=project_m, defaults={"tags": data["project_tags"], "client": client, "project": project})
             self.invoices_data[invoice_key] = invoice
             return invoice
 
@@ -318,13 +333,18 @@ class HourEntryUpdate(object):
                     except (ValueError, TypeError):
                         pass
 
-                    data["invoice"] = self.match_invoice(data)
-                    data["user_m"] = self.match_user(data["user_email"])
-                    hour_entry = HourEntry(**data)
-                    hour_entry.update_calculated_fields()
-                    entries.append(hour_entry)
-                    delete_days.add(entry_date)
-                    updated_days.add(entry_date)
+                    invoice = self.match_invoice(data)
+                    if invoice:
+                        data["invoice"] = invoice
+                        data["user_m"] = self.match_user(data["user_email"])
+                        hour_entry = HourEntry(**data)
+                        hour_entry.update_calculated_fields()
+                        entries.append(hour_entry)
+                        delete_days.add(entry_date)
+                        updated_days.add(entry_date)
+                    else:
+                        logger.info("No matching invoice available - skip entry: %s", data)
+                        sha256 = "-" * 64  # Reset checksum to ensure reprocessing
 
                 item, created = HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})
                 if not created:
@@ -347,13 +367,7 @@ class HourEntryUpdate(object):
 
 def refresh_stats(start_date, end_date):
     if start_date and end_date:
-        if start_date.year == end_date.year:
-            invoices = Invoice.objects.filter(year__gte=start_date.year, year__lte=end_date.year, month__gte=start_date.month, month__lte=end_date.month)
-        else:
-            invoices_1 = Invoice.objects.filter(year=start_date.year, month__gte=start_date.month)
-            invoices_2 = Invoice.objects.filter(year=end_date.year, month__lte=end_date.month)
-            invoices = [invoice for invoice in invoices_1]
-            invoices.extend([invoice for invoice in invoices_2])
+        invoices = Invoice.objects.filter(date__gte=start_date, date__lte=end_date)
         logger.info("Updating statistics for invoices between %s and %s: %s invoices", start_date, end_date, len(invoices))
     else:
         logger.info("Updating statistics for all invoices")

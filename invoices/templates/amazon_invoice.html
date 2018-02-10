@@ -29,7 +29,7 @@
     {% endif %}
     {% if linked_projects %}
     {% for linked_project in linked_projects %}
-    <a href="{% url "project" linked_project.guid %}" role="button" class="btn btn-light">Project: {{ linked_project.client }} - {{ linked_project.name }}</a>
+    <a href="{% url "project" linked_project.guid %}" role="button" class="btn btn-light">Project: {{ linked_project.client_m.name }} - {{ linked_project.name }}</a>
     {% endfor %}
     {% endif %}
 

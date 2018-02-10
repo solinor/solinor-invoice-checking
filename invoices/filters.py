@@ -25,11 +25,9 @@ class InvoiceFilter(django_filters.FilterSet):
     class Meta:
         model = Invoice
         fields = {
-            "year": ["exact"],
-            "month": ["exact"],
+            "date": ["exact"],
             "invoice_state": ["exact"],
-            "tags": ["icontains"],
-            "client": ["icontains"],
+            # TODO: add better date filter, client and project filters
         }
 
 
@@ -37,5 +35,5 @@ class ProjectsFilter(django_filters.FilterSet):
     class Meta:
         model = Project
         fields = {
-            "client": ["icontains"],
+            # TODO: add client and project name filters
         }

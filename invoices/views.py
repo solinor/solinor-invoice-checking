@@ -24,6 +24,7 @@ from django_tables2 import RequestConfig
 import invoices.date_utils as date_utils
 from flex_hours.utils import sync_public_holidays
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
+from invoices.date_utils import daterange
 from invoices.file_gen_utils import generate_hours_pdf_for_invoice, generate_hours_xls_for_invoice
 from invoices.filters import HourListFilter, InvoiceFilter, ProjectsFilter
 from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
@@ -32,7 +33,7 @@ from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, Da
 from invoices.slack import refresh_slack_channels, refresh_slack_users
 from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.utils import daterange, sync_10000ft_projects, sync_10000ft_users
+from invoices.utils import sync_10000ft_projects, sync_10000ft_users
 
 REDIS = redis.from_url(settings.REDIS)
 
@@ -190,7 +191,7 @@ def hours_browser(request):
         month_start_date = date_utils.month_start_date(today.year, today.month)
         month_end_date = date_utils.month_end_date(today.year, today.month)
         return HttpResponseRedirect("{}?date__gte={}&date__lte={}".format(reverse("hours_browser"), month_start_date, month_end_date))
-    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m")
+    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m", "project_m__client_m")
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
     RequestConfig(request, paginate={
@@ -515,7 +516,7 @@ def your_stats(request):
 
 @login_required
 def invoices_list(request):
-    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"])
+    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m").prefetch_related("project_m__admin_users")
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={
@@ -538,7 +539,7 @@ def invoices_list(request):
 def frontpage(request):
     today = datetime.date.today()
     last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
-    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(tags__icontains="{} {}".format(request.user.first_name, request.user.last_name)).filter(year=last_month.year).filter(month=last_month.month).exclude(client__in=["Solinor", "[none]"])
+    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__admin_users__email=request.user.email).filter(date=last_month).exclude(client__in=["Solinor", "[none]"])
     sorting = request.GET.get("sorting", "alphabetically")
 
     cache_key = f"frontpage-cards-sorting-{sorting}"
@@ -546,7 +547,7 @@ def frontpage(request):
     if cached_data:
         cards = pickle.loads(cached_data)
     else:
-        active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).filter(year=last_month.year, month=last_month.month).exclude(project_m=None).select_related("project_m")  # TODO: ongoing month
+        active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).filter(date__gte=last_month).exclude(project_m=None).select_related("project_m", "project_m_client_m")  # TODO: ongoing month
         projects = [invoice.project_m for invoice in active_invoices]
         projects_map = {invoice.project_m.guid: (invoice.project_m, invoice) for invoice in active_invoices}
         billing = defaultdict(dict)
@@ -626,7 +627,7 @@ def invoice_hours(request, invoice_id):
 
 @login_required
 def projects_list(request):
-    projects = Project.objects.annotate(incurred_money=Sum("invoice__incurred_money"), incurred_hours=Sum("invoice__incurred_hours")).exclude(incurred_hours=0).prefetch_related("admin_users")
+    projects = Project.objects.annotate(incurred_money=Sum("invoice__incurred_money"), incurred_hours=Sum("invoice__incurred_hours")).exclude(incurred_hours=0).select_related("client_m").prefetch_related("admin_users")
     show_only = request.GET.get("show_only", "").split(",")
     if "no_lead" in show_only:
         projects = projects.annotate(admin_users_count=Count("admin_users")).filter(admin_users_count=0)
@@ -907,7 +908,7 @@ def invoice_page(request, invoice_id, **_):
     }
     context.update(entry_data)
 
-    previous_month = (invoice.date - datetime.timedelta(days=1)).replace(days=1)
+    previous_month = (invoice.date - datetime.timedelta(days=1)).replace(day=1)
     try:
         last_month_invoice = Invoice.objects.get(project=invoice.project, client=invoice.client, date=previous_month)
         context["last_month_invoice"] = last_month_invoice

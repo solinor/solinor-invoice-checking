@@ -89,9 +89,7 @@ def import_aws_invoice(file_obj, year, month):
             })
             linked_accounts[linked_account_id] = linked_account
             for project in linked_account.project_set.all():
-                year = invoice_month.year
-                month = invoice_month.month
-                Invoice.objects.get_or_create(year=year, month=month, client=project.client, project=project.name, project_m=project)  # TODO: migrate to .date
+                Invoice.objects.get_or_create(date=invoice_month, client=project.client, project=project.name, project_m=project)
         record_data["linked_account"] = linked_account
         record_id = record["RecordID"] + invoice_month.strftime("%Y-%m-%d")
         updated_entries.append(record_id)

@@ -14,10 +14,13 @@ from invoices.models import HourEntry, Invoice, Project
 
 
 class HourListTable(tables.Table):
+    client = tables.Column(accessor="project_m.client_m.name", verbose_name="Client")
+    project_m = tables.Column(accessor="project_m.name", verbose_name="Project")
+
     class Meta:
         model = HourEntry
         attrs = {"class": "table table-striped table-hover hours-table table-responsive"}
-        fields = ("date", "user_name", "client", "project", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_billable", "calculated_has_notes", "calculated_has_phase", "calculated_is_approved", "calculated_has_proper_price", "calculated_has_category", "calculated_is_overtime")
+        fields = ("date", "user_name", "client", "project_m", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_billable", "calculated_has_notes", "calculated_has_phase", "calculated_is_approved", "calculated_has_proper_price", "calculated_has_category", "calculated_is_overtime")
 
     def render_user_name(self, value, record):
         if record.user_m:
@@ -42,20 +45,21 @@ class HourListTable(tables.Table):
 class FrontpageInvoices(tables.Table):
     invoice_state = tables.Column(verbose_name="State")
     incorrect_entries_count = tables.Column(verbose_name="Issues")
-    date = tables.Column(order_by=("year", "month"))
-    full_name = tables.Column(order_by=("client", "project"), verbose_name="Name")
-    processed_tags = tables.Column(order_by=("tags",), verbose_name="Tags")
+    date = tables.Column(order_by=("date"))
+    client = tables.Column(accessor="project_m.client_m.name", verbose_name="Client")
+    project_m = tables.Column(accessor="project_m.name", verbose_name="Project")
+    admin_users = tables.Column(orderable=False, verbose_name="Tags")
 
     class Meta:
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoices-table table-responsive"}
-        fields = ("full_name", "date", "processed_tags", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
+        fields = ("client", "project_m", "date", "admin_users", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
 
-    def render_full_name(self, value, record):
-        return format_html("<a href='{}'>{}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
+#    def render_full_name(self, value, record):
+#        return format_html("<a href='{}'>{}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
 
-    def render_processed_tags(self, value):
-        return format_html(" ".join(["<span class='badge badge-secondary'>{}</span> ".format(tag) for tag in value]))
+    def render_admin_users(self, value):
+        return format_html(" ".join([f"<span class='badge badge-secondary'>{tag}</span> " for tag in value]))
 
     def render_incurred_hours(self, value):
         return "{}h".format(intcomma(floatformat(value, 0)))
@@ -74,7 +78,7 @@ class ProjectsTable(tables.Table):
     class Meta:
         model = Project
         attrs = {"class": "table table-striped table-hover projects-table table-responsive"}
-        fields = ("client", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
+        fields = ("client_m", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
 
     def render_name(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.guid]), value))
@@ -108,7 +112,7 @@ def calc_bill_rate_avg(stats):
 
 class ProjectDetailsTable(tables.Table):
     invoice_id = tables.Column(orderable=False, verbose_name="")
-    date = tables.Column(order_by=("year", "month"))
+    date = tables.Column(order_by=("date"))
     incurred_hours = tables.Column(footer=lambda table: "{}h".format(intcomma(floatformat(sum(x.incurred_hours for x in table.data), 0))))
     incurred_money = tables.Column(footer=lambda table: "{}€".format(intcomma(floatformat(sum(x.incurred_money for x in table.data), 0))))
     bill_rate_avg = tables.Column(footer=lambda table: "{:.0f}€/h".format(calc_bill_rate_avg((x.incurred_hours, x.incurred_money) for x in table.data)))
