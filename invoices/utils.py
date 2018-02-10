@@ -288,6 +288,7 @@ class HourEntryUpdate(object):
                         "updated_at": parse_datetime(entry["api"].get("updated_at")),
                         "created_at": parse_datetime(entry["api"].get("created_at")),
                         "project": entry["reporting"][3],
+                        "client": entry["reporting"][6],
                         "incurred_hours": parse_float(entry["reporting"][8]),
                         "incurred_money": parse_float(entry["reporting"][11]),
                         "category": entry["reporting"][14],
@@ -321,11 +322,18 @@ class HourEntryUpdate(object):
                         data["project_m"] = self.match_project(project_id)
                     except (ValueError, TypeError):
                         pass
-                    if data["project"] == "[Leave Type]":
-                        data["project_m"] = self.leave_project
+                    if "project_m" not in data:
+                        if data["project"] == "[Leave Type]":
+                            data["project_m"] = self.leave_project
+                        else:
+                            # 10000ft returns some entries without project IDs
+                            try:
+                                data["project_m"] = Project.objects.get(name=data["project"], client_m__name=data["client"])
+                            except Project.DoesNotExist:
+                                pass
 
                     if "project_m" not in data:
-                        logger.info("No matching invoice available - skip entry. data=%s; entry=%s", data, entry)
+                        logger.warning("No matching invoice available - skip entry. data=%s; entry=%s", data, entry)
                         sha256 = "-" * 64  # Reset checksum to ensure reprocessing
                     else:
                         invoice = self.match_invoice(data)
