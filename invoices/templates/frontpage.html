@@ -77,18 +77,18 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 <p class="text-muted">Sort <a href="?sorting=alphabetically">alphabetically</a>, <a href="?sorting=billing">by billing</a>, <a href="?sorting=hours">by amount of hours</a></p>
 
 <div class="album py-5 bg-light">
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       {% for card in cards %}
-      <div class="col-md-4">
+      <div class="project-card-container mx-auto">
         <div class="card mb-4 box-shadow">
-          <span style="height:176px;overflow-y:hidden;" class="clickable-area" onclick="Turbolinks.visit('{% url "project" card.project.guid %}')">
+          <span class="clickable-area project-card-image" onclick="Turbolinks.visit('{% url "project" card.project.guid %}')">
             <img class="card-img-top" src="{{ card.project.thumbnail_url }}">
           </span>
-          <div class="card-header clickable-area" style="height:86px;overflow-y:hidden" onclick="Turbolinks.visit('{% url "project" card.project.guid %}')"><h5>{{ card.project }}</h5></div>
+          <div class="card-header clickable-area project-card-title" onclick="Turbolinks.visit('{% url "project" card.project.guid %}')"><h5>{{ card.project }}</h5></div>
           <div class="card-body">
             <p class="card-text">
-              <p style="height:5em;overflow-y:hidden">{{ card.project.description }}</p>
+              <p class="project-card-description" data-toggle="popover" title="Description" data-content="{{ card.project.description }}">{{ card.project.description }}</p> {% comment %}TODO: this will break when there is quotes in project.description{% endcomment %}
               <div class="row">
                 <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Billing for previous and current months."><p class="text-floating-left">Billing</p><p class="text-floating-right">{{ card.money_sum|floatformat:"0"|intcomma }}€</p></h6></div>
                 <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.money %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>

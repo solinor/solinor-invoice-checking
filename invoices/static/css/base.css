@@ -87,3 +87,22 @@ h2 {
   float:left;
   text-align: right;
 }
+
+.project-card-container {
+  width:370px;
+  position:relative;
+  padding-left:15px;
+  padding-right:15px;
+}
+.project-card-title {
+  height:86px;
+  overflow-y:hidden;
+}
+.project-card-image {
+  height:176px;
+  overflow-y:hidden;
+}
+.project-card-description {
+  height:5em;
+  overflow-y:hidden
+}

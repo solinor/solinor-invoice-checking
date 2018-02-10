@@ -3,4 +3,5 @@ $(document).on('turbolinks:load', function() {
   if (typeof pageJs === "function") {
     pageJs();
   }
+  $('[data-toggle="popover"]').popover();
 });
