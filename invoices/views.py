@@ -547,7 +547,7 @@ def frontpage(request):
     if cached_data:
         cards = pickle.loads(cached_data)
     else:
-        active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).filter(date__gte=last_month).exclude(project_m=None).select_related("project_m", "project_m_client_m")  # TODO: ongoing month
+        active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).filter(date__gte=last_month).exclude(project_m=None).select_related("project_m", "project_m__client_m")  # TODO: ongoing month
         projects = [invoice.project_m for invoice in active_invoices]
         projects_map = {invoice.project_m.guid: (invoice.project_m, invoice) for invoice in active_invoices}
         billing = defaultdict(dict)
