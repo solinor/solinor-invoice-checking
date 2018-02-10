@@ -205,6 +205,7 @@ class Invoice(models.Model):
 
     class Meta:
         unique_together = ("date", "project_m")
+        ordering = ("-date",)
 
 
 @reversion.register()
