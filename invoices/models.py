@@ -62,7 +62,7 @@ class HourEntry(models.Model):
 
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
-    upstream_id = models.IntegerField(null=True, blank=True, unique=True)
+    upstream_id = models.IntegerField(unique=True)
 
     calculated_is_billable = models.BooleanField(blank=True, default=False, verbose_name="Billable")
     calculated_has_notes = models.BooleanField(blank=True, default=True, verbose_name="Has notes")
