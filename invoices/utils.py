@@ -166,14 +166,6 @@ def sync_10000ft_projects():
             send_new_project_to_slack(project_obj)
     logger.info("Finished updating projects (n=%s)", len(projects))
     linked_invoices = 0
-    for invoice in Invoice.objects.filter(project_m=None):
-        for project in projects:
-            if project.name == invoice.project and project.client == invoice.client and invoice.project_m != project:
-                logger.info("Updating invoice %s with project %s", invoice, project)
-                linked_invoices += 1
-                invoice.project_m = project
-                invoice.save()
-                break
     Event(event_type="sync_10000ft_projects", succeeded=True, message=f"Updated {len(projects)} projects, created {created_count} projects and linked {linked_invoices} invoices to projects").save()
 
 

@@ -73,8 +73,8 @@ class HourEntry(models.Model):
     calculated_has_category = models.BooleanField(blank=True, default=True, verbose_name="Has category")
     calculated_is_overtime = models.BooleanField(blank=True, default=False, verbose_name="Is overtime")
 
-    invoice = models.ForeignKey("Invoice", null=True, on_delete=models.CASCADE)
-    project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)
+    invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
+    project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)  # TODO: non-null
 
     def update_calculated_fields(self):
         self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
@@ -114,7 +114,7 @@ class Invoice(models.Model):
     invoice_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     date = models.DateField()
 
-    project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)
+    project_m = models.ForeignKey("Project", on_delete=models.CASCADE)
 
     client = models.CharField(max_length=100)
     project = models.CharField(max_length=100)
@@ -229,7 +229,7 @@ class TenkfUser(models.Model):
     last_name = models.CharField(max_length=100, null=True, blank=True)
     archived = models.BooleanField(blank=True, default=False)
     display_name = models.CharField(max_length=100, null=True, blank=True)
-    email = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    email = models.CharField(max_length=100, null=True, blank=True, unique=True)  # TODO: non-null
     billable = models.BooleanField(blank=True, default=False)
     hire_date = models.DateField(blank=True, null=True)
     termination_date = models.DateField(blank=True, null=True)
@@ -257,7 +257,7 @@ class TenkfUser(models.Model):
 @reversion.register()
 class Project(models.Model):
     guid = models.UUIDField(primary_key=True, editable=False)
-    project_id = models.IntegerField(null=True, blank=True)
+    project_id = models.IntegerField()
     project_state = models.CharField(max_length=100)
     parent_id = models.IntegerField(null=True, blank=True)
     phase_name = models.CharField(max_length=1000, null=True, blank=True)
@@ -387,7 +387,7 @@ class AmazonInvoiceRow(models.Model):
     usage_quantity = models.FloatField(null=True, blank=True)
     total_cost = models.FloatField(null=True, blank=True)
     currency = models.CharField(max_length=3)
-    invoice_month = models.DateField(null=True)
+    invoice_month = models.DateField(null=True)  # TODO: non-null
 
     def __str__(self):
         return f"{self.linked_account.name} - {self.product_code} - {self.usage_type} - {self.total_cost}"

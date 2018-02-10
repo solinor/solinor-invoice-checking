@@ -94,14 +94,14 @@ def send_unsubmitted_hours_notifications(first_day, last_day):
 def send_unapproved_hours_notifications(first_day, last_day):
     c = 0
     for project in Project.objects.filter(hourentry__approved=False, hourentry__date__lte=last_day, hourentry__date__gte=first_day).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users"):
-        message = f"""You are marked as a responsible person for {project.client} - {project.name}. You need to approve hours for the project weekly."""
-        fallback_message = f"""You are marked as a responsible person for {project.client} - {project.name}. You need to approve hours for the project weekly. Go to https://app.10000ft.com to do so."""
+        message = f"""You are marked as a responsible person for {project.client_m.name} - {project.name}. You need to approve hours for the project weekly."""
+        fallback_message = f"""You are marked as a responsible person for {project.client_m.name} - {project.name}. You need to approve hours for the project weekly. Go to https://app.10000ft.com to do so."""
 
         attachment = {
             "author_name": "Solinor Finance",
             "author_link": "https://" + settings.DOMAIN,
             "fallback": fallback_message,
-            "title": "Unapproved project hours: {} - {}".format(project.client, project.name),
+            "title": "Unapproved project hours: {} - {}".format(project.client_m.name, project.name),
             "title_link": "https://app.10000ft.com",
             "text": message,
             "fields": [
@@ -178,6 +178,6 @@ def refresh_slack_channels():
 
 
 def send_new_project_to_slack(project):
-    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id={}|{} - {}> (created at {})""".format(project.project_id, project.client, project.name, project.created_at)
+    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id={}|{} - {}> (created at {})""".format(project.project_id, project.client_m.name, project.name, project.created_at)
     for channel in SlackChannel.objects.filter(new_project_notification=True):
         slack.chat.post_message(channel.channel_id, message)
