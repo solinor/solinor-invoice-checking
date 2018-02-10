@@ -168,11 +168,6 @@ class Invoice(models.Model):
             self.invoice_state = "S"
         return self.invoice_state
 
-    def get_tags(self):
-        if self.tags:
-            return self.tags.split(",")
-        return []
-
     def compare(self, other):
         def calc_stats(field_name):
             field_value = getattr(self, field_name)
