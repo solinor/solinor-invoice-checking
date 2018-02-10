@@ -55,8 +55,11 @@ class FrontpageInvoices(tables.Table):
         attrs = {"class": "table table-striped table-hover invoices-table table-responsive"}
         fields = ("client", "project_m", "date", "admin_users", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
 
-#    def render_full_name(self, value, record):
-#        return format_html("<a href='{}'>{}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
+    def render_project_m(self, value, record):
+        return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.project_m.guid]), value))
+
+    def render_date(self, value, record):
+        return format_html("<a href='{}'>{:%Y-%m}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
 
     def render_admin_users(self, value):
         return format_html(" ".join([f"<span class='badge badge-secondary'>{tag}</span> " for tag in value]))
