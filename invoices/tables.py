@@ -56,7 +56,7 @@ class FrontpageInvoices(tables.Table):
         fields = ("client", "project_m", "date", "admin_users", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
 
     def render_project_m(self, value, record):
-        return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.project_m.guid]), value))
+        return format_html("<a href='{}?sort=-date'>{}</a>".format(reverse("project", args=[record.project_m.guid]), value))
 
     def render_date(self, value, record):
         return format_html("<a href='{}'>{:%Y-%m}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
