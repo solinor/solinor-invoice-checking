@@ -380,13 +380,13 @@ class AmazonInvoiceRow(models.Model):
     linked_account = models.ForeignKey("AmazonLinkedAccount", on_delete=models.CASCADE)
     product_code = models.CharField(max_length=255)
     usage_type = models.CharField(max_length=255)
-    item_description = models.CharField(max_length=1000, null=True, blank=True)
+    item_description = models.CharField(max_length=1000)
     usage_start = models.DateTimeField(null=True, blank=True)
     usage_end = models.DateTimeField(null=True, blank=True)
     usage_quantity = models.FloatField(null=True, blank=True)
     total_cost = models.FloatField(null=True, blank=True)
     currency = models.CharField(max_length=3)
-    invoice_month = models.DateField(null=True)  # TODO: non-null
+    invoice_month = models.DateField()
 
     def __str__(self):
         return f"{self.linked_account.name} - {self.product_code} - {self.usage_type} - {self.total_cost}"
