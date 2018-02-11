@@ -1,5 +1,6 @@
 import datetime
 import tempfile
+from collections import defaultdict
 
 import pdfkit
 import xlsxwriter
@@ -80,12 +81,18 @@ def generate_hours_pdf_for_invoice(request, invoice_id):
     title = title.replace("\xe4", "a").replace("\xb6", "o").replace("\x84", "A").replace("\x96", "O").replace("\xf6", "o")
 
     entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0)
-    phases = {}
+    phases = defaultdict(lambda: {"items": [], "hours_sum": 0, "money_sum": 0})
     for entry in entries:
-        if entry.phase_name not in phases:
-            phases[entry.phase_name] = []
-        phases[entry.phase_name].append(entry)
-    context = {"phases": phases}
+        phases[entry.phase_name]["items"].append(entry)
+        phases[entry.phase_name]["hours_sum"] += entry.incurred_hours
+        phases[entry.phase_name]["money_sum"] += entry.incurred_money
+
+    context = {
+        "invoice": invoice,
+        "phases": dict(phases),
+        "money_sum": sum(entry.incurred_money for entry in entries),
+        "hours_sum": sum(entry.incurred_hours for entry in entries),
+    }
 
     # We can generate the pdf from a url, file or, as shown here, a string
     content = render_to_string("pdf_template.html", context=context, request=request)

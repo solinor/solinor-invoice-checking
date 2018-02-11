@@ -1,3 +1,5 @@
+# TODO: here be dragons - this needs a total rewrite.
+
 import datetime
 
 from django.db.models import Sum

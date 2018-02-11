@@ -1026,7 +1026,9 @@
 </head>
 
 <body>
-  {% for phase, entries in phases.items %}
+  <h1>{{ invoice.project_m.client_m.name }} - {{ invoice.project_m.name }} - {{ invoice.date|date:"Y-m"}}</h1>
+  <p class="lead">&Sigma; {{ hours_sum|floatformat:2 }}h, {{ money_sum|floatformat:2 }}&euro;</p>
+  {% for phase, data in phases.items %}
   <h2>{{ phase }}</h2>
   <table class="table table-striped table-sm">
     <thead>
@@ -1040,7 +1042,7 @@
       </tr>
     </thead>
     <tbody>
-    {% for entry in entries %}
+    {% for entry in data.items %}
       <tr>
         <td class="nowrap-column">{{ entry.date }}
         <td class="nowrap-column">{{ entry.user_name }}</td>
@@ -1051,6 +1053,16 @@
       </tr>
     {% endfor %}
     </tbody>
+    <tfoot>
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th class="number-column">{{ data.hours_sum|floatformat:2 }}h</th>
+        <th class="number-column">{{ data.money_sum|floatformat:2 }}&euro;</th>
+        <th></th>
+      </tr>
+    </tfoot>
   </table>
   {% endfor %}
 </body>
