@@ -215,21 +215,31 @@ class HourEntryUpdate(object):
         self.clients_data[client_name] = client
         return client
 
-    def match_project(self, project_id):
+    def match_project(self, project_id, client, project):
+        if not project_id:
+            if project == "[Leave Type]":
+                return self.leave_project
+            # 10000ft returns some entries without project IDs
+            try:
+                return Project.objects.get(name=project, client_m__name=client)
+            except Project.DoesNotExist:
+                return None
         return self.projects_data.get(project_id, None)
 
-    def match_invoice(self, data):
-        invoice_key = "{:%Y-%m} {}".format(data["date"], data["project_m"].project_id)
+    def match_invoice(self, date, project_id, client, project):
+        date = date.replace(day=1)
+        project_m = self.match_project(project_id, client, project)
+        if not project_m:
+            return None
+
+        invoice_key = "{:%Y-%m} {}".format(date, project_id)
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
             logger.debug("Invoice already exists: %s", invoice_key)
             return invoice
         else:
             logger.info("Creating a new invoice: %s", invoice_key)
-            client = data["client"]
-            project = data["project"]
-            project_m = data["project_m"]
-            invoice, _ = Invoice.objects.update_or_create(date=data["date"], project_m=project_m, defaults={"client": client, "project": project})  # TODO: invoice.client and invoice.project are deprecated
+            invoice, _ = Invoice.objects.update_or_create(date=date, project_m=project_m, defaults={"client": client, "project": project})  # TODO: invoice.client and invoice.project are deprecated
             self.invoices_data[invoice_key] = invoice
             return invoice
 
@@ -318,24 +328,13 @@ class HourEntryUpdate(object):
 
                     try:
                         project_id = int(entry["reporting"][32])
-                        data["project_m"] = self.match_project(project_id)
                     except (ValueError, TypeError):
-                        pass
-                    if "project_m" not in data:
-                        if data["project"] == "[Leave Type]":
-                            data["project_m"] = self.leave_project
-                        else:
-                            # 10000ft returns some entries without project IDs
-                            try:
-                                data["project_m"] = Project.objects.get(name=data["project"], client_m__name=data["client"])
-                            except Project.DoesNotExist:
-                                pass
-
-                    if "project_m" not in data:
+                        project_id = None
+                    invoice = self.match_invoice(entry_date, project_id, data["client"], data["project"])
+                    if not invoice:
                         logger.warning("No matching invoice available - skip entry. data=%s; entry=%s", data, entry)
                         sha256 = "-" * 64  # Reset checksum to ensure reprocessing
                     else:
-                        invoice = self.match_invoice(data)
                         data["invoice"] = invoice
                         data["user_m"] = self.match_user(data["user_email"])
                         hour_entry = HourEntry(**data)
