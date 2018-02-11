@@ -543,6 +543,83 @@ def invoices_list(request):
 
 
 @login_required
+def clientbase_stats(request):
+    sorting = request.GET.get("sorting", "workdays_fte_avg")
+    field_spec = {
+        "workdays_fte_avg": ("FTE average for workdays", "Hours worked divided by 100% working time for that month"),
+        "active_days_fte_avg": ("FTE average for days with hour markings", "Hours divided by 100% working time for days with hour markings"),
+        "workdays_people_avg": ("Average number of people working for workdays", "Sum of number of people marking hours divided by number of working days for that month"),
+        "active_days_people_avg": ("Average number of people working for days with hour markings", "Sum of number of people marking hours divided by number of days with hour markings"),
+    }
+    if sorting not in field_spec.keys():
+        return HttpResponseBadRequest("Invalid sorting key")
+    active_field = request.GET.get("field", (None, None))[0]
+    if active_field:
+        if active_field not in field_spec.keys():
+            return HttpResponseBadRequest("Invalid field key")
+        active_field_name = field_spec[active_field]
+
+    months_count = 13
+    end_date = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    start_date = (end_date - datetime.timedelta(days=months_count * 30 - 15)).replace(day=1)
+
+    hour_entries = HourEntry.objects.exclude(invoice__project_m__project_state="Internal").exclude(invoice__project_m__client_m__name__in=["Solinor", "[none]"]).exclude(incurred_hours=0).filter(date__gte=start_date, date__lte=end_date).values("invoice__project_m__client_m__name", "user_email", "incurred_hours", "date")
+    raw_stats = defaultdict(lambda: defaultdict(lambda: {"people": set(), "hours": 0}))
+    for hour_entry in hour_entries:
+        if hour_entry["date"].isoweekday() > 5:  # Ignore weekends
+            continue
+        raw_stats[hour_entry["invoice__project_m__client_m__name"]][hour_entry["date"]]["people"].add(hour_entry["user_email"])
+        raw_stats[hour_entry["invoice__project_m__client_m__name"]][hour_entry["date"]]["hours"] += hour_entry["incurred_hours"]
+
+    stats = defaultdict(lambda: defaultdict(lambda: {"active_days": 0, "total_days": 0, "people_sum": 0, "hours_sum": 0, "workdays_fte_avg": 0, "workdays_people_avg": 0, "active_days_fte_avg": 0, "active_days_people_avg": 0}))
+    for client, client_data in raw_stats.items():
+        for current_day in daterange(start_date, end_date):
+            if current_day.isoweekday() > 5:  # Ignore weekends
+                continue
+            fday = current_day.strftime("%Y-%m")
+            stats[client][fday]["total_days"] += 1
+
+            if current_day in client_data:
+                entry = client_data[current_day]
+                if entry["people"] and entry["hours"]:
+                    stats[client][fday]["active_days"] += 1
+                    stats[client][fday]["people_sum"] += len(entry["people"])
+                    stats[client][fday]["hours_sum"] += entry["hours"]
+
+    final_stats = []
+    months = set()
+    for client, client_data in stats.items():
+        for month, month_data in client_data.items():
+            months.add(month)
+            if month_data["total_days"]:
+                month_data["workdays_fte_avg"] = month_data["hours_sum"] / (month_data["total_days"] * 7.5)
+                month_data["workdays_people_avg"] = month_data["people_sum"] / month_data["total_days"]
+
+            if month_data["active_days"]:
+                month_data["active_days_fte_avg"] = month_data["hours_sum"] / (month_data["active_days"] * 7.5)
+                month_data["active_days_people_avg"] = month_data["people_sum"] / month_data["active_days"]
+            if active_field:
+                month_data["active_field"] = month_data[active_field]
+        sorted_months = sorted(client_data.items(), key=lambda k: k[0])
+        final_stats.append({
+            "client": client,
+            "data": sorted_months,
+        })
+    final_stats = sorted(final_stats, key=lambda k: k["data"][-1][1][sorting], reverse=True)
+    context = {
+        "stats": final_stats,
+        "months": sorted(months),
+        "sorting": sorting,
+        "field_spec": field_spec,
+    }
+    if active_field:
+        context["active_field"] = active_field
+        context["active_field_name"] = active_field_name
+
+    return render(request, "clientbase_stats.html", context)
+
+
+@login_required
 def frontpage(request):
     today = datetime.date.today()
     last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Client stats{% endblock %}
+
+{% block content %}
+
+{% if active_field %}
+<h1>Per client statistics: {{ active_field_name }}</h1>
+
+
+<p>Show</p>
+<ul>
+  <li><a href="?">Overview</a></li>
+  {% for field_name, field_desc in field_spec.items %}
+  <li><a href="?sorting={{ sorting }}&field={{ field_name }}" data-toggle="tooltip" data-placement="right" title="{{ field_desc.1 }}">{{ field_desc.0 }}</a></li>
+  {% endfor %}
+</ul>
+
+<table class="table">
+  <thead>
+    <th></th>
+    {% for month in months %}
+    <th class="number-column">{{ month }}</th>
+    {% endfor %}
+    <th></th>
+  </thead>
+  <tbody>
+  {% for item in stats %}
+  <tr>
+    <td>{{ item.client }}</td>
+    {% for month in item.data %}
+    <td class="number-column">{{ month.1.active_field|floatformat:"2" }}</td>
+    {% endfor %}
+    <td><span class="sparkline-inline-content">{% for month in item.data %}{{ month.1.active_field }}{% if not forloop.last %},{% endif %}{% endfor %}</span></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<h1>Per client statistics</h1>
+
+<p>Show per field details:</p>
+<ul>
+  {% for field_name, field_desc in field_spec.items %}
+    <li><a href="?sorting={{ sorting }}&field={{ field_name }}" data-toggle="tooltip" data-placement="right" title="{{ field_desc.1 }}">{{ field_desc.0 }}</a></li>
+  {% endfor %}
+</ul>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="2">FTE average</th>
+      <th colspan="2">Avg number of people</th>
+    </tr>
+    <tr>
+    <th></th>
+    <th><a href="?sorting=workdays_fte_avg">for workdays</a></th>
+    <th><a href="?sorting=active_days_fte_avg">for active days</a></th>
+    <th><a href="?sorting=workdays_people_avg">for workdays</a></th>
+    <th><a href="?sorting=active_days_people_avg">for active days</a></th>
+  </tr>
+  </thead>
+  <tbody>
+    {% for item in stats %}
+    <tr>
+      <td>{{ item.client }}</td>
+      <td><span class="sparkline-inline-content">{% for month in item.data %}{{ month.1.workdays_fte_avg }}{% if not forloop.last %},{% endif %}{% endfor %}</span></td>
+      <td><span class="sparkline-inline-content">{% for month in item.data %}{{ month.1.active_days_fte_avg }}{% if not forloop.last %},{% endif %}{% endfor %}</span></td>
+      <td><span class="sparkline-inline-content">{% for month in item.data %}{{ month.1.workdays_people_avg }}{% if not forloop.last %},{% endif %}{% endfor %}</span></td>
+      <td><span class="sparkline-inline-content">{% for month in item.data %}{{ month.1.active_days_people_avg }}{% if not forloop.last %},{% endif %}{% endfor %}</span></td>
+    </tr>
+    {% endfor %}
+  </table>
+
+
+{% endif %}
+
+{% endblock %}
+
+{% block pageJs %}
+$(".sparkline-inline-content").sparkline('html', {"width": "100px", "disableTooltips": true});
+{% endblock %}

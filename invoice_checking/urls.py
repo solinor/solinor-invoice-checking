@@ -11,6 +11,7 @@ import slack_hooks.views
 admin.autodiscover()
 
 urlpatterns = [
+    path("clients/stats", invoices.views.clientbase_stats, name="clientbase_stats"),
     path("projects", invoices.views.projects_list, name="projects_list"),
     path("projects/<uuid:project_id>", invoices.views.project_details, name="project"),
     path("projects/<uuid:project_id>/charts", invoices.views.project_charts, name="project_charts"),
