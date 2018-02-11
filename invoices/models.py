@@ -195,6 +195,10 @@ class Invoice(models.Model):
             fixed_invoice_rows.extend(list(ProjectFixedEntry.objects.filter(project=self.project_m)))
         return fixed_invoice_rows
 
+    def save(self, *args, **kwargs):
+        self.date = self.date.replace(day=1)  # All invoices are dated for first day of the month, to ensure uniqueness.
+        super(Invoice, self).save(*args, **kwargs)
+
     class Meta:
         unique_together = ("date", "project_m")
         ordering = ("-date",)
