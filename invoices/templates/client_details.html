@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load django_tables2 %}
+
+{% block title %}{{ client.name }}{% endblock %}
+
+{% block content %}
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "clients" %}">Clients</a></li>
+  <li class="breadcrumb-item active">{{ client.name }}</li>
+</ol>
+
+
+<h2>{{ client.name }}</h2>
+
+<h3>Projects</h3>
+
+{% render_table projects %}
+
+
+<h3>Invoices</h3>
+
+{% render_table invoices %}
+
+
+{% endblock %}

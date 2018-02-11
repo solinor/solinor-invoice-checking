@@ -26,7 +26,7 @@ function drawChart() {
 {% block content %}
 <ol class="breadcrumb">
   <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
-  <li class="breadcrumb-item"><a href="{% url "projects_list" %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url "client_details" invoice.project_m.client_m.id %}">Client</a></li>
   <li class="breadcrumb-item"><a href="{% url "project" invoice.project_m.guid %}">Project</a></li>
   <li class="breadcrumb-item"><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
   <li class="breadcrumb-item active">Charts</li>

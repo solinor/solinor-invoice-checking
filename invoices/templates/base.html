@@ -50,8 +50,9 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item"><a class="nav-link" href="{% url "invoices_list" %}?sort=-date">Invoices</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url "clients" %}">Clients</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url "projects_list" %}">Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url "invoices_list" %}?sort=-date">Invoices</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url "users_list" %}">People</a></li>
         <li class="nav-item dropdown">
          <a class="nav-link dropdown-toggle nowrap-column" href="{% url "hours_browser" %}" id="navDropdownHours" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hours</a>

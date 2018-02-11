@@ -10,7 +10,25 @@ from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.html import format_html
 
-from invoices.models import HourEntry, Invoice, Project
+from invoices.models import Client, HourEntry, Invoice, Project
+
+
+class ClientsTable(tables.Table):
+    incurred_money = tables.Column(verbose_name="Incurred billing")
+
+    class Meta:
+        model = Client
+        attrs = {"class": "table table-striped table-hover table-responsive clients-table"}
+        fields = ("name", "incurred_money", "incurred_hours")
+
+    def render_name(self, value, record):
+        return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.id,)), value))
+
+    def render_incurred_hours(self, value):
+        return "{}h".format(intcomma(floatformat(value, 2)))
+
+    def render_incurred_money(self, value):
+        return "{}€".format(intcomma(floatformat(value, 2)))
 
 
 class HourListTable(tables.Table):
@@ -23,12 +41,15 @@ class HourListTable(tables.Table):
         attrs = {"class": "table table-striped table-hover hours-table table-responsive"}
         fields = ("date", "user_name", "client", "project_m", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_approved", "calculated_is_overtime")
 
+    def render_client(self, value, record):
+        return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.invoice.project_m.client_m.id,)), value))
+
     def render_user_name(self, value, record):
         if record.user_m:
             return format_html("<a href='{}'>{}</a>".format(reverse("person_month", args=[record.user_m.guid, record.date.year, record.date.month]), value))
         return value
 
-    def render_project(self, value, record):
+    def render_project_m(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.invoice.project_m.guid]), value))
 
     def render_incurred_hours(self, value):
@@ -53,6 +74,9 @@ class FrontpageInvoices(tables.Table):
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoices-table table-responsive"}
         fields = ("client", "project_m", "date", "admin_users", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
+
+    def render_client(self, value, record):
+        return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.project_m.client_m.id,)), value))
 
     def render_project_m(self, value, record):
         return format_html("<a href='{}?sort=-date'>{}</a>".format(reverse("project", args=[record.project_m.guid]), value))
@@ -86,11 +110,11 @@ class ProjectsTable(tables.Table):
         attrs = {"class": "table table-striped table-hover projects-table table-responsive"}
         fields = ("client_m", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
 
+    def render_client_m(self, value, record):
+        return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.client_m.id,)), value))
+
     def render_name(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.guid]), value))
-
-    def render_client(self, value):
-        return format_html("<a href='?client__icontains={}'>{}</a>".format(url_quote(value.encode("utf8")), value))
 
     def render_incurred_hours(self, value):
         return "{}h".format(intcomma(floatformat(value, 0)))

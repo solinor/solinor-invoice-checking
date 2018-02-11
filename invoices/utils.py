@@ -326,6 +326,10 @@ class HourEntryUpdate(object):
                     assert data["incurred_money"] >= 0
                     assert data["incurred_hours"] >= 0
 
+                    # Reset billing rates and money for all leaves
+                    if data["leave_type"] != "[project]":
+                        data["incurred_money"] = data["bill_rate"] = 0
+
                     self.update_range(entry_date)
 
                     try:

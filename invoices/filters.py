@@ -1,6 +1,15 @@
 import django_filters
 
-from invoices.models import HourEntry, Invoice, Project
+from invoices.models import Client, HourEntry, Invoice, Project
+
+
+class ClientsFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = Client
+        fields = {
+            "name": ["icontains"],
+        }
 
 
 class HourListFilter(django_filters.FilterSet):

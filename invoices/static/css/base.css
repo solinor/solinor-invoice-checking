@@ -32,6 +32,9 @@ h2 {
 .projects-table .incurred_hours, .projects-table .incurred_money {
   text-align: right;
 }
+.clients-table .incurred_hours, .clients-table .incurred_money {
+  text-align: right;
+}
 
 #flex_diff_calendar_holder {
   width: 100%;

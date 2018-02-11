@@ -25,12 +25,12 @@ from flex_hours.utils import sync_public_holidays
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
 from invoices.date_utils import daterange
 from invoices.file_gen_utils import generate_hours_pdf_for_invoice, generate_hours_xls_for_invoice
-from invoices.filters import HourListFilter, InvoiceFilter, ProjectsFilter
+from invoices.filters import ClientsFilter, HourListFilter, InvoiceFilter, ProjectsFilter
 from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoice_data, get_aws_entries
-from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Comments, DataUpdate, Event, HourEntry, Invoice,
-                             InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
+from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Client, Comments, DataUpdate, Event, HourEntry,
+                             Invoice, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
 from invoices.slack import refresh_slack_channels, refresh_slack_users
-from invoices.tables import FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
+from invoices.tables import ClientsTable, FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
 from invoices.tenkfeet_api import TenkFeetApi
 from invoices.utils import sync_10000ft_projects, sync_10000ft_users
 
@@ -540,6 +540,38 @@ def invoices_list(request):
         "last_update_finished_at": last_update_finished_at,
     }
     return render(request, "invoices.html", context)
+
+
+@login_required
+def clients_list(request):
+    clients = Client.objects.annotate().annotate(incurred_money=Sum("project__invoice__incurred_money"), incurred_hours=Sum("project__invoice__incurred_hours")).exclude(incurred_hours=0)
+    filters = ClientsFilter(request.GET, queryset=clients)
+    table = ClientsTable(filters.qs)
+    RequestConfig(request, paginate={
+        "per_page": 250
+    }).configure(table)
+    return render(request, "clients.html", {"clients": table, "filters": filters})
+
+
+@login_required
+def client_details(request, client_id):
+    client = get_object_or_404(Client, id=client_id)
+
+    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__client_m=client).select_related("project_m", "project_m__client_m").prefetch_related("project_m__admin_users")
+    invoice_filters = InvoiceFilter(request.GET, queryset=all_invoices)
+    invoice_table = FrontpageInvoices(invoice_filters.qs)
+    RequestConfig(request, paginate={
+        "per_page": 100
+    }).configure(invoice_table)
+
+    projects = Project.objects.filter(client_m=client).annotate(incurred_money=Sum("invoice__incurred_money"), incurred_hours=Sum("invoice__incurred_hours")).exclude(incurred_hours=0).select_related("client_m").prefetch_related("admin_users")
+    project_filters = ProjectsFilter(request.GET, queryset=projects)
+    projects_table = ProjectsTable(project_filters.qs)
+    RequestConfig(request, paginate={
+        "per_page": 250
+    }).configure(projects_table)
+
+    return render(request, "client_details.html", {"client": client, "project_filters": project_filters, "projects": projects_table, "invoice_filters": invoice_filters, "invoices": invoice_table})
 
 
 @login_required

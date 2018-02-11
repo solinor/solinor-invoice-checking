@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load django_tables2 %}
 {% load widget_tweaks %}
-{% block title %}Projects - Solinor{% endblock %}
+{% load django_tables2 %}
+
+{% block title %}Clients - Solinor Finance{% endblock %}
+
 {% block content %}
 <ol class="breadcrumb">
   <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
-  <li class="breadcrumb-item"><a href="{% url "clients" %}">Clients</a></li>
-  <li class="breadcrumb-item active"><a href="{% url "projects_list" %}">Projects</a></li>
+  <li class="breadcrumb-item active">Clients</li>
 </ol>
 
-<h2>Projects</h2>
+<h1>Clients</h1>
 
 <form action="" method="get">
   <div class="row">
@@ -26,6 +26,6 @@
   </div>
 </form>
 
-{% render_table projects %}
+{% render_table clients %}
 
 {% endblock %}
