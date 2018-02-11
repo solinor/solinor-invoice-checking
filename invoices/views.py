@@ -553,11 +553,11 @@ def clientbase_stats(request):
     }
     if sorting not in field_spec.keys():
         return HttpResponseBadRequest("Invalid sorting key")
-    active_field = request.GET.get("field", (None, None))[0]
+    active_field = request.GET.get("field", None)
     if active_field:
         if active_field not in field_spec.keys():
             return HttpResponseBadRequest("Invalid field key")
-        active_field_name = field_spec[active_field]
+        active_field_name = field_spec[active_field][0]
 
     months_count = 13
     end_date = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
@@ -605,7 +605,7 @@ def clientbase_stats(request):
             "client": client,
             "data": sorted_months,
         })
-    final_stats = sorted(final_stats, key=lambda k: k["data"][-1][1][sorting], reverse=True)
+    final_stats = sorted(final_stats, key=lambda k: [i[1][sorting] for i in reversed(k["data"])], reverse=True)
     context = {
         "stats": final_stats,
         "months": sorted(months),
