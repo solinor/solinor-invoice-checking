@@ -54,7 +54,7 @@
         <li class="nav-item"><a class="nav-link" href="{% url "projects_list" %}">Projects</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url "users_list" %}">People</a></li>
         <li class="nav-item dropdown">
-         <a class="nav-link dropdown-toggle" href="{% url "hours_browser" %}" id="navDropdownHours" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hours</a>
+         <a class="nav-link dropdown-toggle nowrap-column" href="{% url "hours_browser" %}" id="navDropdownHours" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hours</a>
          <div class="dropdown-menu" aria-labelledby="navDropdownHours">
            <a class="dropdown-item" href="{% url "hours_browser" %}?sort=-date">Browser</a>
            <a class="dropdown-item" href="{% url "users_charts" %}">Charts (people)</a>
@@ -67,10 +67,10 @@
          </div>
        </li>
        <li class="nav-item"><a class="nav-link" href="{% url "amazon_overview" %}">Amazon</a></li>
-       <li class="nav-item"><a class="nav-link" href="{% url "your_flex_hours" %}">Flex <span class="badge badge-secondary" id="flex_hours_count" data-turbolinks-permanent>New</span></a></li>
+       <li class="nav-item"><a class="nav-link nowrap-column" href="{% url "your_flex_hours" %}">Flex <span class="badge badge-secondary" id="flex_hours_count" data-turbolinks-permanent>New</span></a></li>
 
        <li class="nav-item dropdown">
-         <a class="nav-link dropdown-toggle" href="{% url "admin:index" %}" id="navDropdownActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</a>
+         <a class="nav-link dropdown-toggle nowrap-column" href="{% url "admin:index" %}" id="navDropdownActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</a>
          <div class="dropdown-menu" aria-labelledby="navDropdownActions">
            <a class="dropdown-item" href="{% url "queue_slack_notification" %}">Slack notifications <i class="fa fa-lock" aria-hidden="true"></i></a>
            <a class="dropdown-item" href="{% url "admin_sync" %}">Sync <i class="fa fa-lock" aria-hidden="true"></i></a>
@@ -80,7 +80,6 @@
       </ul>
       <form method="get" action="{% url 'search' %}" class="form-inline my-2 my-lg-0">
          <input class="form-control mr-sm-2" type="text" name="q" placeholder="Search" aria-label="Search">
-         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
       </form>
     </div>
   </nav>
