@@ -2,7 +2,7 @@ import datetime
 
 from django.core.management.base import BaseCommand
 
-from invoices.utils import refresh_stats
+from invoices.utils import refresh_invoice_stats
 
 
 class Command(BaseCommand):
@@ -30,4 +30,4 @@ class Command(BaseCommand):
         else:
             end_date = None
 
-        refresh_stats(start_date, end_date)
+        refresh_invoice_stats(start_date, end_date)

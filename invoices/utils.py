@@ -362,7 +362,7 @@ class HourEntryUpdate(object):
         return (self.first_entry, self.last_entry, deleted_entries + len(entries))
 
 
-def refresh_stats(start_date, end_date):
+def refresh_invoice_stats(start_date, end_date):
     if start_date and end_date:
         invoices = Invoice.objects.filter(date__gte=start_date, date__lte=end_date)
         logger.info("Updating statistics for invoices between %s and %s: %s invoices", start_date, end_date, len(invoices))

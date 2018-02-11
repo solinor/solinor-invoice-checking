@@ -10,7 +10,7 @@ from django.utils import timezone
 from flex_hours.utils import send_flex_saldo_notifications
 from invoices.models import DataUpdate, SlackNotificationBundle
 from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
-from invoices.utils import HourEntryUpdate, refresh_stats
+from invoices.utils import HourEntryUpdate, refresh_invoice_stats
 
 
 def update_10kf_data(logger, data, redis_instance):
@@ -45,7 +45,7 @@ def update_10kf_data(logger, data, redis_instance):
     logger.info("Hour entry update done.")
     if updated_entries_count > 0:
         logger.info("Update invoice statistics.")
-        refresh_stats(start_date, end_date)
+        refresh_invoice_stats(start_date, end_date)
         logger.info("Invoice statistics updated.")
     else:
         logger.info("No entries were updated - skipped updating invoice statistics")
