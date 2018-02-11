@@ -212,7 +212,7 @@ def person_details(request, user_guid):
     entries = person.hourentry_set.exclude(status="Unsubmitted")
     filters = request.GET.get("filters", "").split(",")
     if "exclude_leaves" in filters:
-        entries = entries.exclude(client="[none]")  # TODO: hourentry.client is deprecated
+        entries = entries.exclude(project_m__name="[Leave Type]")
     if "exclude_nonbillable" in filters:
         entries = entries.exclude(calculated_is_billable=False)
 
@@ -252,7 +252,7 @@ def users_list(request):
     people_data = {}
     for person in TenkfUser.objects.filter(archived=False):
         people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "person": person, "issues": 0}
-    for entry in HourEntry.objects.exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
+    for entry in HourEntry.objects.filter(user_m__archived=False).exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project="[Leave Type]"):
         if entry.user_email not in people_data:
             continue  # TODO: logging
         if entry.calculated_is_billable:
@@ -297,10 +297,11 @@ def hours_sickleaves(request):
 
     per_person_info = defaultdict(lambda: {"short": 0, "long": 0, "short_periods": []})
     for item in sick_leaves:
-        per_person_info[item["user_m__pk"]]["user_pk"] = item["user_m__pk"]
-        per_person_info[item["user_m__pk"]]["user_email"] = item["user_m__email"]
-        per_person_info[item["user_m__pk"]]["user_name"] = item["user_m__display_name"]
-        per_person_info[item["user_m__pk"]]["long"] += 1
+        user_details = per_person_info[item["user_m__pk"]]
+        user_details["user_pk"] = item["user_m__pk"]
+        user_details["user_email"] = item["user_m__email"]
+        user_details["user_name"] = item["user_m__display_name"]
+        user_details["long"] += 1
         if item["date"] > short_period_start_date:
             per_person_info[item["user_m__pk"]]["short_periods"].append(item["date"])
 
