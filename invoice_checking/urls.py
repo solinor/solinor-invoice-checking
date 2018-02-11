@@ -12,8 +12,8 @@ admin.autodiscover()
 
 urlpatterns = [
     path("clients", invoices.views.clients_list, name="clients"),
-    path("clients/<client_id>", invoices.views.client_details, name="client_details"),
     path("clients/stats", invoices.views.clientbase_stats, name="clientbase_stats"),
+    path("clients/<int:client_id>", invoices.views.client_details, name="client_details"),
     path("projects", invoices.views.projects_list, name="projects_list"),
     path("projects/<uuid:project_id>", invoices.views.project_details, name="project"),
     path("projects/<uuid:project_id>/charts", invoices.views.project_charts, name="project_charts"),
