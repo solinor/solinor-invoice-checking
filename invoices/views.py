@@ -546,10 +546,10 @@ def invoices_list(request):
 def clientbase_stats(request):
     sorting = request.GET.get("sorting", "workdays_fte_avg")
     field_spec = {
-        "workdays_fte_avg": ("FTE average for workdays", "Hours worked divided by 100% working time for that month"),
-        "active_days_fte_avg": ("FTE average for days with hour markings", "Hours divided by 100% working time for days with hour markings"),
-        "workdays_people_avg": ("Average number of people working for workdays", "Sum of number of people marking hours divided by number of working days for that month"),
-        "active_days_people_avg": ("Average number of people working for days with hour markings", "Sum of number of people marking hours divided by number of days with hour markings"),
+        "workdays_fte_avg": ("FTE average for workdays", "How many hours are done on average?", "Hours worked divided by 100% working time for that month"),
+        "active_days_fte_avg": ("FTE average for days with hour markings", "How many hours are done when something happens on this project?", "Hours divided by 100% working time for days with hour markings"),
+        "workdays_people_avg": ("Average number of people working for workdays", "How many people are working, if work would be distributed evenly for each workday?", "Sum of number of people marking hours divided by number of working days for that month"),
+        "active_days_people_avg": ("Average number of people working for days with hour markings", "How many people are working when something happens on this project?", "Sum of number of people marking hours divided by number of days with hour markings"),
     }
     if sorting not in field_spec.keys():
         return HttpResponseBadRequest("Invalid sorting key")
@@ -557,7 +557,7 @@ def clientbase_stats(request):
     if active_field:
         if active_field not in field_spec.keys():
             return HttpResponseBadRequest("Invalid field key")
-        active_field_name = field_spec[active_field][0]
+        active_field_spec = field_spec[active_field]
 
     months_count = 13
     end_date = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
@@ -614,7 +614,7 @@ def clientbase_stats(request):
     }
     if active_field:
         context["active_field"] = active_field
-        context["active_field_name"] = active_field_name
+        context["active_field_spec"] = active_field_spec
 
     return render(request, "clientbase_stats.html", context)
 
