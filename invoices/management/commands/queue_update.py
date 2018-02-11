@@ -9,6 +9,10 @@ from django.core.management.base import BaseCommand, CommandError
 class Command(BaseCommand):
     help = "Queue new data refresh"
 
+    MAX_RANGE_LENGTH = datetime.timedelta(days=181)
+    AUTO_SPLIT_RANGE_LENGTH = datetime.timedelta(days=90)
+    DATE_FORMAT = "%Y-%m-%d"
+
     def add_arguments(self, parser):
         # Named (optional) arguments
         parser.add_argument(
@@ -16,6 +20,12 @@ class Command(BaseCommand):
             action="store_true",
             dest="force",
             help="Force update, instead of skipping if update was recently executed",
+        )
+        parser.add_argument(
+            "--automatic-split",
+            action="store_true",
+            dest="automatic_split",
+            help="Automatically split long date ranges to shorter update requests. For consistent results, consider using --force with this.",
         )
         parser.add_argument(
             "--start-date",
@@ -29,22 +39,37 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        date_format = "%Y-%m-%d"
-        start_date = options.get("start_date")
-        if not start_date:
-            start_date = (datetime.datetime.now() - datetime.timedelta(days=60)).strftime(date_format)
-        end_date = options.get("end_date")
-        if not end_date:
-            end_date = (datetime.datetime.now() + datetime.timedelta(days=2)).strftime(date_format)
+        if "start_date" in options:
+            start_date = datetime.datetime.strptime(options.get("start_date"), self.DATE_FORMAT).date()
+        else:
+            start_date = (datetime.date.today() - datetime.timedelta(days=60))
 
-        if datetime.datetime.strptime(end_date, date_format) - datetime.datetime.strptime(start_date, date_format) > datetime.timedelta(days=181):
-            raise CommandError("Date range can't be >181 days.")
+        if "end_date" in options:
+            end_date = datetime.datetime.strptime(options.get("end_date"), self.DATE_FORMAT).date()
+        else:
+            end_date = (datetime.date.today() + datetime.timedelta(days=2))
 
+        if end_date < start_date:
+            raise CommandError("Start date must be larger than end date.")
+
+        force = options.get("force", False)
+        if not options.get("automatic_split", False):
+            self.add_to_queue(start_date, end_date, force)
+        else:
+            current_date = start_date
+            while current_date < end_date:
+                self.add_to_queue(current_date, min(current_date + self.AUTO_SPLIT_RANGE_LENGTH, end_date), force)
+                current_date += self.AUTO_SPLIT_RANGE_LENGTH
+
+    def add_to_queue(self, start_date, end_date, force):
+        if end_date - start_date > self.MAX_RANGE_LENGTH:
+            raise CommandError("Date range can't be >{} days.".format(self.MAX_RANGE_LENGTH.days))
         data = {
             "type": "data-update",
-            "force": options.get("force", False),
-            "start_date": start_date,
-            "end_date": end_date
+            "force": force,
+            "start_date": start_date.strftime(self.DATE_FORMAT),
+            "end_date": end_date.strftime(self.DATE_FORMAT),
         }
+        self.stdout.write(self.style.SUCCESS(f"Queued update for {start_date} - {end_date}"))
         redis_instance = redis.from_url(settings.REDIS)
         redis_instance.publish("request-refresh", json.dumps(data))
