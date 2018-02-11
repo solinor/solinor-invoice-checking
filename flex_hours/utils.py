@@ -289,8 +289,7 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_e
     kiky_stats = calculate_kiky_stats(person, contracts, start_hour_markings_from_date, last_process_day)
 
     if per_month_stats:
-        months = [["{:%Y-%m}".format(entry["month"]), entry["cumulative_saldo"]] for entry in per_month_stats]
-        months.reverse()
+        months = reversed([["{:%Y-%m}".format(entry["month"]), entry["cumulative_saldo"]] for entry in per_month_stats])
         monthly_summary_linechart_data = json.dumps([["Date", "Flex saldo (h)"]] + months)
     else:
         monthly_summary_linechart_data = None
