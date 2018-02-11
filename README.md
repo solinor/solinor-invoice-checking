@@ -4,6 +4,30 @@ Simple web service for checking and approving invoices generated from hour entri
 
 Master branch of [this repository](https://github.com/solinor/solinor-invoice-checking) is automatically deployed to Solinor's internal service.
 
+
+## User permissions
+
+- Do not use is_superuser for anyone. This will add options that will break the system, such as manually creating projects or invoices. Always use separate permissions.
+- Always use groups to set permissions. See admin -> Authentication and Authorization -> Groups.
+
+
+## Data syncing
+
+This system does not use upstream APIs for each request. Instead, data is periodically synced.
+
+Following data is synced:
+
+- Public holidays (from 10000ft) - `python manage.py sync_public_holidays`
+- Slack users - `python manage.py refresh_slack_users`
+- Slack channels - `python manage.py refresh_slack_channels`
+- AWS invoices - `python manage.py import_aws_billing_s3 <year> <month>` or `python manage.py import_aws_billing_s3_automatic` for current and previous months
+- 10000ft projects - `python manage.py sync_10000ft_projects`
+- 10000ft users - `python manage.py sync_10000ft_users`
+- Hour entries - a separate worker process: `python manage.py process_update_queue`. Some inconsistent results are to be expected if more than one update process is running.
+- If calculated invoice data is not up to date, see `python manage.py refresh_stats`. This only happens on database/code changes, during normal operations all relevant invoices are always refreshed.
+
+**Forcing resync:** To improve performance, hour entry checksums are stored in a separate table, `invoices.HourEntryChecksum`. If you need to force updating the data, delete contents of this table. For resyncing, use `python manage.py queue_update --automatic-split --force --start-date YYYY-MM-DD --end-date YYYY-MM-DD`.
+
 ### Code checks
 
 Install `pycodestyle`, `pylint` and `isort`. Exact versions can be checked from `.travis.yml`

@@ -1,3 +1,10 @@
+"""
+Listen to `request-refresh` redis pubsub, and process 10000ft hour entry updates, and send Slack notifications.
+
+Multiple simultaneous requests are queued, but executed one by one.
+
+Never run more than one instance of this command - pubsub will deliver requests to each instance, and you will have some surprising behaviour out of the system.
+"""
 import datetime
 import json
 import logging
@@ -97,7 +104,7 @@ def slack_unsubmitted_notifications(logger, data):
 
 
 class Command(BaseCommand):
-    help = "Import data from 10k feet API"
+    help = "Run background worker to import hour entries from 10000ft, and to send slack notifications. NEVER RUN MORE THAN ONE INSTANCE OF THIS COMMAND SIMULTANEOUSLY."
 
     def handle(self, *args, **options):
         logger = logging.getLogger(__name__)  # pylint: disable=invalid-name

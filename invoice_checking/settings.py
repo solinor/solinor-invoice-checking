@@ -1,14 +1,3 @@
-"""
-Django settings for gettingstarted project, on Heroku. For more info, see:
-https://github.com/heroku/heroku-django-template
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.8/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.8/ref/settings/
-"""
-
 import os
 import subprocess
 import sys
@@ -110,6 +99,7 @@ GOOGLEAUTH_IS_STAFF = False
 # list of default group names to assign to new users
 GOOGLEAUTH_GROUPS = []
 
+# Required for Heroku workaround for wkhtmltopdf command.
 WKHTMLTOPDF_CMD = subprocess.Popen(
     ["which", os.environ.get("WKHTMLTOPDF_BINARY", "wkhtmltopdf")],  # Note we default to "wkhtmltopdf" as the binary name
     stdout=subprocess.PIPE).communicate()[0].strip()
@@ -177,12 +167,16 @@ WSGI_APPLICATION = "invoice_checking.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+# Do note sqlite3 do not support many queries used by this project. You need to setup a real database to fully run this.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
+# Update database configuration with $DATABASE_URL.
+# This uses persistent database connections - take care when increasing number of worker processes.
+DATABASES["default"].update(dj_database_url.config(conn_max_age=500))
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -251,8 +245,6 @@ SHORT_DATETIME_FORMAT = "Y-m-d H:i"
 handler404 = "invoices.views.handler404"  # pylint:disable=invalid-name
 handler500 = "invoices.views.handler500"  # pylint:disable=invalid-name
 
-# Update database configuration with $DATABASE_URL.
-DATABASES["default"].update(dj_database_url.config(conn_max_age=500))
 
 # Honor the "X-Forwarded-Proto" header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
