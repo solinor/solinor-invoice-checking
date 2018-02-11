@@ -315,7 +315,7 @@ def hours_sickleaves(request):
                 person["short"] += 1
                 current_period.items.append(item)
                 continue
-            if item - previous_date > datetime.timedelta(days=3):
+            if item - previous_date > datetime.timedelta(days=5):
                 current_period.items.append(previous_date)
                 collected_periods.append(current_period)
                 current_period = DatePeriod(item)
@@ -326,10 +326,15 @@ def hours_sickleaves(request):
             collected_periods.append(current_period)
         person["collected_periods"] = collected_periods
 
-    sick_leaves_exceeding_limits = sorted([k for k in per_person_info.values() if k["short"] > 3 or k["long"] > 20], key=lambda k: k["user_name"])
-    sick_leaves_not_exceeding_limits = sorted([k for k in per_person_info.values() if k["short"] <= 3 and k["long"] <= 20], key=lambda k: k["user_name"])
+    sick_leaves_exceeding_limits = sorted([k for k in per_person_info.values() if k["short"] > settings.SICK_LEAVE_SHORT_PERIOD_LIMIT or k["long"] > settings.SICK_LEAVE_LONG_PERIOD_LIMIT], key=lambda k: k["user_name"])
+    sick_leaves_not_exceeding_limits = sorted([k for k in per_person_info.values() if k["short"] <= settings.SICK_LEAVE_SHORT_PERIOD_LIMIT and k["long"] <= settings.SICK_LEAVE_LONG_PERIOD_LIMIT], key=lambda k: k["user_name"])
 
-    return render(request, "hours/sickleaves.html", {"sick_leaves_exceeding_limits": sick_leaves_exceeding_limits, "sick_leaves_not_exceeding_limits": sick_leaves_not_exceeding_limits})
+    return render(request, "hours/sickleaves.html", {
+        "sick_leaves_exceeding_limits": sick_leaves_exceeding_limits,
+        "sick_leaves_not_exceeding_limits": sick_leaves_not_exceeding_limits,
+        "short_period_limit": settings.SICK_LEAVE_SHORT_PERIOD_LIMIT,
+        "long_period_limit": settings.SICK_LEAVE_LONG_PERIOD_LIMIT,
+    })
 
 
 @login_required

@@ -5,7 +5,7 @@
 
 <h3>People exceeding early caring model limits</h3>
 
-<p>&gt; 20 sick leave days during past 12 months <i>and/or</i> &gt; 3 sick leave periods during past 4 months.</p>
+<p>&gt; {{ long_period_limit }} sick leave days during past 12 months <i>and/or</i> &gt; {{ short_period_limit }} sick leave periods during past 4 months.</p>
 
 {% include "hours/snippets/sick_leaves_table.html" with per_person_info=sick_leaves_exceeding_limits %}
 
