@@ -12,6 +12,13 @@
 
 <h1>Clients</h1>
 
+<div class="row top-buttons-row">
+  <div class="col-md-12">
+    <a class="btn btn-primary" href="{% url clientbase_stats %}" role="button">Statistics</a>
+  </div>
+</div>
+
+{% comment %}
 <form action="" method="get">
   <div class="row">
     {% for field in filters.form %}
@@ -21,10 +28,11 @@
     </div>
     {% endfor %}
     <div class="col-md-4">
-      <button style="margin-top:0.8em" class="btn btn-primary" type="submit">Filter</button>
+      <button class="btn btn-primary" type="submit">Filter</button>
     </div>
   </div>
 </form>
+{% endcomment %}
 
 {% render_table clients %}
 

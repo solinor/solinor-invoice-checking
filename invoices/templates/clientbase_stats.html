@@ -4,6 +4,11 @@
 {% block title %}Client stats{% endblock %}
 
 {% block content %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url "clients" %}">Clients</a></li>
+  <li class="breadcrumb-item active">Stats</li>
+</ol>
 
 {% if active_field %}
 <h1>Per client statistics: {{ active_field_spec.0 }}</h1>
