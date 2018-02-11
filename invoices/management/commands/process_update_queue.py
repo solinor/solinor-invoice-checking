@@ -19,7 +19,7 @@ def update_10kf_data(logger, data, redis_instance):
         try:
             latest_run = DataUpdate.objects.exclude(finished_at=None).latest("finished_at")
             if now - latest_run.finished_at < datetime.timedelta(seconds=10):
-                logger.info("Latest run was finished recently. Skip this data update.")
+                logger.info("Last hour entry update finished recently. Skipping this data update.")
                 latest_run.aborted = True
                 latest_run.save()
                 return
@@ -38,17 +38,17 @@ def update_10kf_data(logger, data, redis_instance):
     update_obj.save()
     start_date = datetime.datetime.strptime(data["start_date"], "%Y-%m-%d").date()
     end_date = datetime.datetime.strptime(data["end_date"], "%Y-%m-%d").date()
-    logger.info("Updating data.")
+    logger.info("Updating hour entries.")
     update_obj.started_at = timezone.now()
     hour_entry_update = HourEntryUpdate(start_date, end_date)
     _, _, updated_entries_count = hour_entry_update.update()
-    logger.info("Data update done.")
+    logger.info("Hour entry update done.")
     if updated_entries_count > 0:
-        logger.info("Update statistics.")
+        logger.info("Update invoice statistics.")
         refresh_stats(start_date, end_date)
-        logger.info("Statistics updated.")
+        logger.info("Invoice statistics updated.")
     else:
-        logger.info("No entries were updated - skipped updating statistics")
+        logger.info("No entries were updated - skipped updating invoice statistics")
     update_obj.finished_at = timezone.now()
     update_obj.aborted = False
     update_obj.save()
