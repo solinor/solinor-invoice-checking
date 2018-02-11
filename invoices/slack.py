@@ -167,10 +167,9 @@ def refresh_slack_channels():
     for channel in slack_channels:
         channel_id = channel.get("id")
         channel_name = channel.get("name")
-        if channel.get("is_archived"):
-            continue
         SlackChannel.objects.update_or_create(channel_id=channel_id, defaults={
             "name": channel_name,
+            "archived": channel.get("is_archived", False),
         })
     Event(event_type="sync_slack_channels", succeeded=True, message="Got {} channels from Slack".format(len(slack_channels))).save()
 

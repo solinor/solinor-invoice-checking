@@ -210,6 +210,7 @@ class SlackChannel(models.Model):
     channel_id = models.CharField(max_length=50, primary_key=True, editable=False)
     name = models.CharField(max_length=1000)
     new_project_notification = models.BooleanField(blank=True, default=False)
+    archived = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
         return self.name
@@ -226,7 +227,7 @@ class TenkfUser(models.Model):
     last_name = models.CharField(max_length=100, null=True, blank=True)
     archived = models.BooleanField(blank=True, default=False)
     display_name = models.CharField(max_length=100, null=True, blank=True)
-    email = models.CharField(max_length=100, null=True, blank=True, unique=True)  # TODO: non-null
+    email = models.CharField(max_length=100, unique=True)
     billable = models.BooleanField(blank=True, default=False)
     hire_date = models.DateField(blank=True, null=True)
     termination_date = models.DateField(blank=True, null=True)
