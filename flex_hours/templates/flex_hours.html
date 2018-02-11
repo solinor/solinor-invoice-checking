@@ -6,8 +6,8 @@
 var saldo_sum = 0;
 var kiky_sum = 0;
 var range_map = $.range_map({
-  ":-50": "red",
-  "100:": "yellow"
+  ":-{{ max_minus }}": "red",
+  "{{ max_plus }}:": "yellow"
 })
 $(".flex-row").each(function () {
   var user_guid = $(this).data("guid");
@@ -22,10 +22,10 @@ $(".flex-row").each(function () {
       $("#" + user_guid + "-kiky").html(data.kiky_saldo.toFixed(2) + "h");
       kiky_sum = kiky_sum + data.kiky_saldo;
       $("#kiky-sum").html(kiky_sum.toFixed(2) + "h");
-      if (data.flex_hours < -40) {
+      if (data.flex_hours < {{ max_minus }}) {
         $("#" + user_guid + "-row").addClass("table-danger");
       }
-      if (data.flex_hours > 120) {
+      if (data.flex_hours > {{ max_plus }}) {
         $("#" + user_guid + "-row").addClass("table-warning");
       }
       $("#" + user_guid + "-saldo-sparkline").sparkline(data.monthly_saldos, {"colorMap": range_map, "height": "3em", "fillColor": false})
@@ -43,6 +43,8 @@ $(".flex-row").each(function () {
 {% block content %}
 
 <h3>Flex saldos</h3>
+
+<p>Currently configured limits: {{ max_minus }}h -- {{ max_plus }}h</p>
 
 <div class="row">
   <div class="col-md-12">

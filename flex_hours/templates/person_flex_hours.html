@@ -14,6 +14,16 @@
 
 <h2>Flex hours for {{ person.first_name }} {{ person.last_name }}: {% if cumulative_saldo %}{{ cumulative_saldo|floatformat:"2" }}h{% endif %}</h2>
 
+{% if cumulative_saldo < max_minus %}
+<div class="alert alert-danger" role="alert">
+  The flex saldo is below the limit of {{ max_minus }}h. {% if person.email == request.user.email %}You need to work on reducing this. You can not take flex leave. If you take days off or work shorter days, you must use "Unpaid leave" instead.{% endif %}
+</div>
+{% elif cumulative_saldo > max_plus %}
+<div class="alert alert-warning" role="alert">
+  The flex saldo is above the limit of {{ max_plus }}h. {% if person.email == request.user.email %}You should work on reducing this. You can either take days off, or take (some of) these out as salary.{% endif %}
+</div>
+{% endif %}
+
 <div class="alert alert-info" role="alert">
 {% if kiky.saldo %}
 <p>Flex saldo includes {{ kiky.saldo|floatformat:"2" }}h KIKY deduction.</p>

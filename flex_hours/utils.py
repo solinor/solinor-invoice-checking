@@ -42,7 +42,7 @@ def send_flex_saldo_notifications(year, month):
         if not flex_info.get("active", True):
             continue
         saldo = flex_info["cumulative_saldo"]
-        context = {"saldo": saldo, "kiky_saldo": flex_info["kiky"]["saldo"]}
+        context = {"saldo": saldo, "kiky_saldo": flex_info["kiky"]["saldo"], "max_minus": settings.FLEX_MAX_MINUS, "max_plus": settings.FLEX_MAX_PLUS}
 
         if flex_info["monthly_summary"]:
             for item in flex_info["monthly_summary"]:

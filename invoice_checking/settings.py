@@ -67,6 +67,9 @@ REDIRECT_OLD_DOMAIN = os.environ.get("REDIRECT_OLD_DOMAIN")
 REDIRECT_NEW_DOMAIN = os.environ.get("REDIRECT_NEW_DOMAIN")
 CSP_ENABLED = os.environ.get("CSP_ENABLED", True) in (True, "true", "True")
 
+FLEX_MAX_MINUS = -40
+FLEX_MAX_PLUS = 120
+
 # Application definition
 
 INSTALLED_APPS = (

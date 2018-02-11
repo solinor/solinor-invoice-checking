@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import json
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -14,6 +15,7 @@ from invoices.models import TenkfUser
 def get_flex_hours_for_user(request, person, json_responses=False, only_active=False):
     try:
         context = calculate_flex_saldo(person, only_active=only_active)
+        context.update({"max_minus": settings.FLEX_MAX_MINUS, "max_plus": settings.FLEX_MAX_PLUS})
     except FlexHourException as error:
         if json_responses:
             return JsonResponse({"flex_enabled": False})
@@ -30,7 +32,7 @@ def get_flex_hours_for_user(request, person, json_responses=False, only_active=F
 @permission_required("flex_hours.can_see_flex_saldos")
 def flex_overview(request):
     people = TenkfUser.objects.exclude(archived=True)
-    return render(request, "flex_hours.html", {"people": people})
+    return render(request, "flex_hours.html", {"people": people, "max_minus": settings.FLEX_MAX_MINUS, "max_plus": settings.FLEX_MAX_PLUS})
 
 
 @login_required
