@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 
 import json
 
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 
@@ -28,7 +27,7 @@ def get_flex_hours_for_user(request, person, json_responses=False, only_active=F
     return render(request, "person_flex_hours.html", context)
 
 
-@staff_member_required
+@permission_required("flex_hours.can_see_flex_saldos")
 def flex_overview(request):
     people = TenkfUser.objects.exclude(archived=True)
     return render(request, "flex_hours.html", {"people": people})

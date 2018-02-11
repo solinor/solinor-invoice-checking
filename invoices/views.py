@@ -9,8 +9,7 @@ from collections import defaultdict
 import redis
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
@@ -279,7 +278,8 @@ def parse_date(date_string):
     return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
 
 
-@staff_member_required
+@login_required
+@permission_required("invoices.can_see_sick_leaves")
 def hours_sickleaves(request):
     class DatePeriod(object):
         def __init__(self, item=None):
@@ -332,7 +332,8 @@ def hours_sickleaves(request):
     return render(request, "hours/sickleaves.html", {"sick_leaves_exceeding_limits": sick_leaves_exceeding_limits, "sick_leaves_not_exceeding_limits": sick_leaves_not_exceeding_limits})
 
 
-@staff_member_required
+@login_required
+@permission_required("invoices.can_send_notifications")
 def queue_slack_notification(request):
     today = datetime.date.today()
     end_date = today - datetime.timedelta(days=today.isoweekday())
@@ -919,8 +920,8 @@ def invoice_page(request, invoice_id, **_):
     return render(request, "invoice_page.html", context)
 
 
-@staff_member_required
 @login_required
+@permission_required("invoices.can_run_sync")
 def admin_sync(request):
     if request.method == "POST":
         action = request.POST.get("action")

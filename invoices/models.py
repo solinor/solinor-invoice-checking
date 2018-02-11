@@ -97,6 +97,7 @@ class HourEntry(models.Model):
     class Meta:
         ordering = ("date", "user_id")
         verbose_name_plural = "Hour entries"
+        verbose_name = "Hour entry"
 
 
 @reversion.register()
@@ -248,6 +249,8 @@ class TenkfUser(models.Model):
 
     class Meta:
         ordering = ("first_name", "last_name")
+        verbose_name = "10000ft user"
+        verbose_name_plural = "10000ft users"
 
 
 @reversion.register()
@@ -312,6 +315,8 @@ class Comments(models.Model):
 
     class Meta:
         get_latest_by = "timestamp"
+        verbose_name = "Comment"
+        verbose_name_plural = "Comments"
 
     def __str__(self):
         return f"{self.invoice} - {self.timestamp} - {self.user}"
@@ -363,6 +368,7 @@ class AmazonLinkedAccount(models.Model):
 
     class Meta:
         ordering = ("name", "linked_account_id")
+        verbose_name = "Linked Amazon Account"
 
     def __str__(self):
         return self.name
@@ -441,6 +447,18 @@ class Event(models.Model):
 
     class Meta:
         ordering = ("-timestamp",)
+
+
+class Permission(models.Model):
+
+    class Meta:
+        permissions = (
+            ("can_run_sync", "Can manually sync data"),
+            ("can_send_notifications", "Can manually trigger slack notifications"),
+            ("can_see_hours_overview", "Can see hours overview"),
+            ("can_see_sick_leaves", "Can see sick leaves overview"),
+            ("can_see_flex_saldos", "Can see flex saldos overview"),
+        )
 
 
 def gen_auth_token():  # Migrations support function

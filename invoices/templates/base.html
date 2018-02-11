@@ -59,9 +59,13 @@
            <a class="dropdown-item" href="{% url "hours_browser" %}?sort=-date">Browser</a>
            <a class="dropdown-item" href="{% url "users_charts" %}">Charts (people)</a>
            <a class="dropdown-item" href="{% url "hours_charts" %}">Charts (hours/projects)</a>
-           {% if request.user.is_staff %}
+           {% if perms.invoices.can_see_sick_leaves %}
            <a class="dropdown-item" href="{% url "hours_sickleaves" %}">Sick leaves <i class="fa fa-lock" aria-hidden="true"></i></a>
+           {% endif %}
+           {% if perms.flex_hours.can_see_flex_saldos %}
            <a class="dropdown-item" href="{% url "flex_overview" %}">Flex saldos <i class="fa fa-lock" aria-hidden="true"></i></a>
+           {% endif %}
+           {% if perms.invoices.can_see_hours_overview %}
            <a class="dropdown-item" href="{% url "hours_overview" %}">Overview</a>
            {% endif %}
          </div>
@@ -72,9 +76,15 @@
        <li class="nav-item dropdown">
          <a class="nav-link dropdown-toggle nowrap-column" href="{% url "admin:index" %}" id="navDropdownActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</a>
          <div class="dropdown-menu" aria-labelledby="navDropdownActions">
+           {% if perms.invoices.can_send_notifications %}
            <a class="dropdown-item" href="{% url "queue_slack_notification" %}">Slack notifications <i class="fa fa-lock" aria-hidden="true"></i></a>
+           {% endif %}
+           {% if perms.invoices.can_run_sync %}
            <a class="dropdown-item" href="{% url "admin_sync" %}">Sync <i class="fa fa-lock" aria-hidden="true"></i></a>
+           {% endif %}
+           {% if request.user.is_staff %}
            <a class="dropdown-item" href="{% url "admin:index" %}">Admin <i class="fa fa-lock" aria-hidden="true"></i></a>
+           {% endif %}
          </div>
        </li>
       </ul>

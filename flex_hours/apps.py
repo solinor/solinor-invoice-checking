@@ -6,3 +6,4 @@ from django.apps import AppConfig
 
 class FlexHoursConfig(AppConfig):
     name = "flex_hours"
+    verbose_name = "Flex hours"

@@ -46,7 +46,8 @@ admin.site.register(Project, ProjectAdmin)
 
 class UserAdmin(DeleteNotAllowedModelAdmin):
     fields = ("amazon_account",)
-    list_display = ("first_name", "last_name", "email")
+    list_display = ("first_name", "last_name", "email", "archived", "updated_at")
+    list_filter = ("archived",)
     search_fields = ("first_name", "last_name", "email")
 
 

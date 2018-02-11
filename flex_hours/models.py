@@ -67,3 +67,11 @@ class PublicHoliday(models.Model):
 
     class Meta:
         ordering = ("date", )
+
+
+class Permission(models.Model):
+
+    class Meta:
+        permissions = (
+            ("can_see_flex_saldos", "Can see flex saldos overview"),
+        )
