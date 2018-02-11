@@ -13,3 +13,4 @@ class Command(BaseCommand):
         last_day = today - datetime.timedelta(today.isoweekday())
         first_day = last_day - datetime.timedelta(days=60)
         send_unapproved_hours_notifications(first_day, last_day)
+        self.stdout.write(self.style.SUCCESS("Successfully sent unapproved hours notifications"))

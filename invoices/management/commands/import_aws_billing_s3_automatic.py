@@ -17,10 +17,12 @@ class Command(BaseCommand):
         today = timezone.now()
         fetch_months = [today]
         if today.day < 5:
-            fetch_months = [(today - datetime.timedelta(days=10))]
+            fetch_months.append(today - datetime.timedelta(days=10))
         for date in fetch_months:
             with tempfile.NamedTemporaryFile(mode="w+b") as data:
+                self.stdout.write(f"Downloading AWS billing information from S3 for {date:%Y-%m}")
                 s3_client.download_fileobj("solinor-hostmaster-billing", f"321914701408-aws-billing-csv-{date:%Y-%m}.csv", data)
                 data.seek(0)
                 infile = open(data.name, mode="rt")
                 import_aws_invoice(infile, date.year, date.month)
+                self.stdout.write(self.style.SUCCESS(f"Successfully processed AWS billing information for {date:%Y-%m}"))

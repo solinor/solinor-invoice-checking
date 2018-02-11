@@ -31,3 +31,4 @@ class Command(BaseCommand):
             end_date = None
 
         refresh_invoice_stats(start_date, end_date)
+        self.stdout.write(self.style.SUCCCESS(f"Updated invoice statistics: {start_date} - {end_date}"))

@@ -22,5 +22,6 @@ class Command(BaseCommand):
         if options.get("force") or timezone.now().isoweekday() == 2:
             redis_client = redis.from_url(settings.REDIS)
             redis_client.publish("request-refresh", json.dumps({"type": "slack-unapproved-notification"}))
+            self.stdout.write(self.style.SUCCESS("Successfully queued unapproved hours notifications"))
         else:
             self.stdout.write("No force option specified, and it is not Tuesday - notifications not queued.")

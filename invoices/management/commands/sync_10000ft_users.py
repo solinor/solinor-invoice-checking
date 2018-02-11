@@ -8,3 +8,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         sync_10000ft_users()
+        self.stdout.write(self.style.SUCCESS("Successfully synced 10000ft users"))

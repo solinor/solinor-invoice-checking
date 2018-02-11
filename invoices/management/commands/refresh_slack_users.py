@@ -8,3 +8,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         refresh_slack_users()
+        self.stdout.write(self.style.SUCCESS("Successfully refreshed users from Slack"))

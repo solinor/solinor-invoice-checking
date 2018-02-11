@@ -13,3 +13,4 @@ class Command(BaseCommand):
         end_date = today - datetime.timedelta(today.isoweekday())
         start_date = end_date - datetime.timedelta(days=60)
         send_unsubmitted_hours_notifications(start_date, end_date)
+        self.stdout.write(self.style.SUCCESS("Successfully sent unsubmitted hours notifications"))
