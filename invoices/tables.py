@@ -16,6 +16,7 @@ from invoices.models import HourEntry, Invoice, Project
 class HourListTable(tables.Table):
     client = tables.Column(accessor="project_m.client_m.name", verbose_name="Client")
     project_m = tables.Column(accessor="project_m.name", verbose_name="Project")
+    date = tables.Column(order_by=("date"), attrs={"td": {"class": "nowrap-column"}})
 
     class Meta:
         model = HourEntry
@@ -45,7 +46,7 @@ class HourListTable(tables.Table):
 class FrontpageInvoices(tables.Table):
     invoice_state = tables.Column(verbose_name="State")
     incorrect_entries_count = tables.Column(verbose_name="Issues")
-    date = tables.Column(order_by=("date"))
+    date = tables.Column(order_by=("date"), attrs={"td": {"class": "nowrap-column"}})
     client = tables.Column(accessor="project_m.client_m.name", verbose_name="Client")
     project_m = tables.Column(accessor="project_m.name", verbose_name="Project")
     admin_users = tables.Column(orderable=False, verbose_name="Tags")
@@ -78,6 +79,9 @@ class FrontpageInvoices(tables.Table):
 
 
 class ProjectsTable(tables.Table):
+    starts_at = tables.Column(order_by=("starts_at"), attrs={"td": {"class": "nowrap-column"}})
+    ends_at = tables.Column(order_by=("ends_at"), attrs={"td": {"class": "nowrap-column"}})
+
     class Meta:
         model = Project
         attrs = {"class": "table table-striped table-hover projects-table table-responsive"}
@@ -115,7 +119,7 @@ def calc_bill_rate_avg(stats):
 
 class ProjectDetailsTable(tables.Table):
     invoice_id = tables.Column(orderable=False, verbose_name="")
-    date = tables.Column(order_by=("date"))
+    date = tables.Column(order_by=("date"), attrs={"td": {"class": "nowrap-column"}})
     incurred_hours = tables.Column(footer=lambda table: "{}h".format(intcomma(floatformat(sum(x.incurred_hours for x in table.data), 0))))
     incurred_money = tables.Column(footer=lambda table: "{}€".format(intcomma(floatformat(sum(x.incurred_money for x in table.data), 0))))
     bill_rate_avg = tables.Column(footer=lambda table: "{:.0f}€/h".format(calc_bill_rate_avg((x.incurred_hours, x.incurred_money) for x in table.data)))
@@ -125,6 +129,9 @@ class ProjectDetailsTable(tables.Table):
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoice-table table-responsive"}
         fields = ("date", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage", "invoice_id")
+
+    def render_date(self, value):
+        return format_html(f"{value:%Y-%m}")
 
     def render_invoice_id(self, value):
         return format_html("<a href='{}'>Invoice</a>, <a href='{}'>hours</a>".format(reverse("invoice", args=[value]), reverse("invoice_hours", args=[value])))
