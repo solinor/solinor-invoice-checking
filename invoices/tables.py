@@ -13,8 +13,20 @@ from django.utils.html import format_html
 from invoices.models import Client, HourEntry, Invoice, Project
 
 
+def calc_bill_rate_avg(stats):
+    hours = billing = 0
+    for incurred_hours, incurred_money in stats:
+        hours += incurred_hours
+        billing += incurred_money
+
+    if hours == 0:
+        return 0
+    return billing / hours
+
+
 class ClientsTable(tables.Table):
-    incurred_money = tables.Column(verbose_name="Incurred billing")
+    incurred_hours = tables.Column(footer=lambda table: "{}h".format(intcomma(floatformat(sum(x.incurred_hours for x in table.data), 0))))
+    incurred_money = tables.Column(footer=lambda table: "{}€".format(intcomma(floatformat(sum(x.incurred_money for x in table.data), 0))))
 
     class Meta:
         model = Client
@@ -69,6 +81,9 @@ class FrontpageInvoices(tables.Table):
     client = tables.Column(accessor="project_m.client_m.name", verbose_name="Client")
     project_m = tables.Column(accessor="project_m.name", verbose_name="Project")
     admin_users = tables.Column(orderable=False, verbose_name="Tags")
+    incurred_hours = tables.Column(footer=lambda table: "{}h".format(intcomma(floatformat(sum(x.incurred_hours for x in table.data), 0))))
+    incurred_money = tables.Column(footer=lambda table: "{}€".format(intcomma(floatformat(sum(x.incurred_money for x in table.data), 0))))
+    bill_rate_avg = tables.Column(footer=lambda table: "{:.0f}€/h".format(calc_bill_rate_avg((x.incurred_hours, x.incurred_money) for x in table.data)))
 
     class Meta:
         model = Invoice
@@ -104,6 +119,8 @@ class ProjectsTable(tables.Table):
     starts_at = tables.Column(order_by=("starts_at"), attrs={"td": {"class": "nowrap-column"}})
     ends_at = tables.Column(order_by=("ends_at"), attrs={"td": {"class": "nowrap-column"}})
     client_m = tables.Column(order_by=("client_m"), verbose_name="Client")
+    incurred_hours = tables.Column(footer=lambda table: "{}h".format(intcomma(floatformat(sum(x.incurred_hours for x in table.data), 0))))
+    incurred_money = tables.Column(footer=lambda table: "{}€".format(intcomma(floatformat(sum(x.incurred_money for x in table.data), 0))))
 
     class Meta:
         model = Project
@@ -127,17 +144,6 @@ class ProjectsTable(tables.Table):
 
     def render_guid(self, value):
         return format_html("<a href='{}'>Details</a>".format(reverse("project", args=[value])))
-
-
-def calc_bill_rate_avg(stats):
-    hours = billing = 0
-    for incurred_hours, incurred_money in stats:
-        hours += incurred_hours
-        billing += incurred_money
-
-    if hours == 0:
-        return 0
-    return billing / hours
 
 
 class ProjectDetailsTable(tables.Table):
