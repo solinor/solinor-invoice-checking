@@ -7,7 +7,7 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
       <li class="breadcrumb-item"><a href="{% url "projects_list" %}">Projects</a></li>
-      <li class="breadcrumb-item">{% if invoice.project_m %}<a href="{% url "project" invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+      <li class="breadcrumb-item">{% if invoice.project_m.guid %}<a href="{% url "project" invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
       <li class="breadcrumb-item active"><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
     </ol>
 

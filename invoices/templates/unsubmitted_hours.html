@@ -29,8 +29,8 @@
     {% for entry in unsubmitted_entries %}
     <tr>
       <td>{{ entry.date }}</td>
-      <td>{{ entry.client }}</td>
-      <td>{{ entry.project }}</td>
+      <td>{{ entry.project_m.client_m.name }}</td>
+      <td>{{ entry.project_m.name }}</td>
       <td>{{ entry.category }}</td>
       <td>{{ entry.phase_name }}</td>
       <td>{{ entry.notes }}</td>

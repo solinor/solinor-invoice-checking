@@ -13,7 +13,7 @@ from invoices.models import HourEntry, Invoice
 
 def generate_hours_xls_for_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
-    title = f"{invoice.client} - {invoice.project} - {invoice.date:%Y-%m}"
+    title = f"{invoice.project_m.client_m.name} - {invoice.project_m.name} - {invoice.date:%Y-%m}"
 
     entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0)
     with tempfile.TemporaryDirectory() as dirname:
@@ -77,7 +77,7 @@ def generate_pdf(title, content):
 
 def generate_hours_pdf_for_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
-    title = f"{invoice.client} - {invoice.project} - {invoice.date:%Y-%m}"
+    title = f"{invoice.project_m.client_m.name} - {invoice.project_m.name} - {invoice.date:%Y-%m}"
     title = title.replace("\xe4", "a").replace("\xb6", "o").replace("\x84", "A").replace("\x96", "O").replace("\xf6", "o")
 
     entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0)

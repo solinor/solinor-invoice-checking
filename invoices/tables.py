@@ -29,9 +29,7 @@ class HourListTable(tables.Table):
         return value
 
     def render_project(self, value, record):
-        if record.project_m:
-            return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.invoice.project_m.guid]), value))
-        return value
+        return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.invoice.project_m.guid]), value))
 
     def render_incurred_hours(self, value):
         return "{}h".format(intcomma(floatformat(value, 2)))

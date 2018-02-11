@@ -27,7 +27,7 @@ function drawChart() {
 <ol class="breadcrumb">
   <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url "projects_list" %}">Projects</a></li>
-  <li class="breadcrumb-item">{% if invoice.project_m %}<a href="{% url "project" invoice.project_m.guid %}">Project</a>{% else %}Project{% endif %}</li>
+  <li class="breadcrumb-item"><a href="{% url "project" invoice.project_m.guid %}">Project</a></li>
   <li class="breadcrumb-item"><a href="{% url "invoice" invoice.invoice_id %}">Invoice</a></li>
   <li class="breadcrumb-item active">Charts</li>
 </ol>
@@ -49,9 +49,7 @@ function drawChart() {
       </div>
     </div>
     {% endif %}
-    {% if invoice.project_m %}
     <a class="btn btn-light" href="{% url "project_charts" invoice.project_m.guid %}">Project charts</a>
-    {% endif %}
   </div>
 </div>
 

@@ -75,7 +75,7 @@ class HourEntry(models.Model):
     invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
 
     def update_calculated_fields(self):
-        self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
+        self.calculated_is_billable = is_phase_billable(self.phase_name, self.project_m.name)
         self.calculated_has_notes = self.notes is not None and len(self.notes) > 0
         self.calculated_has_phase = self.phase_name != "[Non Phase Specific]"
         self.calculated_is_approved = self.approved
@@ -92,7 +92,7 @@ class HourEntry(models.Model):
         return False
 
     def __str__(self):
-        return f"{self.date} - {self.user_name} - {self.client} - {self.project} - {self.incurred_hours}h - {self.incurred_money}e"
+        return f"{self.date} - {self.user_name} - {self.project_m.client_m.name} - {self.project_m.name} - {self.incurred_hours}h - {self.incurred_money}e"
 
     class Meta:
         ordering = ("date", "user_id")
@@ -114,9 +114,6 @@ class Invoice(models.Model):
     date = models.DateField()
 
     project_m = models.ForeignKey("Project", on_delete=models.CASCADE)
-
-    client = models.CharField(max_length=100)  # TODO: remove
-    project = models.CharField(max_length=100)  # TODO: remove
 
     is_approved = models.BooleanField(blank=True, default=False)
     has_comments = models.BooleanField(blank=True, default=False)
@@ -148,7 +145,7 @@ class Invoice(models.Model):
 
     @property
     def full_name(self):
-        return f"{self.client} - {self.project}"
+        return f"{self.project_m.client_m.name} - {self.project_m.name}"
 
     def __str__(self):
         return f"{self.full_name} - {self.date:%Y-%m}"

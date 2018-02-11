@@ -241,7 +241,7 @@ class HourEntryUpdate(object):
             return invoice
         else:
             logger.info("Creating a new invoice: %s - project_id=%s, client=%s, project=%s", date, project_id, client, project)
-            invoice, _ = Invoice.objects.update_or_create(date=date, project_m=project_m, defaults={"client": client, "project": project})  # TODO: invoice.client and invoice.project are deprecated
+            invoice, _ = Invoice.objects.update_or_create(date=date, project_m=project_m)
             self.invoices_data[invoice_key] = invoice
             return invoice
 
