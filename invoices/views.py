@@ -112,7 +112,7 @@ def search(request):
         return render(request, "search.html")
 
     users = TenkfUser.objects.filter(archived=False).filter(Q(email__icontains=q) | Q(display_name__icontains=q))
-    projects = Project.objects.filter(Q(name__icontains=q) | Q(client__icontains=q))
+    projects = Project.objects.filter(Q(name__icontains=q) | Q(client_m__name__icontains=q)).select_related("client_m")
     if len(users) == 1 and len(projects) == 0:
         return HttpResponseRedirect(reverse("person_details", args=(users[0].guid,)))
     elif len(projects) == 1:
@@ -213,7 +213,7 @@ def person_details(request, user_guid):
     entries = person.hourentry_set.exclude(status="Unsubmitted")
     filters = request.GET.get("filters", "").split(",")
     if "exclude_leaves" in filters:
-        entries = entries.exclude(client="[none]")
+        entries = entries.exclude(client="[none]")  # TODO: hourentry.client is deprecated
     if "exclude_nonbillable" in filters:
         entries = entries.exclude(calculated_is_billable=False)
 
@@ -516,7 +516,7 @@ def your_stats(request):
 
 @login_required
 def invoices_list(request):
-    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m").prefetch_related("project_m__admin_users")
+    all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(project_m__client_m__name__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m").prefetch_related("project_m__admin_users")
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
     table = FrontpageInvoices(filters.qs)
     RequestConfig(request, paginate={
@@ -539,7 +539,7 @@ def invoices_list(request):
 def frontpage(request):
     today = datetime.date.today()
     last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
-    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__admin_users__email=request.user.email).filter(date=last_month).exclude(client__in=["Solinor", "[none]"])
+    your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__admin_users__email=request.user.email).filter(date=last_month).exclude(project_m__client_m__name__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m")
     sorting = request.GET.get("sorting", "alphabetically")
 
     cache_key = f"frontpage-cards-sorting-{sorting}"
@@ -547,7 +547,7 @@ def frontpage(request):
     if cached_data:
         cards = pickle.loads(cached_data)
     else:
-        active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(client__in=["Solinor", "[none]"]).filter(date__gte=last_month).exclude(project_m=None).select_related("project_m", "project_m__client_m")
+        active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(project_m__client_m__name__in=["Solinor", "[none]"]).filter(date__gte=last_month).exclude(project_m=None).select_related("project_m", "project_m__client_m")
         projects = [invoice.project_m for invoice in active_invoices]
         projects_map = {invoice.project_m.guid: (invoice.project_m, invoice) for invoice in active_invoices}
         billing = defaultdict(dict)
@@ -910,7 +910,7 @@ def invoice_page(request, invoice_id, **_):
 
     previous_month = (invoice.date - datetime.timedelta(days=1)).replace(day=1)
     try:
-        last_month_invoice = Invoice.objects.get(project=invoice.project, client=invoice.client, date=previous_month)
+        last_month_invoice = Invoice.objects.get(project_m=invoice.project_m, date=previous_month)
         context["last_month_invoice"] = last_month_invoice
         context["diff_last_month"] = last_month_invoice.compare(invoice)
     except Invoice.DoesNotExist:
