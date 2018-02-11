@@ -17,8 +17,8 @@
     {% for entry in entries %}
     <tr>
       <td>{{ entry.date }}</td>
-      <td>{{ entry.project_m.client_m }}</td>
-      <td>{% if entry.project_m %}<a href="{% url "project" entry.project_m.guid %}">{{ entry.project }}</a>{% else %}{{ entry.project }}{% endif %}</td>
+      <td>{{ entry.invoice.project_m.client_m }}</td>
+      <td><a href="{% url "project" entry.invoice.project_m.guid %}">{{ entry.invoice.project_m }}</a></td>
       <td>{{ entry.category }}</td>
       <td>{{ entry.phase_name }}</td>
       <td>{{ entry.notes }}</td>

@@ -14,8 +14,8 @@ from invoices.models import HourEntry, Invoice, Project
 
 
 class HourListTable(tables.Table):
-    client = tables.Column(accessor="project_m.client_m.name", verbose_name="Client")
-    project_m = tables.Column(accessor="project_m.name", verbose_name="Project")
+    client = tables.Column(accessor="invoice.project_m.client_m.name", verbose_name="Client")
+    project_m = tables.Column(accessor="invoice.project_m.name", verbose_name="Project")
     date = tables.Column(order_by=("date"), attrs={"td": {"class": "nowrap-column"}})
 
     class Meta:
@@ -30,7 +30,7 @@ class HourListTable(tables.Table):
 
     def render_project(self, value, record):
         if record.project_m:
-            return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.project_m.guid]), value))
+            return format_html("<a href='{}'>{}</a>".format(reverse("project", args=[record.invoice.project_m.guid]), value))
         return value
 
     def render_incurred_hours(self, value):
@@ -81,6 +81,7 @@ class FrontpageInvoices(tables.Table):
 class ProjectsTable(tables.Table):
     starts_at = tables.Column(order_by=("starts_at"), attrs={"td": {"class": "nowrap-column"}})
     ends_at = tables.Column(order_by=("ends_at"), attrs={"td": {"class": "nowrap-column"}})
+    client_m = tables.Column(order_by=("client_m"), verbose_name="Client")
 
     class Meta:
         model = Project

@@ -4,7 +4,7 @@ from django.db.models import Sum
 
 
 def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours per person"):
-    queryset = queryset.exclude(project_m__client_m__name="[none]").exclude(project_m__client_m__name="")
+    queryset = queryset.exclude(invoice__project_m__client_m__name="[none]").exclude(invoice__project_m__client_m__name="")
     data = [["User", "Project", title, "Diff from last month"], ["All", None, 0, 0]]
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)
@@ -54,7 +54,7 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours per p
 
 
 def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours per project"):
-    queryset = queryset.exclude(project_m__client_m__name="[none]").exclude(project_m__client_m__name="")
+    queryset = queryset.exclude(invoice__project_m__client_m__name="[none]").exclude(invoice__project_m__client_m__name="")
     data = [["Project", "Client", title, "Diff from last month"], ["All", None, 0, 0]]
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)

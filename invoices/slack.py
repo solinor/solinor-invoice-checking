@@ -41,11 +41,9 @@ def send_unsubmitted_hours_notifications(first_day, last_day):
     for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lte=last_day, hourentry__date__gte=first_day).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
         fallback_message = """<https://{}{}|You> have *unsubmitted hours*: {} hour markings with total of {} hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""".format(settings.DOMAIN, reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         message = "You need to submit or remove following hours:"
-        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lte=last_day, date__gte=first_day).exclude(project_m__archived=True).order_by("date")
+        unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lte=last_day, date__gte=first_day).exclude(invoice__project_m__archived=True).order_by("date")  # TODO: select_related
         for unsubmitted_hour in unsubmitted_hours:
-            project_name_field = f"{unsubmitted_hour.client} - {unsubmitted_hour.project}"
-            if unsubmitted_hour.project_m:
-                project_name_field = "<https://{}{}|{}>".format(settings.DOMAIN, reverse("project", args=(unsubmitted_hour.project_m.guid,)), project_name_field)
+            project_name_field = "<https://{}{}|{}>".format(settings.DOMAIN, reverse("project", args=(unsubmitted_hour.invoice.project_m.guid,)), project_name_field)
             message += "\n- {} - {} - {} - {} - {}h - {}".format(unsubmitted_hour.date, project_name_field, unsubmitted_hour.category, unsubmitted_hour.phase_name, unsubmitted_hour.incurred_hours, unsubmitted_hour.notes)
 
         attachment = {

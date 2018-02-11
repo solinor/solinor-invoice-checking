@@ -73,7 +73,6 @@ class HourEntry(models.Model):
     calculated_is_overtime = models.BooleanField(blank=True, default=False, verbose_name="Is overtime")
 
     invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
-    project_m = models.ForeignKey("Project", null=True, on_delete=models.CASCADE)  # TODO: non-null
 
     def update_calculated_fields(self):
         self.calculated_is_billable = is_phase_billable(self.phase_name, self.project)
@@ -154,9 +153,7 @@ class Invoice(models.Model):
         return f"{self.full_name} - {self.date:%Y-%m}"
 
     def admin_users(self):
-        if self.project_m:
-            return self.project_m.admin_users.all()
-        return []
+        return self.project_m.admin_users.all()
 
     def update_state(self, comment):
         self.invoice_state = "C"

@@ -191,7 +191,7 @@ def hours_browser(request):
         month_start_date = date_utils.month_start_date(today.year, today.month)
         month_end_date = date_utils.month_end_date(today.year, today.month)
         return HttpResponseRedirect("{}?date__gte={}&date__lte={}".format(reverse("hours_browser"), month_start_date, month_end_date))
-    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(incurred_hours__gt=0).exclude(project="[Leave Type]").select_related("user_m", "project_m", "project_m__client_m")
+    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(incurred_hours__gt=0).exclude(invoice__project_m__name="[Leave Type]").select_related("user_m", "invoice__project_m", "invoice__project_m__client_m")
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
     RequestConfig(request, paginate={
@@ -240,7 +240,7 @@ def person_details_month(request, year, month, user_guid):
     year = int(year)
     month = int(month)
     person = get_object_or_404(TenkfUser, guid=user_guid)
-    entries = person.hourentry_set.exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("project_m", "user_m").order_by("date")
+    entries = person.hourentry_set.exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("invoice__project_m", "user_m").order_by("date")
     months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
     return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
 
@@ -435,7 +435,7 @@ def your_unsubmitted_hours(request):
             if not ids:
                 return HttpResponseBadRequest("Missing IDs")
             ids = ids.split(",")
-            entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").filter(upstream_id__in=ids).exclude(project_m__archived=True).exclude(incurred_hours=0).exclude(updated_at=None).filter(date__gte=datetime.date.today() - datetime.timedelta(days=60))
+            entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").filter(upstream_id__in=ids).exclude(invoice__project_m__archived=True).exclude(incurred_hours=0).exclude(updated_at=None).filter(date__gte=datetime.date.today() - datetime.timedelta(days=60))
             tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)
             update_entries = []
             for entry in entries:
@@ -467,7 +467,7 @@ def your_unsubmitted_hours(request):
             else:
                 messages.add_message(request, messages.INFO, "Hours submitted. Data entry was not queued, as entries are spread over 6 months period.")
 
-    unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(project_m__archived=True).exclude(incurred_hours=0).order_by("-date")
+    unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(invoice__project_m__archived=True).exclude(incurred_hours=0).order_by("-date")
     return render(request, "unsubmitted_hours.html", {"person": user, "unsubmitted_entries": unsubmitted_entries, "ids": ",".join(str(entry.upstream_id) for entry in unsubmitted_entries if entry.can_submit_automatically)})
 
 
@@ -551,12 +551,12 @@ def frontpage(request):
         projects = [invoice.project_m for invoice in active_invoices]
         projects_map = {invoice.project_m.guid: (invoice.project_m, invoice) for invoice in active_invoices}
         billing = defaultdict(dict)
-        for item in HourEntry.objects.filter(project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("project_m__guid", "date").order_by("project_m__guid", "date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")):
-            billing[item["project_m__guid"]][item["date"]] = (item["hours"], item["money"])
+        for item in HourEntry.objects.filter(invoice__project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("invoice__project_m__guid", "date").order_by("invoice__project_m__guid", "date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")):
+            billing[item["invoice__project_m__guid"]][item["date"]] = (item["hours"], item["money"])
 
         people_entries = defaultdict(lambda: defaultdict(set))
-        for item in HourEntry.objects.filter(project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("project_m__guid", "date", "user_email").order_by("project_m__guid", "date", "user_email"):
-            people_entries[item["project_m__guid"]][item["date"]].add(item["user_email"])
+        for item in HourEntry.objects.filter(invoice__project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("invoice__project_m__guid", "date", "user_email").order_by("invoice__project_m__guid", "date", "user_email"):
+            people_entries[item["invoice__project_m__guid"]][item["date"]].add(item["user_email"])
 
         cards = []
         for project, invoice in projects_map.values():
@@ -754,12 +754,12 @@ def project_charts(request, project_id):
     calendar_charts.append(("hours_calendar", "Incurred hours per day", "Hours", hours_calendar_data))
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
-    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice__project_m=project).filter(calculated_is_billable=True).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     monthly_avg_billing = [["Date", "Bill rate avg"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"] / entry["hours"]] for entry in entries]
     linecharts.append(("billing_rate_avg", "Billing rate avg", json.dumps(monthly_avg_billing)))
     money_per_month_data = [["Date", "Gross income"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["money"]] for entry in entries]
     linecharts.append(("incurred_money", "Gross income per month", json.dumps(money_per_month_data)))
-    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice__project_m=project).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
