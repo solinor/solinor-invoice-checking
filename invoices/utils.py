@@ -235,10 +235,10 @@ class HourEntryUpdate(object):
         invoice_key = "{:%Y-%m} {}".format(date, project_id)
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
-            logger.debug("Invoice already exists: %s", invoice_key)
+            logger.debug("Invoice already exists: %s - project_id=%s, client=%s, project=%s", date, project_id, client, project)
             return invoice
         else:
-            logger.info("Creating a new invoice: %s", invoice_key)
+            logger.info("Creating a new invoice: %s - project_id=%s, client=%s, project=%s", date, project_id, client, project)
             invoice, _ = Invoice.objects.update_or_create(date=date, project_m=project_m, defaults={"client": client, "project": project})  # TODO: invoice.client and invoice.project are deprecated
             self.invoices_data[invoice_key] = invoice
             return invoice
