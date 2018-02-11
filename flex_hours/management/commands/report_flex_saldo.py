@@ -28,13 +28,19 @@ class Command(BaseCommand):
             end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
         users = []
-        for user in TenkfUser.objects.all():
+        for user in TenkfUser.objects.filter(archived=False):
             try:
                 flex_info = calculate_flex_saldo(user, end_date, ignore_events=options.get("ignore_events", False))
             except FlexHourException as error:
-                self.stdout.write(self.style.WARNING(f"Unable to calculate the report for {user}: {error}"))
+                self.stdout.write(self.style.NOTICE(f"Unable to calculate the report for {user}: {error}"))
                 continue
             users.append((flex_info["person"].email, flex_info["cumulative_saldo"]))
         users = sorted(users, key=lambda k: k[1])
         for email, flex_hours in users:
-            self.stdout.write(f"{email} - {flex_hours}h")
+            style_func = self.style.SUCCESS
+            if flex_hours:
+                if flex_hours > 120:
+                    style_func = self.style.WARNING
+                elif flex_hours < -40:
+                    style_func = self.style.ERROR
+            self.stdout.write(style_func(f"{email} - {flex_hours}h"))

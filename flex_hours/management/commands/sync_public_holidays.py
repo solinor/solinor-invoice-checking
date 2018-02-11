@@ -8,3 +8,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         sync_public_holidays()
+        self.stdout.write(self.style.SUCCESS(f"Successfully synced public holidays from 10000ft."))

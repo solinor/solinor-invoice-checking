@@ -23,5 +23,6 @@ class Command(BaseCommand):
         if options.get("force") or now.isoweekday() == 3 and now.day <= 7:
             redis_client = redis.from_url(settings.REDIS)
             redis_client.publish("request-refresh", json.dumps({"type": "slack-flex-saldo-notification"}))
+            self.stdout.write(self.style.SUCCESS(f"Successfully queued flex saldo notifications."))
         else:
             self.stdout.write("No force option specified, and it is not the first Wednesday of the month - notifications not queued.")

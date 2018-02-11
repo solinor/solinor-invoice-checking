@@ -64,3 +64,4 @@ class Command(BaseCommand):
                 self.stdout.write(f"Sent report to {user}")
 
         Event(event_type="check_contracts", succeeded=True, message=f"Found {len(errors)} issues").save()
+        self.stdout.write(self.style.SUCCESS(f"Successfully checked contract information. Found {len(errors)} issues."))
