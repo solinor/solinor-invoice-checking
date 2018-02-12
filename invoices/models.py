@@ -75,7 +75,7 @@ class HourEntry(models.Model):
     invoice = models.ForeignKey("Invoice", on_delete=models.CASCADE)
 
     def update_calculated_fields(self):
-        self.calculated_is_billable = is_phase_billable(self.phase_name, self.project_m.name)
+        self.calculated_is_billable = is_phase_billable(self.phase_name, self.invoice.project_m.name)
         self.calculated_has_notes = self.notes is not None and len(self.notes) > 0
         self.calculated_has_phase = self.phase_name != "[Non Phase Specific]"
         self.calculated_is_approved = self.approved
