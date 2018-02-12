@@ -236,6 +236,8 @@ class TenkfUser(models.Model):
     archived_at = models.DateTimeField(null=True, blank=True)
     thumbnail = models.CharField(max_length=1000, null=True, blank=True)
     slack_id = models.CharField(max_length=50, null=True, blank=True)
+    role = models.CharField(max_length=1000, null=True, blank=True)
+    discipline = models.CharField(max_length=1000, null=True, blank=True)
     amazon_account = models.ManyToManyField("AmazonLinkedAccount", blank=True)
 
     @property

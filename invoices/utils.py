@@ -61,7 +61,7 @@ def parse_float(data):
         return 0
 
 
-def sync_10000ft_users():
+def sync_10000ft_users(force=False):
     logger.info("Updating users")
     tenkfeet_users = tenkfeet_api.fetch_users()
     updated_hour_entries = updated_users = created_users = 0
@@ -73,10 +73,10 @@ def sync_10000ft_users():
         updated_at = user["updated_at"]
 
         if user["guid"] in all_users:
-            if all_users[user["guid"]] == updated_at:
+            if all_users[user["guid"]] == updated_at and not force:
                 logger.info("Skip updating %s (%s) - update timestamp matches", user["email"], user["guid"])
                 continue
-        logger.info("%s - %s - %s", user["guid"], all_users.get(user["guid"]), user["updated_at"])
+        logger.info("Updating user %s - %s - %s", user["guid"], all_users.get(user["guid"]), user["updated_at"])
 
         user_fields = {
             "user_id": user["id"],
@@ -95,6 +95,8 @@ def sync_10000ft_users():
             "archived_at": user["archived_at"],
             "updated_at": user["updated_at"],
             "thumbnail": user["thumbnail"],
+            "role": user["role"],
+            "discipline": user["discipline"],
         }
         # TODO: always ensure non-archived user is added to the DB
         try:
