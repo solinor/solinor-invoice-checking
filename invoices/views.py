@@ -479,7 +479,7 @@ def your_unsubmitted_hours(request):
 
 
 @login_required
-def your_stats(request):
+def frontpage_stats(request):
     base_query = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=request.user.email).exclude(incurred_hours=0)
     try:
         your_last_hour_marking = base_query.values_list("date", flat=True).latest("date")
@@ -487,11 +487,12 @@ def your_stats(request):
         your_last_hour_marking = "No entries"
 
     today = datetime.date.today()
+    month_ago = today - datetime.timedelta(days=30)
     your_hours_this_week = base_query.filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
 
     your_unsubmitted_entries = HourEntry.objects.filter(user_email=request.user.email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
 
-    billing_rate_data = base_query.filter(date__gte=today - datetime.timedelta(days=30), date__lte=today).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+    billing_rate_data = base_query.filter(date__gte=month_ago, date__lte=today).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
     your_billing_ratio = "?"
     if billing_rate_data:
         total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
@@ -511,6 +512,19 @@ def your_stats(request):
 
         your_daily_billing_ratio.append(ratio)
     your_daily_billing_ratio = [(your_daily_billing_ratio[i] + your_daily_billing_ratio[i + 1] + your_daily_billing_ratio[i + 2] + your_daily_billing_ratio[i + 3] + your_daily_billing_ratio[i + 4]) / 5 for i in range(0, len(your_daily_billing_ratio) - 5, 5)]
+
+    company_billing_money = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+    company_billing_unsubmitted_money = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+    company_unsubmitted_entries = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).count()
+
+    company_billable_hours = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=True).aggregate(item=Sum("incurred_hours"))["item"] or 0
+    company_nonbillable_hours = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=False).aggregate(item=Sum("incurred_hours"))["item"] or 0
+
+    company_billing_ratio = "?"
+    if company_billable_hours or company_nonbillable_hours:
+        total_hours = company_nonbillable_hours + company_billable_hours
+        company_billing_ratio = company_nonbillable_hours / total_hours * 100
+
     return JsonResponse({
         "your_last_hour_marking": your_last_hour_marking,
         "your_last_hour_marking_day": your_last_hour_marking.strftime("%A"),
@@ -518,6 +532,10 @@ def your_stats(request):
         "your_billing_ratio": your_billing_ratio,
         "your_unsubmitted_entries": your_unsubmitted_entries,
         "your_daily_billing_ratio": your_daily_billing_ratio[-90:],
+        "company_billing_money": company_billing_money,
+        "company_billing_ratio": company_billing_ratio,
+        "company_billing_unsubmitted_money": company_billing_unsubmitted_money,
+        "company_unsubmitted_entries": company_unsubmitted_entries,
     })
 
 
@@ -656,7 +674,7 @@ def frontpage(request):
     today = datetime.date.today()
     last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__admin_users__email=request.user.email).filter(date=last_month).exclude(project_m__client_m__name__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m")
-    sorting = request.GET.get("sorting", "alphabetically")
+    sorting = request.GET.get("sorting", "billing")
 
     cache_key = f"frontpage-cards-sorting-{sorting}"
     cached_data = REDIS.get(cache_key)
