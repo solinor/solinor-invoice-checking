@@ -16,9 +16,24 @@ $("#person-hours a").click(function (e) {
 
 <h2>{{ person.display_name }} - {{ year }}-{{ month }}</h2>
 
+<div class="row">
+  <div class="col-md-2">
+  {% if person.thumbnail %}
+  <img class="img-thumbnail" src="{{ person.thumbnail }}">
+  {% endif %}
+  </div>
+  <div class="col-md-10">
+  <a href="mailto:{{ person.email }}">{{ person.email }}</a><br>
+  {% if person.role %}
+  <i>Role:</i> {{ person.role }}<br>
+  {% endif %}
+  {% if person.discipline %}
+  <i>Discipline:</i> {{ person.discipline}}
+  {% endif %}
+  x§</div>
+</div>
 
-
-<div class="row top-buttons-row">
+<div class="row top-buttons-row" style="margin-top: 2em">
   <div class="col-md-12">
   <div class="dropdown top-bar-dropdown">
     <button class="btn btn-light dropdown-toggle" type="button" id="selectPersonMonth" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
