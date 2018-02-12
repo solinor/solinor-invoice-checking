@@ -252,7 +252,7 @@ def users_list(request):
     people_data = {}
     for person in TenkfUser.objects.filter(archived=False):
         people_data[person.email] = {"billable": {"incurred_hours": 0, "incurred_money": 0}, "non-billable": {"incurred_hours": 0, "incurred_money": 0}, "person": person, "issues": 0}
-    for entry in HourEntry.objects.filter(user_m__archived=False).exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(project_m__name="[Leave Type]"):
+    for entry in HourEntry.objects.filter(user_m__archived=False).exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).exclude(invoice__project_m__name="[Leave Type]"):
         if entry.user_email not in people_data:
             continue  # TODO: logging
         if entry.calculated_is_billable:
