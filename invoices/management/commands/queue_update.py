@@ -39,12 +39,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        if "start_date" in options:
+        if options.get("start_date"):
             start_date = datetime.datetime.strptime(options.get("start_date"), self.DATE_FORMAT).date()
         else:
             start_date = (datetime.date.today() - datetime.timedelta(days=60))
 
-        if "end_date" in options:
+        if options.get("end_date"):
             end_date = datetime.datetime.strptime(options.get("end_date"), self.DATE_FORMAT).date()
         else:
             end_date = (datetime.date.today() + datetime.timedelta(days=2))
