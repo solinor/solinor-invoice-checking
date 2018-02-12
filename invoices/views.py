@@ -495,7 +495,7 @@ def frontpage_stats(request):
     billing_rate_data = base_query.filter(date__gte=month_ago, date__lte=today).values("user_email").order_by("user_email").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
     your_billing_ratio = "?"
     if billing_rate_data:
-        total_hours = billing_rate_data[0]["nonbillable_hours"] + billing_rate_data[0]["billable_hours"]
+        total_hours = (billing_rate_data[0]["nonbillable_hours"] or 0) + (billing_rate_data[0]["billable_hours"] or 0)
         if total_hours > 0:
             your_billing_ratio = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
 
