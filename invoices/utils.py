@@ -351,10 +351,7 @@ class HourEntryUpdate(object):
                         delete_days.add(entry_date)
                         updated_days.add(entry_date)
 
-                item, created = HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})
-                if not created:
-                    item.sha256 = sha256
-                    item.save()
+                HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})
             else:
                 logger.info("Nothing was changed for %s - skip updating", date)
 
