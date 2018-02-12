@@ -74,7 +74,7 @@ class HourListTable(tables.Table):
         return "{}€/h".format(intcomma(floatformat(value, 2)))
 
 
-class FrontpageInvoices(tables.Table):
+class InvoicesTable(tables.Table):
     invoice_state = tables.Column(verbose_name="State")
     incorrect_entries_count = tables.Column(verbose_name="Issues")
     date = tables.Column(order_by=("date"), attrs={"td": {"class": "nowrap-column"}})

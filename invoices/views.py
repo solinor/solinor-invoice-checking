@@ -30,7 +30,7 @@ from invoices.invoice_utils import calculate_entry_stats, generate_amazon_invoic
 from invoices.models import (AmazonInvoiceRow, AmazonLinkedAccount, Client, Comments, DataUpdate, Event, HourEntry,
                              Invoice, InvoiceFixedEntry, Project, ProjectFixedEntry, SlackNotificationBundle, TenkfUser)
 from invoices.slack import refresh_slack_channels, refresh_slack_users
-from invoices.tables import ClientsTable, FrontpageInvoices, HourListTable, ProjectDetailsTable, ProjectsTable
+from invoices.tables import ClientsTable, HourListTable, InvoicesTable, ProjectDetailsTable, ProjectsTable
 from invoices.tenkfeet_api import TenkFeetApi
 from invoices.utils import sync_10000ft_projects, sync_10000ft_users
 
@@ -525,7 +525,7 @@ def your_stats(request):
 def invoices_list(request):
     all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(project_m__client_m__name__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m").prefetch_related("project_m__admin_users")
     filters = InvoiceFilter(request.GET, queryset=all_invoices)
-    table = FrontpageInvoices(filters.qs)
+    table = InvoicesTable(filters.qs)
     RequestConfig(request, paginate={
         "per_page": 100
     }).configure(table)
@@ -559,7 +559,7 @@ def client_details(request, client_id):
 
     all_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__client_m=client).select_related("project_m", "project_m__client_m").prefetch_related("project_m__admin_users")
     invoice_filters = InvoiceFilter(request.GET, queryset=all_invoices)
-    invoice_table = FrontpageInvoices(invoice_filters.qs)
+    invoice_table = InvoicesTable(invoice_filters.qs)
     RequestConfig(request, paginate={
         "per_page": 100
     }).configure(invoice_table)
