@@ -156,13 +156,15 @@ def sync_10000ft_projects():
                     first_name, last_name = tag_value.split(" ", 1)
                 except ValueError:
                     logger.info("Invalid tag: %s for %s", tag, project["id"])
+                    continue
                 matching_users = TenkfUser.objects.filter(first_name=first_name, last_name=last_name).filter(archived=False)
                 logger.debug("Matched %s to tag %s; first_name=%s, last_name=%s", matching_users, tag, first_name, last_name)
                 user_cache[tag_value] = matching_users
 
-            project_obj.admin_users.clear()
-            for matching_user in matching_users:
-                project_obj.admin_users.add(matching_user)
+            with transaction.atomic():
+                project_obj.admin_users.clear()
+                for matching_user in matching_users:
+                    project_obj.admin_users.add(matching_user)
         project_obj.save()
         projects.append(project_obj)
         if created:
