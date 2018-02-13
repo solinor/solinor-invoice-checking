@@ -10,7 +10,6 @@ class Command(BaseCommand):
     help = "Queue notifications flex saldos"
 
     def add_arguments(self, parser):
-        # Named (optional) arguments
         parser.add_argument(
             "--force",
             action="store_true",

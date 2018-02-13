@@ -17,7 +17,7 @@ from django.utils import timezone
 from flex_hours.utils import send_flex_saldo_notifications
 from invoices.models import DataUpdate, SlackNotificationBundle
 from invoices.slack import send_unapproved_hours_notifications, send_unsubmitted_hours_notifications
-from invoices.utils import HourEntryUpdate, refresh_invoice_stats
+from invoices.syncing.tenkfeet import HourEntryUpdate, refresh_invoice_stats
 
 
 def update_10kf_data(logger, data, redis_instance):

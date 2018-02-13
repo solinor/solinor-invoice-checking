@@ -14,7 +14,6 @@ class Command(BaseCommand):
     DATE_FORMAT = "%Y-%m-%d"
 
     def add_arguments(self, parser):
-        # Named (optional) arguments
         parser.add_argument(
             "--force",
             action="store_true",

@@ -18,11 +18,11 @@ This system does not use upstream APIs for each request. Instead, data is period
 Following data is synced:
 
 - Public holidays (from 10000ft) - `python manage.py sync_public_holidays`
-- Slack users - `python manage.py refresh_slack_users`
-- Slack channels - `python manage.py refresh_slack_channels`
+- Slack users - `python manage.py sync_data slack users`
+- Slack channels - `python manage.py sync_data slack channels`
 - AWS invoices - `python manage.py import_aws_billing_s3 <year> <month>` or `python manage.py import_aws_billing_s3_automatic` for current and previous months
-- 10000ft projects - `python manage.py sync_10000ft_projects`
-- 10000ft users - `python manage.py sync_10000ft_users`
+- 10000ft projects - `python manage.py sync_data 10000ft projects`
+- 10000ft users - `python manage.py sync_data 10000ft users`
 - Hour entries - a separate worker process: `python manage.py process_update_queue`. Some inconsistent results are to be expected if more than one update process is running.
 - If calculated invoice data is not up to date, see `python manage.py refresh_stats`. This only happens on database/code changes, during normal operations all relevant invoices are always refreshed.
 

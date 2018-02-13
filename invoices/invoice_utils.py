@@ -1,8 +1,8 @@
 import datetime
 from collections import defaultdict
 
-from invoices.aws_utils import AWS_URLS
 from invoices.models import AmazonInvoiceRow
+from invoices.syncing.aws import AWS_URLS
 
 
 def generate_amazon_invoice_data(entries):
@@ -31,7 +31,7 @@ def generate_amazon_invoice_data(entries):
 
 
 def calculate_stats_for_hours(entries):
-    # TODO: this is very ugly, along with renaming things multiple times.
+    # TODO: this is very implementation overall & many fields are renamed multiple times (internal variables, model fields, output fields).
     phases = {}
     billable_incorrect_price = []
     non_billable_hours = []
@@ -100,17 +100,17 @@ def calculate_stats_for_hours(entries):
 
 
 def calculate_stats_for_fixed_rows(fixed_invoice_rows):
-    total_rows = None
-    phases = None
+    total_rows = {}
+    phases = {}
     if fixed_invoice_rows:
-        total_rows = {"fixed": {"description": "Fixed rows", "incurred_money": 0}}
-        phases = {"Fixed": {"entries": {}, "billable": True}}
+        total_rows["fixed"] = {"description": "Fixed rows", "incurred_money": 0}
+        phases["Fixed"] = {"entries": {}, "billable": True}
         for item in fixed_invoice_rows:
             phases["Fixed"]["entries"][item.description] = {"price": item.price, "currency": "EUR"}
             total_rows["fixed"]["incurred_money"] += item.price
     return {
-        "phases": phases or {},
-        "total_rows": total_rows or {},
+        "phases": phases,
+        "total_rows": total_rows,
     }
 
 
@@ -123,31 +123,37 @@ def get_aws_entries(aws_accounts, month_start_date, month_end_date):
 
 
 def calculate_stats_for_aws_entries(aws_entries):
-    phases = {"entries": {}, "billable": True}
+    phases = {}
     total_rows = {}
     if aws_entries:
         for aws_account, aws_entries_list in aws_entries.items():
+            account_key = "Amazon Web Services"
+            if account_key not in phases:
+                phases[account_key] = {"entries": {}, "billable": True}
             for aws_entry in aws_entries_list:
                 total_key = f"aws_{aws_entry.currency}"
                 if total_key not in total_rows:
                     total_rows[total_key] = {"description": f"Amazon billing ({aws_entry.currency})", "incurred_money": 0, "currency": aws_entry.currency}
 
                 total_rows[total_key]["incurred_money"] += aws_entry.total_cost
-                phases["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}
+                phases[account_key]["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": aws_entry.total_cost, "currency": aws_entry.currency}
                 break
             else:
-                phases["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": 0, "currency": "USD"}
+                phases[account_key]["entries"][aws_account.name] = {"aws_id": aws_account.pk, "price": 0, "currency": "USD"}
     return {
-        "phases": {"Amazon Web Services": phases},
+        "phases": phases,
         "total_rows": total_rows,
     }
 
 
 def combine_invoice_parts(*combine_stats):
-    stats = defaultdict(dict)
+    stats = {}
     for stat in combine_stats:
         for key, value in stat.items():
-            stats[key].update(value)
+            if key not in stats:
+                stats[key] = value
+            else:
+                stats[key].update(value)
     return stats
 
 

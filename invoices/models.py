@@ -6,7 +6,7 @@ import uuid
 import reversion
 from django.db import models
 
-import invoices.date_utils as date_utils
+from invoices.utils import month_end_date, month_start_date
 
 
 def is_phase_billable(phase_name, project):
@@ -92,7 +92,7 @@ class HourEntry(models.Model):
         return False
 
     def __str__(self):
-        return f"{self.date} - {self.user_name} - {self.project_m.client_m.name} - {self.project_m.name} - {self.incurred_hours}h - {self.incurred_money}e"
+        return f"{self.date} - {self.user_name} - {self.invoice.project_m.client_m.name} - {self.invoice.project_m.name} - {self.incurred_hours}h - {self.incurred_money}e"
 
     class Meta:
         ordering = ("date", "user_id")
@@ -109,7 +109,15 @@ class Invoice(models.Model):
         ("S", "Sent"),
     )
 
-    ISSUE_FIELDS = ("billable_incorrect_price_count", "non_billable_hours_count", "non_phase_specific_count", "not_approved_hours_count", "empty_descriptions_count")
+    STATS_FIELDS = (
+        "incorrect_entries_count",
+        "billable_incorrect_price_count",
+        "non_billable_hours_count",
+        "non_phase_specific_count",
+        "not_approved_hours_count",
+        "empty_descriptions_count",
+    )
+
     invoice_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     date = models.DateField()
 
@@ -133,11 +141,11 @@ class Invoice(models.Model):
 
     @property
     def month_start_date(self):
-        return date_utils.month_start_date(self.date.year, self.date.month)
+        return month_start_date(self.date.year, self.date.month)
 
     @property
     def month_end_date(self):
-        return date_utils.month_end_date(self.date.year, self.date.month)
+        return month_end_date(self.date.year, self.date.month)
 
     @property
     def formatted_date(self):
@@ -193,7 +201,7 @@ class Invoice(models.Model):
             fixed_invoice_rows.extend(list(ProjectFixedEntry.objects.filter(project=self.project_m)))
         return fixed_invoice_rows
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):  # pylint:disable=arguments-differ
         self.date = self.date.replace(day=1)  # All invoices are dated for first day of the month, to ensure uniqueness.
         super(Invoice, self).save(*args, **kwargs)
 

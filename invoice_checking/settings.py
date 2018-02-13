@@ -65,6 +65,7 @@ FLEX_MAX_PLUS = 120
 # Application definition
 
 INSTALLED_APPS = (
+    "raven.contrib.django.raven_compat",
     "django_extensions",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -110,7 +111,7 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_MEDIA_SRC = ("'none'",)
 CSP_FRAME_SRC = ("'none'",)
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_CONNECT_SRC = ("'self'")
+CSP_CONNECT_SRC = ("'self'", "https://accounts.google.com")  # Google for prefetching login (some browsers do this on redirect, for some reason.)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://fonts.googleapis.com")  # unsafe-inline is required by google charts
 CSP_IMG_SRC = ("'self'", "'unsafe-inline'", "https://stats.g.doubleclick.net", "https://www.google-analytics.com", "https://solinor.fi", "https://10kftprojectimages.s3.amazonaws.com", "https://d1zljzhvpuyaiz.cloudfront.net")
 CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI")
@@ -119,9 +120,9 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 MIDDLEWARE = (
+    "invoice_checking.middleware.DomainRedirectMiddleware",  # Redirect to a proper domain before https etc. redirects - this will redirect to https in any case.
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "invoice_checking.middleware.DomainRedirectMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

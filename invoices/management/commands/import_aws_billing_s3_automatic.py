@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from invoices.aws_utils import import_aws_invoice
+from invoices.syncing.aws import import_aws_invoice
 
 
 class Command(BaseCommand):

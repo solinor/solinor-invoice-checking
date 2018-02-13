@@ -225,6 +225,11 @@ def slack_query_flex_saldo(request):
             "response_type": "ephemeral",
             "text": "Sorry, unable to fetch your flex saldo - user ID not found."
         })
+    if person.archived:
+        return JsonResponse({
+            "response_type": "ephemeral",
+            "text": "You have been archived from 10000ft."
+        })
 
     try:
         message, attachment = get_slack_flex_response(person)

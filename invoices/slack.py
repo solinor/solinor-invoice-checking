@@ -1,6 +1,8 @@
 import datetime
+import json
 import logging
 
+import redis
 import slacker
 from django.conf import settings
 from django.db.models import Count, Sum
@@ -10,6 +12,13 @@ from invoices.models import Event, Project, SlackChannel, SlackChat, SlackChatMe
 
 slack = slacker.Slacker(settings.SLACK_BOT_ACCESS_TOKEN)  # pylint:disable=invalid-name
 logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
+redis_client = redis.from_url(settings.REDIS)  # pylint:disable=invalid-name
+
+
+def queue_slack_notification(notification_type):
+    if notification_type not in ("unapproved", "unsubmitted"):
+        raise ValueError("Invalid notification type")
+    redis_client.publish("request-refresh", json.dumps({"type": f"slack-{notification_type}-notification"}))
 
 
 def create_slack_mpim(members_list):
@@ -20,7 +29,7 @@ def create_slack_mpim(members_list):
     if slack_chat.count() == 0:
         if len(members_list) < 2:
             logger.info("Unable to create a new chat for %s - not enough members", members_list)
-            return
+            return None
         logger.info("Trying to create a new Slack group chat with %s.", members_list)
         slack_chat_details = slack.mpim.open(",".join(members_list))
         chat_id = slack_chat_details.body["group"]["id"]
@@ -98,9 +107,9 @@ def send_unapproved_hours_notifications(first_day, last_day):
 
         attachment = {
             "author_name": "Solinor Finance",
-            "author_link": "https://" + settings.DOMAIN,
+            "author_link": f"https://{settings.DOMAIN}",
             "fallback": fallback_message,
-            "title": "Unapproved project hours: {} - {}".format(project.client_m.name, project.name),
+            "title": f"Unapproved project hours: {project.client_m.name} - {project.name}",
             "title_link": "https://app.10000ft.com",
             "text": message,
             "fields": [
@@ -112,7 +121,7 @@ def send_unapproved_hours_notifications(first_day, last_day):
                 {
                     "type": "button",
                     "text": "See project in 10000ft",
-                    "url": "https://app.10000ft.com/viewproject?id={}".format(project.project_id)
+                    "url": f"https://app.10000ft.com/viewproject?id={project.project_id}"
                 },
                 {
                     "type": "button",
@@ -148,28 +157,6 @@ def send_unapproved_hours_notifications(first_day, last_day):
 
     SlackNotificationBundle(notification_type="unapproved").save()
     Event(event_type="send_unapproved_hours_notifications", succeeded=True, message=f"Sent {notification_count} notifications").save()
-
-
-def refresh_slack_users():
-    slack_users = slack.users.list().body["members"]
-    for member in slack_users:
-        email = member.get("profile", {}).get("email")
-        if not email:
-            continue
-        TenkfUser.objects.filter(email__iexact=email).update(slack_id=member.get("id"))
-    Event(event_type="sync_slack_users", succeeded=True, message=f"Got {len(slack_users)} users from Slack").save()
-
-
-def refresh_slack_channels():
-    slack_channels = slack.channels.list().body["channels"]
-    for channel in slack_channels:
-        channel_id = channel.get("id")
-        channel_name = channel.get("name")
-        SlackChannel.objects.update_or_create(channel_id=channel_id, defaults={
-            "name": channel_name,
-            "archived": channel.get("is_archived", False),
-        })
-    Event(event_type="sync_slack_channels", succeeded=True, message="Got {} channels from Slack".format(len(slack_channels))).save()
 
 
 def send_new_project_to_slack(project):

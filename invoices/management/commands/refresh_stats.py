@@ -2,7 +2,7 @@ import datetime
 
 from django.core.management.base import BaseCommand
 
-from invoices.utils import refresh_invoice_stats
+from invoices.syncing.tenkfeet import refresh_invoice_stats
 
 
 class Command(BaseCommand):

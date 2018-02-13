@@ -8,3 +8,4 @@ dev3/
 backups/
 __pycache__
 .DS_Store
+.mypy_cache
