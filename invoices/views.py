@@ -290,6 +290,7 @@ def hours_sickleaves(request):
         def num_days(self):
             if len(self.items) == 2:
                 return (self.items[1] - self.items[0]).days + 1
+            return None
 
     start_date = datetime.date.today() - datetime.timedelta(days=365)
     short_period_start_date = datetime.date.today() - datetime.timedelta(days=120)
@@ -410,9 +411,9 @@ def queue_update(request):
 
 
 @login_required
-def get_invoice_xls(request, invoice_id, xls_type):
+def get_invoice_xls(request, invoice_id, xls_type):  # pylint:disable=unused-argument
     if xls_type == "hours":
-        xls, title = generate_hours_xls_for_invoice(request, invoice_id)
+        xls, title = generate_hours_xls_for_invoice(invoice_id)
     else:
         return HttpResponseBadRequest("Invalid XLS type")
 
@@ -697,7 +698,7 @@ def frontpage(request):
             hours = []
             money = []
             people = []
-            hours_workdays_sum = money_workdays_sum = people_workdays_sum = workdays_count = 0
+            people_workdays_sum = workdays_count = 0
             for date in daterange(last_month, today):
                 if date in billing[project.guid]:
                     hours.append(billing[project.guid][date][0] or 0)
@@ -1070,5 +1071,5 @@ def admin_sync(request):
             refresh_slack_channels()
         if action == "sync_slack_users":
             refresh_slack_users()
-    events = Event.objects.all()
+    events = Event.objects.all()[:100]
     return render(request, "admin_sync.html", {"events": events})

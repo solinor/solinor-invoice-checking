@@ -12,5 +12,5 @@ def month_end_date(year, month):
 
 
 def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days) + 1):
-        yield start_date + datetime.timedelta(n)
+    for day_count in range(int((end_date - start_date).days) + 1):
+        yield start_date + datetime.timedelta(day_count)

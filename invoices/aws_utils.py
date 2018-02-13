@@ -38,7 +38,8 @@ AWS_URLS = {
 
 def parse_aws_invoice(file_obj):
     reader = csv.reader(file_obj)
-    header = next(reader)
+    # This raises StopIteration if csv file is empty. Import will just fail with exception.
+    header = next(reader)  # pylint:disable=stop-iteration-return
     for line in reader:
         yield dict(zip(header, line))
 
@@ -53,10 +54,10 @@ def parse_date_record(timestamp):
 def import_aws_invoice(file_obj, year, month):
     invoice_month = datetime.date(year, month, 1)
     linked_accounts = {}
-    c = 0
+    record_count = 0
     updated_entries = []
     for record in parse_aws_invoice(file_obj):
-        c += 1
+        record_count += 1
         linked_account_id = record["LinkedAccountId"]
         if record["UsageQuantity"]:
             usage_quantity = float(record["UsageQuantity"])
@@ -95,4 +96,4 @@ def import_aws_invoice(file_obj, year, month):
         updated_entries.append(record_id)
         AmazonInvoiceRow.objects.update_or_create(record_id=record_id, defaults=record_data)
     AmazonInvoiceRow.objects.filter(invoice_month=invoice_month).exclude(record_id__in=updated_entries).delete()
-    Event(event_type="sync_aws_invoice", succeeded=True, message=f"Synced {invoice_month}. {c} entries.").save()
+    Event(event_type="sync_aws_invoice", succeeded=True, message=f"Synced {invoice_month}. {record_count} entries.").save()

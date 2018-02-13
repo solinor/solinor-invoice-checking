@@ -190,6 +190,7 @@ class TenkFeetApi(object):
         return requests.get(url).json()
 
     def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
+        # This defaults to validate_schema=False, as validation does not add much value, and takes quite a while (~15sec for 5000 entries)
         self.logger.info("Fetching hour entries reporting API: %s - %s", start_date, end_date)
         now = timezone.now()
         url = f"https://api.10000ft.com/api/v1/reports.json?startdate={start_date:%Y-%m-%d}&enddate={end_date:%Y-%m-%d}&today={now:%Y-%m-%d}&auth={self.apikey}"

@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from invoices.models import HourEntry, Invoice
 
 
-def generate_hours_xls_for_invoice(request, invoice_id):
+def generate_hours_xls_for_invoice(invoice_id):
     invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
     title = f"{invoice.project_m.client_m.name} - {invoice.project_m.name} - {invoice.date:%Y-%m}"
 

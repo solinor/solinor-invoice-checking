@@ -395,7 +395,7 @@ class AmazonInvoiceRow(models.Model):
         return f"{self.linked_account.name} - {self.product_code} - {self.usage_type} - {self.total_cost}"
 
 
-class DataUpdate(models.Model):
+class DataUpdate(models.Model):  # TODO: remove this - no longer required
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
@@ -408,7 +408,7 @@ class DataUpdate(models.Model):
         return f"{self.created_at} - {self.started_at} - {self.finished_at} - aborted: {self.aborted}"
 
 
-class SlackNotificationBundle(models.Model):
+class SlackNotificationBundle(models.Model):  # TODO: migrate to Event
     notification_type = models.CharField(max_length=50)
     sent_at = models.DateTimeField(auto_now_add=True)
 
@@ -431,7 +431,7 @@ class SlackChat(models.Model):
 
 
 @reversion.register()
-class SlackChatMember(models.Model):
+class SlackChatMember(models.Model):  # TODO: link to TenkfUser model
     slack_chat = models.ForeignKey("SlackChat", on_delete=models.CASCADE)
     member_id = models.CharField(max_length=50)
 

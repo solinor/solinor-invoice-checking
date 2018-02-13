@@ -8,13 +8,11 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q, Sum
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from django.utils.dateparse import parse_date as parse_date_django
 from django.utils.dateparse import parse_datetime as parse_datetime_django
 
-from flex_hours.models import PublicHoliday
 from invoices.date_utils import daterange
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
 from invoices.models import Client, Event, HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
@@ -34,34 +32,26 @@ STATS_FIELDS = [
 ]
 
 
-def get_weekend_hours_per_user(start_date, end_date, incurred_hours_threshold):
-    holidays_list = PublicHoliday.objects.filter(date__gte=start_date).filter(date__lte=end_date)
-    holidays = {item.date: item.name for item in holidays_list}
-    hour_markings = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=start_date).filter(date__lte=end_date).filter(Q(date__week_day=1) | Q(date__week_day=7)).order_by("user_m", "date").values("user_m", "date").annotate(sum_hours=Sum("incurred_hours")).filter(sum_hours__gte=incurred_hours_threshold)
-
-
-def get_overly_long_days_per_user(start_date, end_date, incurred_hours_threshold):
-    hour_markings = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=start_date).filter(date__lte=end_date).order_by("user_m", "date").values("user_m", "date").annotate(sum_hours=Sum("incurred_hours")).filter(sum_hours__gte=incurred_hours_threshold)
-
-
 def parse_date(timestamp):
     if timestamp:
         return parse_date_django(timestamp)
+    return None
 
 
 def parse_datetime(timestamp):
     if timestamp:
         return parse_datetime_django(timestamp)
+    return None
 
 
-def parse_float(data):
+def parse_float(data) -> float:
     try:
         return float(data)
     except TypeError:
-        return 0
+        return 0.0
 
 
-def sync_10000ft_users(force=False):
+def sync_10000ft_users(force: bool = False) -> None:
     logger.info("Updating users")
     tenkfeet_users = tenkfeet_api.fetch_users()
     updated_hour_entries = updated_users = created_users = 0
@@ -143,8 +133,7 @@ def sync_10000ft_projects():
             "ends_at": project["ends_at"],
             "thumbnail_url": project["thumbnail"],
         }
-        project_obj, created = Project.objects.update_or_create(guid=project["guid"],
-                                                                defaults=project_fields)
+        project_obj, created = Project.objects.update_or_create(guid=project["guid"], defaults=project_fields)
         user_cache = {}
 
         for tag in project["tags"]["data"]:
@@ -180,7 +169,7 @@ def get_projects():
 
 
 def get_invoices():
-    return {f"{invoice.date:%Y-%m} {invoice.project_m.project_id}": invoice for invoice in Invoice.objects.all()}
+    return {f"{invoice.date:%Y-%m} {invoice.project_m.project_id}": invoice for invoice in Invoice.objects.all()}  # TODO: cache key is hardcoded
 
 
 def get_users():
@@ -203,7 +192,7 @@ class HourEntryUpdate(object):
         self.invoices_data = get_invoices()
         self.projects_data = get_projects()
         self.clients_data = get_clients()
-        self.leave_project = Project.objects.get(name="[Leave Type]")
+        self.leave_project = Project.objects.get(name="[Leave Type]")  # TODO: this should not be hardcoded
         self.user_data = get_users()
         self.start_date = start_date
         self.end_date = end_date
@@ -223,7 +212,7 @@ class HourEntryUpdate(object):
 
     def match_project(self, project_id, client, project):
         if not project_id:
-            if project == "[Leave Type]":
+            if project == "[Leave Type]":  # TODO: this should not be hardcoded
                 return self.leave_project
             # 10000ft returns some entries without project IDs
             try:
@@ -238,16 +227,15 @@ class HourEntryUpdate(object):
         if not project_m:
             return None
 
-        invoice_key = "{:%Y-%m} {}".format(date, project_id)
+        invoice_key = f"{date:%Y-%m} {project_id}"  # TODO: cache key is hardcoded
         invoice = self.invoices_data.get(invoice_key)
         if invoice:
-            logger.debug("Invoice already exists: %s - project_id=%s, client=%s, project=%s", date, project_id, client, project)
+            logger.debug("Invoice already exists: %s - project_m=%s", date, project_m)
             return invoice
-        else:
-            logger.info("Creating a new invoice: %s - project_id=%s, client=%s, project=%s", date, project_id, client, project)
-            invoice, _ = Invoice.objects.update_or_create(date=date, project_m=project_m)
-            self.invoices_data[invoice_key] = invoice
-            return invoice
+        logger.info("Creating a new invoice: %s - project_m=%s", date, project_m)
+        invoice, _ = Invoice.objects.update_or_create(date=date, project_m=project_m)
+        self.invoices_data[invoice_key] = invoice
+        return invoice
 
     def match_user(self, email):
         return self.user_data.get(email)
@@ -353,16 +341,16 @@ class HourEntryUpdate(object):
                         delete_days.add(entry_date)
                         updated_days.add(entry_date)
 
-                HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})
+                HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})  # TODO: create these only if update succeeds, not after processing each day.
             else:
                 logger.info("Nothing was changed for %s - skip updating", date)
 
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
-        # Note: this does not call .save() for entries.
-        with transaction.atomic():
+        with transaction.atomic():  # It is very important to run these operations inside a transaction to avoid non-consistent views.
             logger.info("Deleting old 10k entries.")
             deleted_entries, _ = HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, date__in=list(delete_days), last_updated_at__lt=now).delete()
             logger.info("All old 10k entries deleted: %s.", deleted_entries)
+            # Note: this does not call .save() for entries.
             HourEntry.objects.bulk_create(entries)
             logger.info("All 10k entries added: %s.", len(entries))
         Event(event_type="sync_10000ft_report_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
@@ -376,9 +364,9 @@ def refresh_invoice_stats(start_date, end_date):
     else:
         logger.info("Updating statistics for all invoices")
         invoices = Invoice.objects.all()
-    c = 0
+    invoice_count = 0
     for invoice in invoices:
-        c += 1
+        invoice_count += 1
         entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0)
         aws_entries = None
         if invoice.project_m:
@@ -401,4 +389,4 @@ def refresh_invoice_stats(start_date, end_date):
             invoice.bill_rate_avg = 0
         invoice.save()
         logger.debug("Updated statistics for %s", invoice)
-    Event(event_type="refresh_invoice_statistics", succeeded=True, message=f"Refreshed {c} invoices between {start_date:%Y-%m-%d} and {end_date:%Y-%m-%d}.").save()
+    Event(event_type="refresh_invoice_statistics", succeeded=True, message=f"Refreshed {invoice_count} invoices between {start_date:%Y-%m-%d} and {end_date:%Y-%m-%d}.").save()

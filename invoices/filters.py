@@ -31,18 +31,21 @@ class HourListFilter(django_filters.FilterSet):
 
 
 class InvoiceFilter(django_filters.FilterSet):
+    project_m__client_m__name = django_filters.filters.CharFilter(name="project_m__client_m__name", label="Client name", lookup_expr="icontains")
+    project_m__name = django_filters.filters.CharFilter(name="project_m__name", label="Project name", lookup_expr="icontains")
+
     class Meta:
         model = Invoice
         fields = {
             "date": ["exact"],
             "invoice_state": ["exact"],
-            # TODO: add better date filter, client and project filters
         }
 
 
 class ProjectsFilter(django_filters.FilterSet):
+    client_m__name = django_filters.filters.CharFilter(name="client_m__name", label="Client name", lookup_expr="icontains")
+    name = django_filters.filters.CharFilter(name="name", label="Project name", lookup_expr="icontains")
+
     class Meta:
         model = Project
-        fields = {
-            # TODO: add client and project name filters
-        }
+        fields = ["client_m__name", "name"]
