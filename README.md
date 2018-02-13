@@ -28,6 +28,21 @@ Following data is synced:
 
 **Forcing resync:** To improve performance, hour entry checksums are stored in a separate table, `invoices.HourEntryChecksum`. If you need to force updating the data, delete contents of this table. For resyncing, use `python manage.py queue_update --automatic-split --force --start-date YYYY-MM-DD --end-date YYYY-MM-DD`.
 
+## Data cleanup
+
+Following data accumulates and should be cleaned up periodically:
+
+- `invoices.Event` - `python manage.py cleanup --type event`
+- `invoices.DataUpdate` - `python manage.py cleanup --type dataupdate`
+- Django sessions - `python manage.py clearsessions`
+
+
+## Data versioning
+
+This project uses django-reversion for versioning some of the models - see `@reversion.register()` decorators.
+
+Be careful when adding reversions - some models, such as `invoices.HourEntry` see a lot of churn. When updating hour entries, all old entries are deleted, and same entries are recreated (to sync possible changes).
+
 ### Code checks
 
 Install `pycodestyle`, `pylint` and `isort`. Exact versions can be checked from `.travis.yml`
