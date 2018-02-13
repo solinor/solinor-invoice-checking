@@ -37,13 +37,14 @@ def create_slack_mpim(members_list):
 
 def send_unsubmitted_hours_notifications(first_day, last_day):
     today = datetime.date.today()
-    c = 0
+    notification_count = 0
     for user in TenkfUser.objects.filter(hourentry__status="Unsubmitted", hourentry__date__lte=last_day, hourentry__date__gte=first_day).annotate(entries_count=Count("hourentry__user_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")):
         fallback_message = """<https://{}{}|You> have *unsubmitted hours*: {} hour markings with total of {} hours. Go to <https://app.10000ft.com|10000ft> to submit these hours.""".format(settings.DOMAIN, reverse("person_month", args=(str(user.guid), today.year, today.month)), user.entries_count, user.sum_of_hours)
         message = "You need to submit or remove following hours:"
         unsubmitted_hours = user.hourentry_set.filter(status="Unsubmitted").filter(date__lte=last_day, date__gte=first_day).exclude(invoice__project_m__archived=True).select_related("invoice", "invoice__project_m").order_by("date")  # TODO: select_related
         for unsubmitted_hour in unsubmitted_hours:
-            project_name_field = "<https://{}{}|{}>".format(settings.DOMAIN, reverse("project", args=(unsubmitted_hour.invoice.project_m.guid,)), project_name_field)
+            url = "https://{}{}".format(settings.DOMAIN, reverse("project", args=(unsubmitted_hour.invoice.project_m.guid,)))
+            project_name_field = f"<{url}|{unsubmitted_hour.invoice.project_m.client_m.name} - {unsubmitted_hour.invoice.project_m.name}>"
             message += "\n- {} - {} - {} - {} - {}h - {}".format(unsubmitted_hour.date, project_name_field, unsubmitted_hour.category, unsubmitted_hour.phase_name, unsubmitted_hour.incurred_hours, unsubmitted_hour.notes)
 
         attachment = {
@@ -80,18 +81,18 @@ def send_unsubmitted_hours_notifications(first_day, last_day):
             continue
 
         slack.chat.post_message(user.slack_id, attachments=[attachment], as_user="finance-bot")
-        c += 1
+        notification_count += 1
 
         for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
             if admin != user.slack_id:
                 slack.chat.post_message(admin, text=f"This was sent to {user.email} in slack:", attachments=[attachment], as_user="finance-bot")
     SlackNotificationBundle(notification_type="unsubmitted").save()
-    Event(event_type="send_unsubmitted_hours_notifications", succeeded=True, message=f"Sent {c} notifications").save()
+    Event(event_type="send_unsubmitted_hours_notifications", succeeded=True, message=f"Sent {notification_count} notifications").save()
 
 
 def send_unapproved_hours_notifications(first_day, last_day):
-    c = 0
-    for project in Project.objects.filter(hourentry__approved=False, hourentry__date__lte=last_day, hourentry__date__gte=first_day).annotate(entries_count=Count("hourentry__project_m")).annotate(sum_of_hours=Sum("hourentry__incurred_hours")).annotate(sum_of_money=Sum("hourentry__incurred_money")).prefetch_related("admin_users").select_related("client_m"):
+    notification_count = 0
+    for project in Project.objects.filter(invoice__hourentry__approved=False, invoice__hourentry__date__lte=last_day, invoice__hourentry__date__gte=first_day).annotate(entries_count=Count("invoice__hourentry")).annotate(sum_of_hours=Sum("invoice__hourentry__incurred_hours")).annotate(sum_of_money=Sum("invoice__hourentry__incurred_money")).prefetch_related("admin_users").select_related("client_m"):
         message = f"""You are marked as a responsible person for {project.client_m.name} - {project.name}. You need to approve hours for the project weekly."""
         fallback_message = f"""You are marked as a responsible person for {project.client_m.name} - {project.name}. You need to approve hours for the project weekly. Go to https://app.10000ft.com to do so."""
 
@@ -129,16 +130,16 @@ def send_unapproved_hours_notifications(first_day, last_day):
                 logger.warning("No chat_id for %s - %s", project, members_list)
                 continue
             logger.info("%s %s", message, chat_id)
-            c += 1
+            notification_count += 1
             slack.chat.post_message(chat_id, attachments=[attachment], as_user="finance-bot")
         elif members_list:
             # members_list is never empty
-            c += 1
-            slack.chat.post_message(members_list[0], attachments=[attachment], as_user="finance-bot")
+            notification_count += 1
+            slack.chat.post_message(list(members_list)[0], attachments=[attachment], as_user="finance-bot")
         else:
-            logger.warning("Unapproved hours in %s, but no admin users specified.", project.project_id)
+            logger.warning("Unapproved hours in %s, but no admin users specified.", project.name)
             for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
-                slack.chat.post_message(admin, text=f"Unapproved hours in {project.project_id}, but no admin users specified.", attachments=[attachment], as_user="finance-bot")
+                slack.chat.post_message(admin, text=f"Unapproved hours in {project.name} (id: {project.project_id}), but no admin users specified.", attachments=[attachment], as_user="finance-bot")
             continue
 
         for admin in settings.SLACK_NOTIFICATIONS_ADMIN:
@@ -146,7 +147,7 @@ def send_unapproved_hours_notifications(first_day, last_day):
                 slack.chat.post_message(admin, text="This was sent to {} in slack:".format(", ".join(project.admin_users.all().values_list("display_name", flat=True))), attachments=[attachment], as_user="finance-bot")
 
     SlackNotificationBundle(notification_type="unapproved").save()
-    Event(event_type="send_unapproved_hours_notifications", succeeded=True, message=f"Sent {c} notifications").save()
+    Event(event_type="send_unapproved_hours_notifications", succeeded=True, message=f"Sent {notification_count} notifications").save()
 
 
 def refresh_slack_users():
@@ -172,6 +173,6 @@ def refresh_slack_channels():
 
 
 def send_new_project_to_slack(project):
-    message = """<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id={}|{} - {}> (created at {})""".format(project.project_id, project.client_m.name, project.name, project.created_at)
+    message = f"<!channel> Hi! New project was added: <https://app.10000ft.com/viewproject?id={project.project_id}|{project.client_m.name} - {project.name}> (created at {project.created_at})"
     for channel in SlackChannel.objects.filter(new_project_notification=True):
         slack.chat.post_message(channel.channel_id, message)
