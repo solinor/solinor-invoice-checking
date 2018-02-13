@@ -32,7 +32,7 @@ urlpatterns = [
     path("users", invoices.views.users_list, name="users_list"),
     path("users/charts", invoices.views.users_charts, name="users_charts"),
     path("users/flexhours", flex_hours.views.flex_overview, name="flex_overview"),
-    path("users/<uuid:user_guid>", invoices.views.person_details, name="person_details"),
+    path("users/<uuid:user_guid>", invoices.views.person_overview, name="person_overview"),
     path("users/<uuid:user_guid>/<int:year>/<int:month>", invoices.views.person_details_month, name="person_month"),
     path("users/<uuid:user_guid>/flexhours", flex_hours.views.person_flex_hours, name="person_flex_hours"),
     path("users/<uuid:user_guid>/flexhours/json", flex_hours.views.person_flex_hours_json, name="person_flex_hours_json"),
@@ -72,7 +72,7 @@ urlpatterns = [
     path("people/hourmarkings", RedirectView.as_view(pattern_name="hours_overview")),
     path("people/charts", RedirectView.as_view(pattern_name="users_charts")),
     path("person/<uuid:user_guid>/<int:year>/<int:month>", RedirectView.as_view(pattern_name="person_month")),
-    path("person/<uuid:user_guid>", RedirectView.as_view(pattern_name="person_details")),
+    path("person/<uuid:user_guid>", RedirectView.as_view(pattern_name="person_overview")),
     path("person/<uuid:user_guid>/flexhours", RedirectView.as_view(pattern_name="person_flex_hours")),
     path("your/flexhours", RedirectView.as_view(pattern_name="your_flex_hours")),
 ]

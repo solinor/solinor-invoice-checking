@@ -112,9 +112,9 @@ def search(request):
 
     users = TenkfUser.objects.filter(archived=False).filter(Q(email__icontains=q) | Q(display_name__icontains=q))
     projects = Project.objects.filter(Q(name__icontains=q) | Q(client_m__name__icontains=q)).select_related("client_m")
-    if len(users) == 1 and len(projects) == 0:
-        return HttpResponseRedirect(reverse("person_details", args=(users[0].guid,)))
-    elif len(projects) == 1:
+    if len(users) == 1 and not projects:
+        return HttpResponseRedirect(reverse("person_overview", args=(users[0].guid,)))
+    elif projects:
         return HttpResponseRedirect(reverse("project", args=(projects[0].guid,)))
     return render(request, "search.html", {"q": q, "users": users, "projects": projects})
 
@@ -164,7 +164,7 @@ def amazon_overview(request):
         "billing_data_json": json.dumps(billing_data),
         "linking_data_json": json.dumps(linking_data),
     }
-    return render(request, "amazon_overview.html", context)
+    return render(request, "amazon/overview.html", context)
 
 
 @login_required
@@ -180,7 +180,7 @@ def amazon_invoice(request, linked_account_id, year, month):
     context = {"year": year, "month": month, "months": months, "linked_account": linked_account, "linked_users": linked_users, "linked_projects": linked_projects}
     context.update(invoice_data)
 
-    return render(request, "amazon_invoice.html", context)
+    return render(request, "amazon/invoice.html", context)
 
 
 @login_required
@@ -202,11 +202,11 @@ def hours_browser(request):
         "filters": filters,
     }
 
-    return render(request, "all_hours.html", context=context)
+    return render(request, "hours/browser.html", context=context)
 
 
 @login_required
-def person_details(request, user_guid):
+def person_overview(request, user_guid):
     person = get_object_or_404(TenkfUser, guid=user_guid)
     year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(day=1, month=1)
     entries = person.hourentry_set.exclude(status="Unsubmitted")
@@ -231,7 +231,7 @@ def person_details(request, user_guid):
 
     months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
-    return render(request, "person_details.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
+    return render(request, "users/person_overview.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
 
 
 @login_required
@@ -241,7 +241,7 @@ def person_details_month(request, year, month, user_guid):
     person = get_object_or_404(TenkfUser, guid=user_guid)
     entries = person.hourentry_set.exclude(status="Unsubmitted").exclude(incurred_hours=0).filter(date__year=year, date__month=month).select_related("invoice__project_m", "user_m").order_by("date")
     months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
-    return render(request, "person.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
+    return render(request, "users/person_details_month.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
 
 
 @login_required
@@ -271,7 +271,7 @@ def users_list(request):
             person["bill_rate_avg"] = person["billable"]["incurred_money"] / incurred_hours
         if person["billable"]["incurred_hours"] > 0:
             person["bill_rate_avg_billable"] = person["billable"]["incurred_money"] / person["billable"]["incurred_hours"]
-    return render(request, "people.html", {"people": people_data, "year": year, "month": month})
+    return render(request, "users/list.html", {"people": people_data, "year": year, "month": month})
 
 
 def parse_date(date_string):
@@ -378,7 +378,7 @@ def queue_slack_notification(request):
         "unapproved_end_date": end_date,
         "unapproved_start_date": start_date,
     }
-    return render(request, "slack_notifications.html", context)
+    return render(request, "queue_slack_notifications.html", context)
 
 
 @login_required
@@ -475,7 +475,7 @@ def your_unsubmitted_hours(request):
                 messages.add_message(request, messages.INFO, "Hours submitted. Data entry was not queued, as entries are spread over 6 months period.")
 
     unsubmitted_entries = HourEntry.objects.filter(user_m=user).filter(status="Unsubmitted").exclude(invoice__project_m__archived=True).exclude(incurred_hours=0).order_by("-date")
-    return render(request, "unsubmitted_hours.html", {"person": user, "unsubmitted_entries": unsubmitted_entries, "ids": ",".join(str(entry.upstream_id) for entry in unsubmitted_entries if entry.can_submit_automatically)})
+    return render(request, "hours/unsubmitted.html", {"person": user, "unsubmitted_entries": unsubmitted_entries, "ids": ",".join(str(entry.upstream_id) for entry in unsubmitted_entries if entry.can_submit_automatically)})
 
 
 @login_required
@@ -557,7 +557,7 @@ def invoices_list(request):
         "filters": filters,
         "last_update_finished_at": last_update_finished_at,
     }
-    return render(request, "invoices.html", context)
+    return render(request, "invoices/list.html", context)
 
 
 @login_required
@@ -568,7 +568,7 @@ def clients_list(request):
     RequestConfig(request, paginate={
         "per_page": 250
     }).configure(table)
-    return render(request, "clients.html", {"clients": table, "filters": filters})
+    return render(request, "clients/list.html", {"clients": table, "filters": filters})
 
 
 @login_required
@@ -589,7 +589,7 @@ def client_details(request, client_id):
         "per_page": 250
     }).configure(projects_table)
 
-    return render(request, "client_details.html", {"client": client, "project_filters": project_filters, "projects": projects_table, "invoice_filters": invoice_filters, "invoices": invoice_table})
+    return render(request, "clients/details.html", {"client": client, "project_filters": project_filters, "projects": projects_table, "invoice_filters": invoice_filters, "invoices": invoice_table})
 
 
 @login_required
@@ -666,7 +666,7 @@ def clientbase_stats(request):
         context["active_field"] = active_field
         context["active_field_spec"] = active_field_spec
 
-    return render(request, "clientbase_stats.html", context)
+    return render(request, "clients/stats.html", context)
 
 
 @login_required
@@ -756,7 +756,7 @@ def invoice_hours(request, invoice_id):
         "previous_invoices": previous_invoices,
         "recent_invoice": abs((datetime.date.today() - invoice.date).days) < 60,
     }
-    return render(request, "invoice_hours.html", context)
+    return render(request, "invoices/hours.html", context)
 
 
 @login_required
@@ -778,7 +778,7 @@ def projects_list(request):
         "projects": table,
         "filters": filters,
     }
-    return render(request, "projects.html", context)
+    return render(request, "projects/list.html", context)
 
 
 @login_required
@@ -795,7 +795,7 @@ def project_details(request, project_id):
         "filters": filters,
         "project": project,
     }
-    return render(request, "project_details.html", context)
+    return render(request, "projects/details.html", context)
 
 
 @login_required
@@ -827,7 +827,7 @@ def hours_charts(request):
     entries = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago).annotate(month=TruncMonth("date")).order_by("month").values("month").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")).values("month", "hours", "money")
     hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
-    return render(request, "hours_charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
+    return render(request, "hours/charts.html", {"treemap_charts": treemaps, "line_charts": linecharts, "calendar_charts": calendar_charts})
 
 
 @login_required
@@ -844,7 +844,7 @@ def users_charts(request):
     hours_calendar_data = [(entry["date"].year, entry["date"].month - 1, entry["date"].day, entry["hours"], "{:.2f}h".format(entry["hours"])) for entry in entries]
     calendar_charts.append(("sick_leaves_calendar", "People on sick leave per day", "People", hours_calendar_data))
 
-    return render(request, "people_charts.html", {"calendar_charts": calendar_charts, "line_charts": linecharts})
+    return render(request, "users/charts.html", {"calendar_charts": calendar_charts, "line_charts": linecharts})
 
 
 @login_required
@@ -872,7 +872,7 @@ def hours_overview(request):
                 people[guid]["days"][i]["hours"] += hour_marking["hours"]
                 people[guid]["sum_of_hours"] += hour_marking["hours"]
     people = sorted(people.values(), key=lambda k: k.get("name", ""))
-    return render(request, "people_hourmarkings.html", {"people": people, "days": days, "today": today})
+    return render(request, "hours/overview.html", {"people": people, "days": days, "today": today})
 
 
 @login_required
@@ -897,7 +897,7 @@ def project_charts(request, project_id):
     hours_per_month_data = [["Date", "Incurred hours"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["hours"]] for entry in entries]
     linecharts.append(("incurred_hours", "Incurred hours per month", json.dumps(hours_per_month_data)))
 
-    return render(request, "project_charts.html", {"calendar_charts": calendar_charts, "project": project, "line_charts": linecharts})
+    return render(request, "projects/charts.html", {"calendar_charts": calendar_charts, "project": project, "line_charts": linecharts})
 
 
 @login_required
@@ -975,7 +975,7 @@ def invoice_charts(request, invoice_id):
         "per_person_categories_data": per_person_categories_data,
         "previous_invoices": previous_invoices,
     }
-    return render(request, "invoice_charts.html", context)
+    return render(request, "invoices/charts.html", context)
 
 
 @login_required
@@ -1050,7 +1050,7 @@ def invoice_page(request, invoice_id, **_):
     except Invoice.DoesNotExist:
         pass
 
-    return render(request, "invoice_page.html", context)
+    return render(request, "invoices/details.html", context)
 
 
 @login_required

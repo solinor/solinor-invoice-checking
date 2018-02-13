@@ -95,5 +95,5 @@ def generate_hours_pdf_for_invoice(request, invoice_id):
     }
 
     # We can generate the pdf from a url, file or, as shown here, a string
-    content = render_to_string("pdf_template.html", context=context, request=request)
+    content = render_to_string("hours/pdf_export.html", context=context, request=request)
     return generate_pdf(title, content), title

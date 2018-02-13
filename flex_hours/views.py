@@ -25,13 +25,13 @@ def get_flex_hours_for_user(request, person, json_responses=False, only_active=F
             return HttpResponse(json.dumps({"flex_enabled": False}), content_type="application/json")
         monthly_saldos = reversed([month.get("cumulative_saldo", 0) for month in context["monthly_summary"]][0:12])
         return JsonResponse({"monthly_saldos": list(monthly_saldos), "flex_enabled": True, "flex_hours": context["cumulative_saldo"], "kiky_saldo": context.get("kiky", {}).get("saldo")})
-    return render(request, "person_flex_hours.html", context)
+    return render(request, "flex_hours/details.html", context)
 
 
 @permission_required("flex_hours.can_see_flex_saldos")
 def flex_overview(request):
     people = TenkfUser.objects.exclude(archived=True)
-    return render(request, "flex_hours.html", {"people": people, "max_minus": settings.FLEX_MAX_MINUS, "max_plus": settings.FLEX_MAX_PLUS})
+    return render(request, "flex_hours/list.html", {"people": people, "max_minus": settings.FLEX_MAX_MINUS, "max_plus": settings.FLEX_MAX_PLUS})
 
 
 @login_required

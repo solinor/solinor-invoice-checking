@@ -6,7 +6,7 @@
 <ol class="breadcrumb">
   <li class="breadcrumb-item"><a href="{% url "frontpage" %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url "users_list" %}">People</a></li>
-  <li class="breadcrumb-item"><a href="{% url "person_details" person.guid %}">Person: {{ person.first_name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url "person_overview" person.guid %}">Person: {{ person.first_name }}</a></li>
   <li class="breadcrumb-item active">Unsubmitted hours</li>
 </ol>
 

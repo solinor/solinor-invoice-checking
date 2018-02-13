@@ -8,7 +8,7 @@
 {% if users %}
 <ul>
 {% for user in users %}
-<li><a href="{% url "person_details" user.guid %}">{{ user }}</a> - <a href="{% url "person_flex_hours" user.guid %}">flex</a> - <a href="https://app.10000ft.com/?user_id={{ user.guid }}">10000ft</a></li>
+<li><a href="{% url "person_overview" user.guid %}">{{ user }}</a> - <a href="{% url "person_flex_hours" user.guid %}">flex</a> - <a href="https://app.10000ft.com/?user_id={{ user.guid }}">10000ft</a></li>
 {% endfor %}
 </ul>
 {% endif %}

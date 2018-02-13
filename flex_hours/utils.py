@@ -49,7 +49,7 @@ def send_flex_saldo_notifications(year, month):
                 if item["month"].strftime("%Y-%m") == previous_month.strftime("%Y-%m"):
                     context["last_month_diff"] = saldo - item["cumulative_saldo"]
                     break
-        notification_text = render_to_string("notifications/flex_saldo.txt", context).strip()
+        notification_text = render_to_string("flex_hours/notifications/flex_saldo.txt", context).strip()
 
         if notification_text:
             attachment = {
