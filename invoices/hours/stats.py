@@ -115,7 +115,7 @@ def hours_overview_stats(email):
         your_daily_billing_ratio.append(ratio)
     your_daily_billing_ratio = [(your_daily_billing_ratio[i] + your_daily_billing_ratio[i + 1] + your_daily_billing_ratio[i + 2] + your_daily_billing_ratio[i + 3] + your_daily_billing_ratio[i + 4]) / 5 for i in range(0, len(your_daily_billing_ratio) - 5, 5)]
 
-    company_billing_money = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+    company_billing_money = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
     company_billing_unsubmitted_money = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
     company_unsubmitted_entries = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).count()
 
