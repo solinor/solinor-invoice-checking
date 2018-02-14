@@ -99,7 +99,7 @@ def hours_overview_stats(email):
     if billing_rate_data:
         total_hours = (billing_rate_data[0]["nonbillable_hours"] or 0) + (billing_rate_data[0]["billable_hours"] or 0)
         if total_hours > 0:
-            your_billing_ratio = float(billing_rate_data[0]["billable_hours"]) / total_hours * 100
+            your_billing_ratio = float(billing_rate_data[0]["billable_hours"] or 0) / total_hours * 100
 
     start_date = today - datetime.timedelta(days=95)
     daily_billing_ratio = {item["date"]: item for item in base_query.filter(date__gte=start_date, date__lte=today).values("date").order_by("date").annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(nonbillable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))}
