@@ -91,6 +91,26 @@ h2 {
   text-align: right;
 }
 
+.member-card-container {
+  width:220px;
+  position:relative;
+  padding-left:15px;
+  padding-right:15px;
+}
+.member-card-title {
+  height:45px;
+  overflow-y:hidden;
+}
+.member-card-image {
+  height:185px;
+  overflow-y:hidden;
+}
+.member-card-description {
+  height:5em;
+  overflow-y:hidden
+}
+
+
 .project-card-container {
   width:370px;
   position:relative;

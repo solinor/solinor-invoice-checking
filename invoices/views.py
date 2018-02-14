@@ -610,10 +610,12 @@ def project_details(request, project_id):
     RequestConfig(request, paginate={
         "per_page": 250
     }).configure(table)
+    members = TenkfUser.objects.filter(hourentry__invoice__project_m=project).order_by("guid").distinct().annotate(incurred_hours=Sum("hourentry__incurred_hours")).annotate(incurred_money=Sum("hourentry__incurred_money")).filter(incurred_hours__gt=1).order_by("-incurred_hours")
     context = {
         "invoices": table,
         "filters": filters,
         "project": project,
+        "members": members,
     }
     return render(request, "projects/details.html", context)
 
