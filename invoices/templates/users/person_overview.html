@@ -39,6 +39,30 @@ function drawChart() {
   </div>
 </div>
 
+<div class="row py-2">
+  {% if person.thumbnail %}
+  <div class="col-md-2 mb-4" style="max-width:160px">
+  <img class="img-thumbnail" src="{{ person.thumbnail }}">
+  </div>
+  {% endif %}
+  <div class="col-md-3 mb-4">
+    <dl>
+      <dt>Email</dt>
+      <dd><a href="mailto:{{ person.email }}">{{ person.email }}</a></dd>
+    </dl>
+    <dl>
+      <dt>Role & discipline</dt>
+      <dd>{{ person.role }} & {{ person.discipline }}</dd>
+    </dl>
+  </div>
+  <div class="col-md-5 mb-4">
+    <dl>
+      <dt>Billing ratio (past 30d / past 90d)</dt>
+      <dd>{{ billing_ratio_30d|floatformat:"0" }}% / {{ billing_ratio_90d|floatformat:"0" }}%</dd>
+    </dl>
+  </div>
+</div>
+
 <h3>Projects</h3>
 
 <div class="row py-5">

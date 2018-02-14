@@ -16,24 +16,7 @@ $("#person-hours a").click(function (e) {
 
 <h2>{{ person.display_name }} - {{ year }}-{{ month }}</h2>
 
-<div class="row">
-  <div class="col-md-2">
-  {% if person.thumbnail %}
-  <img class="img-thumbnail" src="{{ person.thumbnail }}">
-  {% endif %}
-  </div>
-  <div class="col-md-10">
-  <a href="mailto:{{ person.email }}">{{ person.email }}</a><br>
-  {% if person.role %}
-  <i>Role:</i> {{ person.role }}<br>
-  {% endif %}
-  {% if person.discipline %}
-  <i>Discipline:</i> {{ person.discipline}}
-  {% endif %}
-  x§</div>
-</div>
-
-<div class="row top-buttons-row" style="margin-top: 2em">
+<div class="row top-buttons-row">
   <div class="col-md-12">
   <div class="dropdown top-bar-dropdown">
     <button class="btn btn-light dropdown-toggle" type="button" id="selectPersonMonth" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -54,6 +37,30 @@ $("#person-hours a").click(function (e) {
     {% endif %}
     <a class="btn btn-light" href="{% url "person_overview" person.guid %}">Charts</a>
     <a class="btn btn-info" href="{% url "person_flex_hours" person.guid %}">Flex hours</a>
+  </div>
+</div>
+
+<div class="row py-2">
+  <div class="col-md-2 mb-4" style="max-width:160px">
+  {% if person.thumbnail %}
+  <img class="img-thumbnail" src="{{ person.thumbnail }}">
+  {% endif %}
+  </div>
+  <div class="col-md-3 mb-4">
+    <dl>
+      <dt>Email</dt>
+      <dd><a href="mailto:{{ person.email }}">{{ person.email }}</a></dd>
+    </dl>
+    <dl>
+      <dt>Role & discipline</dt>
+      <dd>{{ person.role }} & {{ person.discipline }}</dd>
+    </dl>
+  </div>
+  <div class="col-md-5 mb-4">
+    <dl>
+      <dt>Billing ratio</dt>
+      <dd>{{ billing_ratio|floatformat:"0" }}%</dd>
+    </dl>
   </div>
 </div>
 

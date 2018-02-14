@@ -23,6 +23,7 @@ from django_tables2 import RequestConfig
 from flex_hours.utils import sync_public_holidays
 from invoices.chart_utils import gen_treemap_data_projects, gen_treemap_data_users
 from invoices.filters import ClientsFilter, HourListFilter, InvoiceFilter, ProjectsFilter
+from invoices.hours.billing_ratio import billing_ratio_for_hourentries
 from invoices.hours.file_exports import generate_hours_pdf_for_invoice, generate_hours_xls_for_invoice
 from invoices.hours.sickleaves import get_early_care_sickleaves
 from invoices.hours.stats import calculate_clientbase_stats, hours_overview_stats
@@ -209,7 +210,8 @@ def hours_browser(request):
 @login_required
 def person_overview(request, user_guid):
     person = get_object_or_404(TenkfUser, guid=user_guid)
-    year_ago = (datetime.date.today() - datetime.timedelta(days=365)).replace(day=1, month=1)
+    today = datetime.date.today()
+    year_ago = (today - datetime.timedelta(days=365)).replace(day=1, month=1)
     entries = person.hourentry_set.exclude(status="Unsubmitted")
     filters = request.GET.get("filters", "").split(",")
     if "exclude_leaves" in filters:
@@ -237,7 +239,10 @@ def person_overview(request, user_guid):
         "per_page": 250
     }).configure(projects_table)
 
-    return render(request, "users/person_overview.html", {"projects_table": projects_table, "entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
+    billing_ratio_query = person.hourentry_set.exclude(status="Unsubmitted").filter(date__lte=today)
+    billing_ratio_30d = billing_ratio_for_hourentries(billing_ratio_query.filter(date__gte=today - datetime.timedelta(days=30)), flat=True)
+    billing_ratio_90d = billing_ratio_for_hourentries(billing_ratio_query.filter(date__gte=today - datetime.timedelta(days=90)), flat=True)
+    return render(request, "users/person_overview.html", {"projects_table": projects_table, "entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps, "person": person, "billing_ratio_30d": billing_ratio_30d, "billing_ratio_90d": billing_ratio_90d})
 
 
 @login_required
@@ -249,7 +254,10 @@ def person_details_month(request, year, month, user_guid):
 
     entries = base_query.filter(date__year=year, date__month=month).select_related("invoice__project_m", "user_m", "invoice__project_m__client_m").order_by("date")
     months = base_query.dates("date", "month", order="DESC")
-    return render(request, "users/person_details_month.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
+
+    billing_ratio = billing_ratio_for_hourentries(entries, flat=True)
+
+    return render(request, "users/person_details_month.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, []), "billing_ratio": billing_ratio})
 
 
 @login_required
