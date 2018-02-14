@@ -25,6 +25,8 @@ $.get("{% url "frontpage_stats" %}", function(data) {
     ["company_billing_money", 0, "&euro;"],
     ["company_billing_unsubmitted_money", 0, "&euro;"],
     ["company_unsubmitted_entries", 0, " - "],
+    ["company_billing_unapproved_money", 0, "&euro;"],
+    ["company_unapproved_entries", 0, " - "],
     ["company_billing_ratio", 0, "%"],
   ]
   for (var i in fields) {
@@ -42,8 +44,8 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 
 <h3>Your information</h3>
 
-<div class="row">
-  <div class="col-md-3 clickable-area" onclick="Turbolinks.visit('{% url "your_unsubmitted_hours" %}');">
+<div class="row py-2">
+  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "your_unsubmitted_hours" %}');">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Unsubmitted entries</h5>
@@ -51,7 +53,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
         </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Last hour marking</h5>
@@ -59,7 +61,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
       </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Hours for past 7 days</h3>
@@ -67,7 +69,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
       </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Your billing % <small>Past 30d</small></h3>
@@ -77,10 +79,10 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
   </div>
 </div>
 
-<h3 style="margin-top: 1em">Company</h3>
+<h3>Company</h3>
 
-<div class="row">
-  <div class="col-md-3">
+<div class="row py-2">
+  <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Unsubmitted entries</h5>
@@ -88,7 +90,15 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
         </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Unapproved entries</h5>
+        <p class="lead"><span id="company_unapproved_entries">Loading</span> <span id="company_billing_unapproved_money"></span></p>
+        </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Billing % <small>Past 30d</small></h5>
@@ -96,7 +106,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
       </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Billing &euro; <small>Past 30d</small></h3>
@@ -107,13 +117,13 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 </div>
 
 {% if your_invoices %}
-<h3 style="margin-top: 1em">Your projects</h3>
+<h3>Your projects</h3>
 
 {% include "snippets/frontpage_table.html" with invoices=your_invoices %}
 
 {% endif %}
 
-<h3 style="margin-top: 1em">Our current projects</h3>
+<h3>Our current projects</h3>
 
 <p class="text-muted">Sort <a href="?sorting=alphabetically">alphabetically</a>, <a href="?sorting=billing">by billing</a>, <a href="?sorting=hours">by amount of hours</a></p>
 
