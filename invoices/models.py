@@ -30,6 +30,13 @@ class HourEntry(models.Model):
     """ A single hour entry row.
 
     Note that import_csv command uses bulk_create, which does not call .save. """
+
+    STATUS_CHOICES = (
+        ("Approved", "Approved"),
+        ("Unsubmitted", "Unsubmitted"),
+        ("Pending Approval", "Pending Approval"),
+    )
+
     date = models.DateField(db_index=True)
 
     last_updated_at = models.DateTimeField(db_index=True)

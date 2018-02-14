@@ -14,6 +14,7 @@ class ClientsFilter(django_filters.FilterSet):
 
 class HourListFilter(django_filters.FilterSet):
     date = django_filters.DateRangeFilter()
+    status = django_filters.MultipleChoiceFilter(choices=HourEntry.STATUS_CHOICES)
 
     class Meta:
         model = HourEntry

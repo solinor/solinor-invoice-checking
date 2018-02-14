@@ -90,6 +90,7 @@ def hours_overview_stats(email):
 
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)
+    two_months = today - datetime.timedelta(days=60)
     your_hours_this_week = base_query.filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
 
     your_unsubmitted_entries = HourEntry.objects.filter(user_email=email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
@@ -116,11 +117,11 @@ def hours_overview_stats(email):
     your_daily_billing_ratio = [(your_daily_billing_ratio[i] + your_daily_billing_ratio[i + 1] + your_daily_billing_ratio[i + 2] + your_daily_billing_ratio[i + 3] + your_daily_billing_ratio[i + 4]) / 5 for i in range(0, len(your_daily_billing_ratio) - 5, 5)]
 
     company_billing_money = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
-    company_billing_unsubmitted_money = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
-    company_unsubmitted_entries = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).count()
+    company_billing_unsubmitted_money = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=two_months, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+    company_unsubmitted_entries = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=two_months, date__lte=today).count()
 
-    company_billing_unapproved_money = HourEntry.objects.filter(status="Pending Approval").filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
-    company_unapproved_entries = HourEntry.objects.filter(status="Pending Approval").filter(date__gte=month_ago, date__lte=today).count()
+    company_billing_unapproved_money = HourEntry.objects.filter(status="Pending Approval").filter(date__gte=two_months, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+    company_unapproved_entries = HourEntry.objects.filter(status="Pending Approval").filter(date__gte=two_months, date__lte=today).count()
 
     company_billable_hours = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=True).aggregate(item=Sum("incurred_hours"))["item"] or 0
     company_nonbillable_hours = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=False).aggregate(item=Sum("incurred_hours"))["item"] or 0
@@ -143,4 +144,5 @@ def hours_overview_stats(email):
         "company_unsubmitted_entries": company_unsubmitted_entries,
         "company_billing_unapproved_money": company_billing_unapproved_money,
         "company_unapproved_entries": company_unapproved_entries,
+        "company_error_entries_date_gte": two_months,
     }

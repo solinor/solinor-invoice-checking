@@ -57,7 +57,7 @@
         <li class="nav-item dropdown">
          <a class="nav-link dropdown-toggle nowrap-column" href="{% url "hours_browser" %}" id="navDropdownHours" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hours</a>
          <div class="dropdown-menu" aria-labelledby="navDropdownHours">
-           <a class="dropdown-item" href="{% url "hours_browser" %}?sort=-date">Browser</a>
+           <a class="dropdown-item" href="{% url "hours_browser" %}">Browser</a>
            <a class="dropdown-item" href="{% url "users_charts" %}">Charts (people)</a>
            <a class="dropdown-item" href="{% url "hours_charts" %}">Charts (hours/projects)</a>
            {% if perms.invoices.can_see_sick_leaves %}

@@ -82,7 +82,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 <h3>Company</h3>
 
 <div class="row py-2">
-  <div class="col-md-3 mb-4">
+  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Unsubmitted&date__gte={{ company_error_entries_date_gte }}');">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Unsubmitted entries</h5>
@@ -90,7 +90,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
         </div>
     </div>
   </div>
-  <div class="col-md-3 mb-4">
+  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Pending+Approval&date__gte={{ company_error_entries_date_gte }}');">
     <div class="card your-information-card">
       <div class="card-body">
         <h5 class="card-title">Unapproved entries</h5>

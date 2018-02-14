@@ -192,12 +192,12 @@ def hours_browser(request):
         start_date = month_start_date(today.year, today.month)
         end_date = month_end_date(today.year, today.month)
         url = reverse("hours_browser")
-        return HttpResponseRedirect(f"{url}?date__gte={start_date}&date__lte={end_date}")
-    hours = HourEntry.objects.exclude(status="Unsubmitted").filter(incurred_hours__gt=0).exclude(invoice__project_m__name="[Leave Type]").select_related("user_m", "invoice__project_m", "invoice__project_m__client_m")
+        return HttpResponseRedirect(f"{url}?date__gte={start_date}&date__lte={end_date}&sort=-date&status=Approved&status=Pending+Approval")
+    hours = HourEntry.objects.filter(incurred_hours__gt=0).exclude(invoice__project_m__name="[Leave Type]").select_related("user_m", "invoice__project_m", "invoice__project_m__client_m")
     filters = HourListFilter(request.GET, queryset=hours)
     table = HourListTable(filters.qs)
     RequestConfig(request, paginate={
-        "per_page": 250
+        "per_page": 100
     }).configure(table)
 
     context = {
@@ -572,6 +572,7 @@ def frontpage(request):
     context = {
         "your_invoices": your_invoices,
         "cards": cards,
+        "company_error_entries_date_gte": today - datetime.timedelta(days=60),
     }
     return render(request, "frontpage.html", context)
 
