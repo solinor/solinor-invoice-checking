@@ -98,7 +98,7 @@ class InvoicesTable(tables.Table):
         return format_html("<a href='{}'>{:%Y-%m}</a>".format(reverse("invoice", args=[record.invoice_id]), value))
 
     def render_admin_users(self, value):
-        return format_html(" ".join([f"<span class='badge badge-secondary'>{tag}</span> " for tag in value]))
+        return format_html(" ".join(["<a class='badge badge-secondary' href='{}'>{} {}</a>".format(reverse("person_overview", args=(a.guid,)), a.first_name, a.last_name) for a in value]))
 
     def render_incurred_hours(self, value):
         return "{}h".format(intcomma(floatformat(value, 0)))
@@ -138,7 +138,7 @@ class ProjectsTable(tables.Table):
         return "{}€".format(intcomma(floatformat(value, 0)))
 
     def render_admin_users(self, value):
-        return format_html(" ".join(["<span class='badge badge-secondary'>{} {}</span>".format(a.first_name, a.last_name) for a in value.all()]))
+        return format_html(" ".join(["<a class='badge badge-secondary' href='{}'>{} {}</a>".format(reverse("person_overview", args=(a.guid,)), a.first_name, a.last_name) for a in value.all()]))
 
     def render_guid(self, value):
         return format_html("<a href='{}'>Details</a>".format(reverse("project", args=[value])))
