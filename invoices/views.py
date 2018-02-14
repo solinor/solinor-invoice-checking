@@ -247,7 +247,7 @@ def person_details_month(request, year, month, user_guid):
     person = get_object_or_404(TenkfUser, guid=user_guid)
     base_query = person.hourentry_set.exclude(status="Unsubmitted").exclude(incurred_hours=0)
 
-    entries = base_query.filter(date__year=year, date__month=month).select_related("invoice__project_m", "user_m").order_by("date")
+    entries = base_query.filter(date__year=year, date__month=month).select_related("invoice__project_m", "user_m", "invoice__project_m__client_m").order_by("date")
     months = base_query.dates("date", "month", order="DESC")
     return render(request, "users/person_details_month.html", {"person": person, "hour_entries": entries, "months": months, "month": month, "year": year, "stats": calculate_entry_stats(entries, [])})
 
