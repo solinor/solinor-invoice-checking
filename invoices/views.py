@@ -231,7 +231,13 @@ def person_overview(request, user_guid):
 
     months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
-    return render(request, "users/person_overview.html", {"entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
+    projects = Project.objects.filter(invoice__hourentry__user_m=person).distinct().annotate(incurred_hours=Sum("invoice__hourentry__incurred_hours")).annotate(incurred_money=Sum("invoice__hourentry__incurred_money")).select_related("client_m").prefetch_related("admin_users")
+    projects_table = ProjectsTable(projects)
+    RequestConfig(request, paginate={
+        "per_page": 250
+    }).configure(projects_table)
+
+    return render(request, "users/person_overview.html", {"projects_table": projects_table, "entries": entries, "person": person, "calendar_charts": calendar_charts, "months": months, "treemap_charts": treemaps})
 
 
 @login_required

@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load django_tables2 %}
+{% load widget_tweaks %}
+
 {% block title %}{{ person.display_name }}{% endblock %}
 {% block pageJs %}
 google.charts.load("current", {packages:["calendar", "treemap"]});
@@ -18,7 +21,6 @@ function drawChart() {
 
 <h2>{{ person.display_name }}</h2>
 
-
 <div class="row top-buttons-row">
   <div class="col-md-12">
   <div class="dropdown top-bar-dropdown">
@@ -36,6 +38,16 @@ function drawChart() {
     <a class="btn btn-info" href="{% url "person_flex_hours" person.guid %}">Flex hours</a>
   </div>
 </div>
+
+<h3>Projects</h3>
+
+<div class="row py-5">
+  <div class="col-md-12">
+{% render_table projects_table %}
+</div>
+</div>
+
+<h3>Charts</h3>
 
 <div class="row">
   <div class="col-md-12">
