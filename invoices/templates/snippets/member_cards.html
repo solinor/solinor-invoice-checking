@@ -1,0 +1,24 @@
+{% load humanize %}
+{% if members %}
+<div class="album py-5">
+  <div class="container-fluid">
+    <div class="row">
+      {% for member in members %}
+      <div class="member-card-container">
+        <div class="card mb-4 box-shadow">
+          <span class="clickable-area member-card-image" onclick="Turbolinks.visit('{% url "person_overview" member.guid %}')">
+            <img class="card-img-top" src="{{ member.thumbnail }}">
+          </span>
+          <div class="card-header clickable-area member-card-title" onclick="Turbolinks.visit('{% url "person_overview" member.guid %}')"><h5>{{ member.full_name }}</h5></div>
+          <div class="card-body">
+            <p class="card-text">
+              {{ member.incurred_hours|floatformat:"0"|intcomma }}h / {{ member.incurred_money|floatformat:"0"|intcomma }}€
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}

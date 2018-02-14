@@ -477,8 +477,9 @@ def client_details(request, client_id):
     RequestConfig(request, paginate={
         "per_page": 250
     }).configure(projects_table)
+    members = TenkfUser.objects.filter(hourentry__invoice__project_m__client_m=client).order_by("guid").distinct().annotate(incurred_hours=Sum("hourentry__incurred_hours")).annotate(incurred_money=Sum("hourentry__incurred_money")).filter(incurred_hours__gt=1).order_by("-incurred_hours")
 
-    return render(request, "clients/details.html", {"client": client, "project_filters": project_filters, "projects": projects_table, "invoice_filters": invoice_filters, "invoices": invoice_table})
+    return render(request, "clients/details.html", {"client": client, "members": members, "project_filters": project_filters, "projects": projects_table, "invoice_filters": invoice_filters, "invoices": invoice_table})
 
 
 @login_required
