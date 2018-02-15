@@ -358,4 +358,8 @@ def refresh_invoice_stats(start_date, end_date):
             invoice.bill_rate_avg = 0
         invoice.save()
         logger.debug("Updated statistics for %s", invoice)
-    Event(event_type="refresh_invoice_statistics", succeeded=True, message=f"Refreshed {invoice_count} invoices between {start_date:%Y-%m-%d} and {end_date:%Y-%m-%d}.").save()
+    if start_date and end_date:
+        message = f"Refreshed {invoice_count} invoices between {start_date:%Y-%m-%d} and {end_date:%Y-%m-%d}."
+    else:
+        message = f"Refreshed {invoice_count} invoices (without date range)."
+    Event(event_type="refresh_invoice_statistics", succeeded=True, message=message).save()
