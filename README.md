@@ -5,7 +5,19 @@ Simple web service for checking and approving invoices generated from hour entri
 Master branch of [this repository](https://github.com/solinor/solinor-invoice-checking) is automatically deployed to Solinor's internal service.
 
 
-## User permissions
+- [#django-user-permissions](Django user permissions)
+- [#data-syncing](Data syncing)
+- [#data-cleanup](Data cleanup)
+- [#data-versioning](Data versioning)
+- [#g-suite-integration](G Suite integration)
+- [#slack-integration](Slack integration)
+- [#10000ft](10000ft integration)
+- [#heroku-configuration](Heroku configuration)
+- [#heroku-scheduler](Heroku scheduler)
+- [#setting-up-development-environment](Setting up development environment)
+
+
+## Django user permissions
 
 - Do not use is_superuser for anyone. This will add options that will break the system, such as manually creating projects or invoices. Always use separate permissions.
 - Always use groups to set permissions. See admin -> Authentication and Authorization -> Groups.
@@ -131,6 +143,8 @@ Config variables:
 - `python manage.py cleanup --type dataupdate` - nightly
 
 
+## Setting up development environment
+
 ### Code checks
 
 Install `pycodestyle`, `pylint` and `isort`. Exact versions can be checked from `.travis.yml`
@@ -143,7 +157,7 @@ Run
 ./run_pycodestyle.sh
 ```
 
-## Setting up the environment
+### Setting up the environment
 
 Mandatory environment variables:
 
@@ -164,7 +178,7 @@ AWS_SECRET_KEY="aws-secret-key"
 AWS_ACCESS_KEY="aws-access-key"
 ```
 
-## Local development
+### Local development
 
 For local development:
 
