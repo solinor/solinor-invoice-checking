@@ -141,15 +141,15 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
             <p class="card-text">
               <p class="project-card-description" data-toggle="popover" title="Description" data-content="{{ card.project.description }}">{{ card.project.description }}</p> {% comment %}TODO: this will break when there is quotes in project.description{% endcomment %}
               <div class="row">
-                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Billing for previous and current months."><p class="text-floating-left">Billing</p><p class="text-floating-right">{{ card.money_sum|floatformat:"0"|intcomma }}€</p></h6></div>
+                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Billing for past 60 days."><p class="text-floating-left">Billing</p><p class="text-floating-right">{{ card.money_sum|floatformat:"0"|intcomma }}€</p></h6></div>
                 <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.money %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>
               </div>
               <div class="row">
-                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Incurred hours for previous and current months."><p class="text-floating-left">Hours</p><p class="text-floating-right">{{ card.hours_sum|floatformat:"0"|intcomma }}h</p></h6></div>
+                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Incurred hours for past 60 days."><p class="text-floating-left">Hours</p><p class="text-floating-right">{{ card.hours_sum|floatformat:"0"|intcomma }}h</p></h6></div>
                 <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.hours %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>
               </div>
               <div class="row">
-                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Average number of people working on the project on weekdays during previous and current months."><p class="text-floating-left">People</p><p class="text-floating-right">{{ card.people_avg|floatformat:"1" }} per weekday</p></h6></div>
+                <div class="col-md-12"><h6 data-toggle="tooltip" data-placement="top" title="Average number of people working on the project on weekdays during past 60 days."><p class="text-floating-left">People</p><p class="text-floating-right">{{ card.people_avg|floatformat:"1" }} per weekday</p></h6></div>
                 <div class="col-md-12" style="text-align: center"><span class="sparkline-inline-content">{% for value in card.people %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}</span></div>
               </div>
             </p>

@@ -508,6 +508,7 @@ def clientbase_stats(request):
 def frontpage(request):
     today = datetime.date.today()
     last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+    start_date = today - datetime.timedelta(days=60)
     your_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).filter(project_m__admin_users__email=request.user.email).filter(date=last_month).exclude(project_m__client_m__name__in=["Solinor", "[none]"]).select_related("project_m", "project_m__client_m")
     sorting = request.GET.get("sorting", "billing")
 
@@ -519,12 +520,13 @@ def frontpage(request):
         active_invoices = Invoice.objects.exclude(Q(incurred_hours=0) & Q(incurred_money=0)).exclude(project_m__project_state="Internal").exclude(project_m__client_m__name__in=["Solinor", "[none]"]).filter(date__gte=last_month).exclude(project_m=None).select_related("project_m", "project_m__client_m")
         projects = [invoice.project_m for invoice in active_invoices]
         projects_map = {invoice.project_m.guid: (invoice.project_m, invoice) for invoice in active_invoices}
+
         billing = defaultdict(dict)
-        for item in HourEntry.objects.filter(invoice__project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("invoice__project_m__guid", "date").order_by("invoice__project_m__guid", "date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")):
+        for item in HourEntry.objects.filter(invoice__project_m__in=projects).filter(date__gte=start_date).filter(date__lte=today).values("invoice__project_m__guid", "date").order_by("invoice__project_m__guid", "date").annotate(hours=Sum("incurred_hours")).annotate(money=Sum("incurred_money")):
             billing[item["invoice__project_m__guid"]][item["date"]] = (item["hours"], item["money"])
 
         people_entries = defaultdict(lambda: defaultdict(set))
-        for item in HourEntry.objects.filter(invoice__project_m__in=projects).filter(date__gte=last_month).filter(date__lte=today).values("invoice__project_m__guid", "date", "user_email").order_by("invoice__project_m__guid", "date", "user_email"):
+        for item in HourEntry.objects.filter(invoice__project_m__in=projects).filter(date__gte=start_date).filter(date__lte=today).values("invoice__project_m__guid", "date", "user_email").order_by("invoice__project_m__guid", "date", "user_email"):
             people_entries[item["invoice__project_m__guid"]][item["date"]].add(item["user_email"])
 
         cards = []
