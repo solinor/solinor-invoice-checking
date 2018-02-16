@@ -249,17 +249,18 @@ def calculate_flex_saldo(person, flex_last_day=None, only_active=False, ignore_e
         if contract.flex_enabled:
             if current_day in hour_markings_data:
                 current_day_entry = hour_markings_data[current_day]
+                if plus_hours_today:
+                    day_entry["worktime"] = plus_hours_today
+                    month_entry["worktime"] += plus_hours_today
+                    month_entry["diff"] += plus_hours_today
+
                 if current_day_entry["incurred_unpaid_leave"]:
                     unpaid_hours = current_day_entry["incurred_unpaid_leave"]
                     day_entry["unpaid_leaves"] = unpaid_hours
                     day_entry["expected_hours_today"] -= unpaid_hours
                     month_entry["expected_worktime"] -= unpaid_hours
                     month_entry["diff"] += unpaid_hours
-
-                if plus_hours_today:
-                    day_entry["worktime"] = plus_hours_today
-                    month_entry["worktime"] += plus_hours_today
-                    month_entry["diff"] += plus_hours_today
+                    plus_hours_today += unpaid_hours
 
                 if current_day_entry["incurred_leave_hours"] and not is_weekend and not is_holiday:
                     leave_hours = current_day_entry["incurred_leave_hours"]
