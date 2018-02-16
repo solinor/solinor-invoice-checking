@@ -5,6 +5,15 @@
 {% block content %}
 <h1>Search - {{ q }}</h1>
 
+<div class="py-4">
+<form class="form-inline">
+  <div class="form-group mx-sm-3 mb-2">
+    <input type="text" class="form-control" name="q" id="q" placeholder="{{ q }}">
+  </div>
+  <button type="submit" class="btn btn-primary mb-2">Search</button>
+</form>
+</div>
+
 {% if users %}
 <ul>
 {% for user in users %}

@@ -116,7 +116,7 @@ def search(request):
     projects = Project.objects.filter(Q(name__icontains=query) | Q(client_m__name__icontains=query)).select_related("client_m")
     if len(users) == 1 and not projects:
         return HttpResponseRedirect(reverse("person_overview", args=(users[0].guid,)))
-    elif projects:
+    elif len(projects) == 1:
         return HttpResponseRedirect(reverse("project", args=(projects[0].guid,)))
     return render(request, "search.html", {"q": query, "users": users, "projects": projects})
 
