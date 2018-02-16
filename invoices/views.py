@@ -204,7 +204,9 @@ def hours_browser(request):
         "table": table,
         "filters": filters,
     }
-    return render(request, "hours/browser.html", context=context)
+    response = render(request, "hours/browser.html", context=context)
+    response["Turbolinks-Location"] = "https://{}{}".format(settings.DOMAIN, request.get_full_path())
+    return response
 
 
 @login_required
