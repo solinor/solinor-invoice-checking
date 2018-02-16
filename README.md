@@ -5,16 +5,16 @@ Simple web service for checking and approving invoices generated from hour entri
 Master branch of [this repository](https://github.com/solinor/solinor-invoice-checking) is automatically deployed to Solinor's internal service.
 
 
-- [#django-user-permissions](Django user permissions)
-- [#data-syncing](Data syncing)
-- [#data-cleanup](Data cleanup)
-- [#data-versioning](Data versioning)
-- [#g-suite-integration](G Suite integration)
-- [#slack-integration](Slack integration)
-- [#10000ft](10000ft integration)
-- [#heroku-configuration](Heroku configuration)
-- [#heroku-scheduler](Heroku scheduler)
-- [#setting-up-development-environment](Setting up development environment)
+- [Django user permissions](#django-user-permissions)
+- [Data syncing](#data-syncing)
+- [Data cleanup](#data-cleanup)
+- [Data versioning](#data-versioning)
+- [G Suite integration](#g-suite-integration)
+- [Slack integration](#slack-integration)
+- [10000ft integration](#10000ft)
+- [Heroku configuration](#heroku-configuration)
+- [Heroku scheduler](#heroku-scheduler)
+- [Setting up development environment](#setting-up-development-environment)
 
 
 ## Django user permissions

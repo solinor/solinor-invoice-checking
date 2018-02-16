@@ -30,6 +30,7 @@ class ClientsTable(tables.Table):
         model = Client
         attrs = {"class": "table table-striped table-hover table-responsive clients-table"}
         fields = ("name", "incurred_money", "incurred_hours")
+        template_name = "django_tables2/bootstrap4.html"
 
     def render_name(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.id,)), value))
@@ -50,6 +51,7 @@ class HourListTable(tables.Table):
         model = HourEntry
         attrs = {"class": "table table-striped table-hover hours-table table-responsive"}
         fields = ("date", "user_name", "client", "project_m", "phase_name", "category", "incurred_hours", "bill_rate", "incurred_money", "notes", "calculated_is_approved", "calculated_is_overtime")
+        template_name = "django_tables2/bootstrap4.html"
 
     def render_client(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.invoice.project_m.client_m.id,)), value))
@@ -87,6 +89,7 @@ class InvoicesTable(tables.Table):
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoices-table table-responsive"}
         fields = ("client", "project_m", "date", "admin_users", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage")
+        template_name = "django_tables2/bootstrap4.html"
 
     def render_client(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.project_m.client_m.id,)), value))
@@ -124,6 +127,7 @@ class ProjectsTable(tables.Table):
         model = Project
         attrs = {"class": "table table-striped table-hover projects-table table-responsive"}
         fields = ("client_m", "name", "admin_users", "starts_at", "ends_at", "incurred_hours", "incurred_money")
+        template_name = "django_tables2/bootstrap4.html"
 
     def render_client_m(self, value, record):
         return format_html("<a href='{}'>{}</a>".format(reverse("client_details", args=(record.client_m.id,)), value))
@@ -156,6 +160,7 @@ class ProjectDetailsTable(tables.Table):
         model = Invoice
         attrs = {"class": "table table-striped table-hover invoice-table table-responsive"}
         fields = ("date", "invoice_state", "has_comments", "incorrect_entries_count", "incurred_hours", "bill_rate_avg", "incurred_money", "billable_percentage", "invoice_id")
+        template_name = "django_tables2/bootstrap4.html"
 
     def render_date(self, value):
         return format_html(f"{value:%Y-%m}")
