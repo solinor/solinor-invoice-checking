@@ -94,7 +94,7 @@ Resources:
 
 - Papertrail: log search
 - Sentry: error logging and alerting
-- Heroku scheduler: periodic syncing and notifications
+- Heroku scheduler: periodic syncing and notifications (see the next section)
 - Pingdom: monitoring
 - Heroku redis (hobby): caching, queuing
 - Heroku Postgres (hobby): storage
@@ -112,6 +112,23 @@ Automatic deploys:
 Config variables:
 
 - See `settings.py` for up-to-date list of variables that need/should be set.
+
+
+## Heroku scheduler
+
+- `python manage.py queue_update` - recommended hourly
+- `python manage.py sync_data 10000ft projects` - a few times per day. Hour markings will not be synced before the project is synced to this system.
+- `python manage.py sync_data slack users` - daily
+- `python manage.py sync_data slack channels` - daily
+- `python manage.py sync_data 10000ft users` - daily
+- `python manage.py import_aws_billing_s3_automatic` - daily
+- `python manage.py check_contracts` - daily on a time that is relevant for sending notifications.
+- `python manage.py queue_notification unsubmitted` daily on a time that is relevant for sending notifications. Activates only on Monday.
+- `python manage.py queue_notification unapproved` daily on a time that is relevant for sending notifications. Activates only on Tuesday.
+- `python manage.py refresh_invoice_stats` - nightly - should not be necessary, a sanity check for invoice stats.
+- `python manage.py sync_public_holidays` - daily
+- `python manage.py cleanup --type event` - nightly
+- `python manage.py cleanup --type dataupdate` - nightly
 
 
 ### Code checks
