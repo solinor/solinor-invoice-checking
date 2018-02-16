@@ -24,7 +24,7 @@ Following data is synced:
 - 10000ft projects - `python manage.py sync_data 10000ft projects`
 - 10000ft users - `python manage.py sync_data 10000ft users`
 - Hour entries - a separate worker process: `python manage.py process_update_queue`. Some inconsistent results are to be expected if more than one update process is running.
-- If calculated invoice data is not up to date, see `python manage.py refresh_stats`. This only happens on database/code changes, during normal operations all relevant invoices are always refreshed.
+- If calculated invoice data is not up to date, see `python manage.py refresh_invoice_stats`. This only happens on database/code changes, during normal operations all relevant invoices are always refreshed.
 
 **Forcing resync:** To improve performance, hour entry checksums are stored in a separate table, `invoices.HourEntryChecksum`. If you need to force updating the data, delete contents of this table. For resyncing, use `python manage.py queue_update --automatic-split --force --start-date YYYY-MM-DD --end-date YYYY-MM-DD`.
 

@@ -6,7 +6,7 @@ from invoices.syncing.tenkfeet import refresh_invoice_stats
 
 
 class Command(BaseCommand):
-    help = 'Refresh statistics for each invoice'
+    help = 'Refresh statistics for invoices'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -31,4 +31,4 @@ class Command(BaseCommand):
             end_date = None
 
         refresh_invoice_stats(start_date, end_date)
-        self.stdout.write(self.style.SUCCCESS(f"Updated invoice statistics: {start_date} - {end_date}"))
+        self.stdout.write(self.style.SUCCESS(f"Updated invoice statistics: {start_date} - {end_date}"))
