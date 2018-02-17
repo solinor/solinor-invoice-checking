@@ -52,7 +52,7 @@ def gen_treemap_data_users(queryset, sum_by="incurred_hours", title="Hours per p
             diff = 0
         data.append(("{} - {}".format(entry["1m"]["project"], entry["1m"]["user_name"]), entry["1m"]["user_name"], entry["1m"]["hours"], diff))
 
-    return ("hours_treemap-{sum_by}-{title}", f"{title} for past 30 days", data)
+    return (f"hours_treemap-{sum_by}-{title}", f"{title} for past 30 days", data)
 
 
 def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours per project"):
@@ -104,4 +104,4 @@ def gen_treemap_data_projects(queryset, sum_by="incurred_hours", title="Hours pe
             diff = 0
         data.append(("{} - {}".format(entry["1m"]["user_name"], entry["1m"]["project"]), entry["1m"]["project"], entry["1m"]["hours"], diff))
 
-    return ("projects_treemap-{sum_by}-{title}", f"{title} for past 30 days", data)
+    return (f"projects_treemap-{sum_by}-{title}", f"{title} for past 30 days", data)
