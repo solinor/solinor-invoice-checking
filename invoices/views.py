@@ -230,8 +230,8 @@ def person_overview(request, user_guid):
     calendar_charts.append(("money_calendar", "Incurred billing per day", "Money", money_calendar_data))
 
     treemaps = []
-    treemaps.append(gen_treemap_data_projects(person.hourentry_set.all()))
-    treemaps.append(gen_treemap_data_projects(person.hourentry_set.filter(calculated_is_billable=True), "incurred_money", "Money"))
+    treemaps.append(gen_treemap_data_projects(person.hourentry_set.all().select_related("invoice__project_m", "invoice__project_m__client_m")))
+    treemaps.append(gen_treemap_data_projects(person.hourentry_set.filter(calculated_is_billable=True).select_related("invoice__project_m", "invoice__project_m__client_m"), "incurred_money", "Money"))
 
     months = HourEntry.objects.exclude(status="Unsubmitted").filter(user_m=person).exclude(incurred_hours=0).dates("date", "month", order="DESC")
 
@@ -857,7 +857,7 @@ def invoice_page(request, invoice_id, **_):
     today = datetime.date.today()
     due_date = today + datetime.timedelta(days=14)
 
-    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0)
+    entries = HourEntry.objects.exclude(status="Unsubmitted").filter(invoice=invoice).filter(incurred_hours__gt=0).select_related("user_m")
     aws_entries = None
     if invoice.project_m:
         aws_accounts = invoice.project_m.amazon_account.all()
