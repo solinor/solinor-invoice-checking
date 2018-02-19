@@ -35,7 +35,7 @@
       <td>{{ entry.phase_name }}</td>
       <td>{{ entry.notes }}</td>
       <td class="number-column">{{ entry.incurred_hours|floatformat:"2" }}h</td>
-      <td>{% if entry.can_submit_automatically %}Yes{% else %}No{% endif %} {{ entry.upstream_id }} {{ entry.updated_at }}</td>
+      <td>{% if entry.can_submit_automatically %}Yes{% else %}No{% endif %}</td>
     </tr>
     {% empty %}
     <tr>
