@@ -25,7 +25,7 @@ class Command(BaseCommand):
         if not options["notification_type"]:
             raise CommandError("Notification type not provided.")
 
-        notification_type = options["notification_type"]
+        notification_type = options["notification_type"][0]
         if notification_type not in self.NOTIFICATION_SCHEDULE:
             raise CommandError(f"Invalid notification type: {notification_type}")
 
