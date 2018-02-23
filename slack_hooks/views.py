@@ -146,7 +146,7 @@ def incoming_event(request):
                         "text": "404 - project does not exist",
                     }
                     continue
-                invoices = Invoice.objects.filter(project_m=project).exclude(Q(incurred_hours=0) & Q(incurred_money=0)).order_by("-year", "-month")
+                invoices = Invoice.objects.filter(project_m=project).exclude(Q(incurred_hours=0) & Q(incurred_money=0)).order_by("-date")
                 message = ""
                 if project.description:
                     message += project.description + "\n\n"
