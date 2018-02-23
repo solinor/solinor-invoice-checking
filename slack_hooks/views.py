@@ -104,7 +104,7 @@ def incoming_event(request):
                         "text": "404 - this invoice does not exist",
                     }
                     continue
-                tags = ", ".join([user.full_name for user in invoice.admin_users])
+                tags = ", ".join([user.full_name for user in invoice.admin_users()])
                 unfurls[link["url"]] = {
                     "title": f"Solinor Invoice - {invoice.full_name} - {invoice.formatted_date}",
                     "title_link": link["url"],
