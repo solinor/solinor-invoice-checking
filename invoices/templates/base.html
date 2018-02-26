@@ -75,7 +75,7 @@
        <li class="nav-item"><a class="nav-link nowrap-column" href="{% url "your_flex_hours" %}">Flex <span class="badge badge-secondary" id="flex_hours_count" data-turbolinks-permanent>New</span></a></li>
 
        <li class="nav-item dropdown">
-         <a class="nav-link dropdown-toggle nowrap-column" href="{% url "admin:index" %}" id="navDropdownActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</a>
+         <a class="nav-link dropdown-toggle nowrap-column" data-turbolinks="false" href="{% url "admin:index" %}" id="navDropdownActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</a>
          <div class="dropdown-menu" aria-labelledby="navDropdownActions">
            {% if perms.invoices.can_send_notifications %}
            <a class="dropdown-item" href="{% url "queue_slack_notification" %}">Slack notifications <i class="fa fa-lock" aria-hidden="true"></i></a>
@@ -84,7 +84,7 @@
            <a class="dropdown-item" href="{% url "admin_sync" %}">Sync <i class="fa fa-lock" aria-hidden="true"></i></a>
            {% endif %}
            {% if request.user.is_staff %}
-           <a class="dropdown-item" href="{% url "admin:index" %}">Admin <i class="fa fa-lock" aria-hidden="true"></i></a>
+           <a class="dropdown-item" data-turbolinks="false" href="{% url "admin:index" %}">Admin <i class="fa fa-lock" aria-hidden="true"></i></a>
            {% endif %}
          </div>
        </li>
