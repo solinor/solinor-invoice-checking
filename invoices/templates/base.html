@@ -22,22 +22,22 @@
     <link rel="dns-prefetch" href="//www.googletagmanager.com">
 
     {% compress css %}
-    <link href="{% static "css/base.css" %}" rel="stylesheet">
-    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
-    <link href="{% static "css/font-awesome.min.css" %}" rel="stylesheet">
-    <link href="{% static "django_tables2/bootstrap.css" %}" rel="stylesheet">
-    <link href="{% static "css/invoice_page.css" %}" rel="stylesheet">
+    <link href="{% static "css/base.css" %}" rel="stylesheet" data-turbolinks-track="reload">
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" data-turbolinks-track="reload">
+    <link href="{% static "css/font-awesome.min.css" %}" rel="stylesheet" data-turbolinks-track="reload">
+    <link href="{% static "django_tables2/bootstrap.css" %}" rel="stylesheet" data-turbolinks-track="reload">
+    <link href="{% static "css/invoice_page.css" %}" rel="stylesheet" data-turbolinks-track="reload">
     {% endcompress %}
 
     <script defer type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     {% compress js %}
-    <script defer src="{% static "js/turbolinks.js" %}"></script>
-    <script defer src="{% static "js/jquery.3.2.1.min.js" %}"></script>
-    <script defer src="{% static "js/popper.min.js" %}"></script>
-    <script defer src="{% static "js/bootstrap.min.js" %}"></script>
-    <script defer src="{% static "js/base.js" %}"></script>
-    <script defer src="{% static "js/header_flex_hours.js" %}"></script>
-    <script defer src="{% static "js/jquery.sparkline.2.1.2.min.js" %}"></script>
+    <script defer src="{% static "js/turbolinks.js" %}" data-turbolinks-track="reload"></script>
+    <script defer src="{% static "js/jquery.3.2.1.min.js" %}" data-turbolinks-track="reload"></script>
+    <script defer src="{% static "js/popper.min.js" %}" data-turbolinks-track="reload"></script>
+    <script defer src="{% static "js/bootstrap.min.js" %}" data-turbolinks-track="reload"></script>
+    <script defer src="{% static "js/base.js" %}" data-turbolinks-track="reload"></script>
+    <script defer src="{% static "js/header_flex_hours.js" %}" data-turbolinks-track="reload"></script>
+    <script defer src="{% static "js/jquery.sparkline.2.1.2.min.js" %}" data-turbolinks-track="reload"></script>
     {% endcompress %}
     {% block header %}{% endblock %}
 </head>
