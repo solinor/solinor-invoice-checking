@@ -54,137 +54,33 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 <div class="row py-2">
   <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "your_unsubmitted_hours" %}');">
     <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Unsubmitted entries</h5>
-        <p class="lead" id="your_unsubmitted_entries">Loading</p>
+      <div class="card-body text-center">
+        <p class="card-title">Unsubmitted entries</p>
+        <h5 id="your_unsubmitted_entries">Loading</h5>
         </div>
     </div>
   </div>
   <div class="col-md-3 mb-4">
     <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Last hour marking</h5>
-        <p class="lead" id="your_last_hour_marking">Loading</p>
+      <div class="card-body text-center">
+        <p class="card-title">Last hour marking</p>
+        <h5 id="your_last_hour_marking">Loading</h5>
       </div>
     </div>
   </div>
   <div class="col-md-3 mb-4">
     <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Hours for past 7 days</h3>
-        <p class="lead" id="your_hours_this_week">Loading</p>
+      <div class="card-body text-center">
+        <p class="card-title">Hours for past 7 days</p>
+        <h5 id="your_hours_this_week">Loading</h5>
       </div>
     </div>
   </div>
   <div class="col-md-3 mb-4">
     <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Your billing % <small>Past 30d</small></h3>
+      <div class="card-body text-center">
+        <p class="card-title">Your billing % <small>Past 30d</small></p>
         <p class="lead"><span id="your_billing_ratio">Loading</span> <span id="your_billing_ratio_sparkline"></span></p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<h3>Company</h3>
-
-<h5>Past 365d - company-wide objectives</h5>
-
-<div class="row py-2">
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Billing %</h5>
-        <p class="lead" id="company_billing_ratio_365d">Loading</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Billing &euro;</h5>
-        <p class="lead" id="company_billing_money_365d">Loading</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Avg invoicing/h</h3>
-        <p class="lead" id="company_avg_invoicing_365d">Loading</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Accounts &gt;300k&euro;</h3>
-        <p class="lead" id="company_large_accounts_365d">Loading</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<h5>Past 30d</h5>
-
-<div class="row py-2">
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Billing %</h5>
-        <p class="lead" id="company_billing_ratio_30d">Loading</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Billing &euro;</h3>
-        <p class="lead" id="company_billing_money_30d">Loading</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Avg invoicing/h</h3>
-        <p class="lead" id="company_avg_invoicing_30d">Loading</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<h5>Hour markings</h5>
-<div class="row py-2">
-  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Unsubmitted&date__gte={{ company_error_entries_date_gte }}');">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Unsubmitted entries</h5>
-        <p class="lead"><span id="company_unsubmitted_entries">Loading</span> <span id="company_billing_unsubmitted_money"></span></p>
-        </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Pending+Approval&date__gte={{ company_error_entries_date_gte }}');">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">Unapproved entries</h5>
-        <p class="lead"><span id="company_unapproved_entries">Loading</span> <span id="company_billing_unapproved_money"></span></p>
-        </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">No descriptions <small>Past 30d</small></h3>
-        <p class="lead" id="company_no_descriptions_30d">Loading</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-4">
-    <div class="card your-information-card">
-      <div class="card-body">
-        <h5 class="card-title">No phases/categories <small>Past 30d</small></h3>
-        <p class="lead" id="company_no_phases_categories_30d">Loading</p>
       </div>
     </div>
   </div>
@@ -196,6 +92,111 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 {% include "snippets/frontpage_table.html" with invoices=your_invoices %}
 
 {% endif %}
+
+
+<h3>Company</h3>
+
+<h5>Past 365d - company-wide objectives</h5>
+
+<div class="row py-2">
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Billing %</p>
+        <h5 id="company_billing_ratio_365d">Loading</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Billing &euro;</>
+        <h5 id="company_billing_money_365d">Loading</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Avg invoicing/h</p>
+        <h5 id="company_avg_invoicing_365d">Loading</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Accounts &gt;300k&euro;</p>
+        <h5 id="company_large_accounts_365d">Loading</h5>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5>Past 30d</h5>
+
+<div class="row py-2">
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Billing %</p>
+        <h5 id="company_billing_ratio_30d">Loading</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Billing &euro;</p>
+        <h5 id="company_billing_money_30d">Loading</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Avg invoicing/h</p>
+        <h5 id="company_avg_invoicing_30d">Loading</h5>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5>Hour markings</h5>
+<div class="row py-2">
+  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Unsubmitted&date__gte={{ company_error_entries_date_gte }}');">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Unsubmitted entries</p>
+        <h5><span id="company_unsubmitted_entries">Loading</span> <span id="company_billing_unsubmitted_money"></span></h5>
+        </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Pending+Approval&date__gte={{ company_error_entries_date_gte }}');">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">Unapproved entries</p>
+        <h5><span id="company_unapproved_entries">Loading</span> <span id="company_billing_unapproved_money"></span></h5>
+        </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">No descriptions <small>Past 30d</small></p>
+        <h5 id="company_no_descriptions_30d">Loading</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body text-center">
+        <p class="card-title">No phases/categories <small>Past 30d</small></p>
+        <h5 id="company_no_phases_categories_30d">Loading</h5>
+      </div>
+    </div>
+  </div>
+</div>
 
 <h3>Our current projects</h3>
 
