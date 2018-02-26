@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 continue
             if correction.adjust_by is not None:
                 for contract in per_user_contracts[correction.user.email]:
-                    if contract.start_date >= correction.date >= contract.end_date:
+                    if contract.start_date <= correction.date <= contract.end_date:
                         break
                 else:
                     if correction.date < start_date_by_user[correction.user.email]:
