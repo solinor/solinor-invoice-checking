@@ -15,5 +15,6 @@ from whitenoise.django import DjangoWhiteNoise  # pylint: disable=wrong-import-p
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "invoice_checking.settings")
 
 
+# DO NOT PUT SENTRY CONFIGURATION HERE. It will not catch errors with `settings.handler500` if it is not configured as a middleware. Similarly, `manage.py` errors will not be catched with wsgi middleware.
 application = get_wsgi_application()  # pylint: disable=invalid-name
 application = DjangoWhiteNoise(application)  # pylint: disable=invalid-name
