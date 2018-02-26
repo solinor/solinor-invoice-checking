@@ -1,8 +1,10 @@
 import datetime
 from collections import defaultdict
 
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db.models import Q, Sum
 from django.http import HttpResponseBadRequest
+from django.utils import timezone
 
 from invoices.models import Client, HourEntry
 from invoices.utils import daterange
@@ -84,7 +86,10 @@ def calculate_clientbase_stats(sorting, active_field):
 def hours_overview_stats(email):
     base_query = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=email).exclude(incurred_hours=0)
     try:
-        your_last_hour_marking = base_query.values_list("date", flat=True).latest("date")
+        d = base_query.values_list("date", flat=True).latest("date")
+        your_last_hour_marking = naturaltime(timezone.now().replace(day=d.day, month=d.month, year=d.year))
+        if your_last_hour_marking == "now":
+            your_last_hour_marking = "today"
     except HourEntry.DoesNotExist:
         your_last_hour_marking = "No entries"
 
@@ -161,7 +166,6 @@ def hours_overview_stats(email):
 
     return {
         "your_last_hour_marking": your_last_hour_marking,
-        "your_last_hour_marking_day": your_last_hour_marking.strftime("%A"),
         "your_hours_this_week": your_hours_this_week,
         "your_billing_ratio": your_billing_ratio,
         "your_unsubmitted_entries": your_unsubmitted_entries,

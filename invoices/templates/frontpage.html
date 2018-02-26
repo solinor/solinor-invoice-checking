@@ -17,7 +17,7 @@ $.get("{% url "frontpage_stats" %}", function(data) {
   } else {
     $("#your_unsubmitted_entries").html(data.your_unsubmitted_entries + " <i class='fa fa-check-circle'></i>");
   }
-  $("#your_last_hour_marking").html(data.your_last_hour_marking + " (" + data.your_last_hour_marking_day + ")");
+  $("#your_last_hour_marking").html(data.your_last_hour_marking);
 
   var fields = [
     ["your_hours_this_week", 2, "h"],
