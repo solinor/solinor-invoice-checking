@@ -4,7 +4,7 @@ from collections import defaultdict
 from django.db.models import Q, Sum
 from django.http import HttpResponseBadRequest
 
-from invoices.models import HourEntry
+from invoices.models import Client, HourEntry
 from invoices.utils import daterange
 
 
@@ -91,6 +91,7 @@ def hours_overview_stats(email):
     today = datetime.date.today()
     month_ago = today - datetime.timedelta(days=30)
     two_months = today - datetime.timedelta(days=60)
+    year_ago = today - datetime.timedelta(days=365)
     your_hours_this_week = base_query.filter(date__gte=today - datetime.timedelta(days=6), date__lte=today).aggregate(hours=Sum("incurred_hours"))["hours"] or 0
 
     your_unsubmitted_entries = HourEntry.objects.filter(user_email=email).exclude(incurred_hours=0).filter(status="Unsubmitted").count()
@@ -116,20 +117,47 @@ def hours_overview_stats(email):
         your_daily_billing_ratio.append(ratio)
     your_daily_billing_ratio = [(your_daily_billing_ratio[i] + your_daily_billing_ratio[i + 1] + your_daily_billing_ratio[i + 2] + your_daily_billing_ratio[i + 3] + your_daily_billing_ratio[i + 4]) / 5 for i in range(0, len(your_daily_billing_ratio) - 5, 5)]
 
-    company_billing_money = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+    company_billing_money_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=year_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
+
+    company_billing_money_30d = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
     company_billing_unsubmitted_money = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=two_months, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
     company_unsubmitted_entries = HourEntry.objects.filter(status="Unsubmitted").filter(date__gte=two_months, date__lte=today).count()
 
     company_billing_unapproved_money = HourEntry.objects.filter(status="Pending Approval").filter(date__gte=two_months, date__lte=today).aggregate(item=Sum("incurred_money"))["item"] or 0
     company_unapproved_entries = HourEntry.objects.filter(status="Pending Approval").filter(date__gte=two_months, date__lte=today).count()
 
-    company_billable_hours = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=True).aggregate(item=Sum("incurred_hours"))["item"] or 0
-    company_nonbillable_hours = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=False).aggregate(item=Sum("incurred_hours"))["item"] or 0
+    company_billable_hours_30d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=True).aggregate(item=Sum("incurred_hours"))["item"] or 0
+    company_nonbillable_hours_30d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_is_billable=False).aggregate(item=Sum("incurred_hours"))["item"] or 0
 
-    company_billing_ratio = "?"
-    if company_billable_hours or company_nonbillable_hours:
-        total_hours = company_nonbillable_hours + company_billable_hours
-        company_billing_ratio = company_nonbillable_hours / total_hours * 100
+    company_billing_ratio_30d = "?"
+    if company_billable_hours_30d or company_nonbillable_hours_30d:
+        total_hours = company_nonbillable_hours_30d + company_billable_hours_30d
+        company_billing_ratio_30d = company_nonbillable_hours_30d / total_hours * 100
+
+    company_billable_hours_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago, date__lte=today).filter(calculated_is_billable=True).aggregate(item=Sum("incurred_hours"))["item"] or 0
+    company_nonbillable_hours_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago, date__lte=today).filter(calculated_is_billable=False).aggregate(item=Sum("incurred_hours"))["item"] or 0
+
+    company_billing_ratio_365d = "?"
+    if company_billable_hours_365d or company_nonbillable_hours_365d:
+        total_hours = company_nonbillable_hours_365d + company_billable_hours_365d
+        company_billing_ratio_365d = company_nonbillable_hours_365d / total_hours * 100
+
+    incurred_hours_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=year_ago, date__lte=today).aggregate(item=Sum("incurred_hours"))["item"] or 0
+    if incurred_hours_365d > 0:
+        company_avg_invoicing_365d = company_billing_money_365d / incurred_hours_365d
+    else:
+        company_avg_invoicing_365d = "?"
+
+    incurred_hours_30d = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=month_ago, date__lte=today).aggregate(item=Sum("incurred_hours"))["item"] or 0
+    if incurred_hours_30d > 0:
+        company_avg_invoicing_30d = company_billing_money_30d / incurred_hours_30d
+    else:
+        company_avg_invoicing_30d = "?"
+
+    company_large_accounts_365d = Client.objects.annotate(incurred_billing=Sum("project__invoice__hourentry__incurred_money", filter=Q(project__invoice__date__gte=year_ago))).filter(incurred_billing__gte=300000).count()
+
+    company_no_descriptions_30d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(calculated_has_notes=False).count()
+    company_no_phases_categories_30d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=month_ago, date__lte=today).filter(Q(calculated_has_phase=False) | Q(calculated_has_category=False)).count()
 
     return {
         "your_last_hour_marking": your_last_hour_marking,
@@ -138,8 +166,15 @@ def hours_overview_stats(email):
         "your_billing_ratio": your_billing_ratio,
         "your_unsubmitted_entries": your_unsubmitted_entries,
         "your_daily_billing_ratio": your_daily_billing_ratio[-90:],
-        "company_billing_money": company_billing_money,
-        "company_billing_ratio": company_billing_ratio,
+        "company_billing_money_30d": company_billing_money_30d,
+        "company_billing_ratio_30d": company_billing_ratio_30d,
+        "company_billing_money_365d": company_billing_money_365d,
+        "company_billing_ratio_365d": company_billing_ratio_365d,
+        "company_avg_invoicing_365d": company_avg_invoicing_365d,
+        "company_avg_invoicing_30d": company_avg_invoicing_30d,
+        "company_no_descriptions_30d": company_no_descriptions_30d,
+        "company_large_accounts_365d": company_large_accounts_365d,
+        "company_no_phases_categories_30d": company_no_phases_categories_30d,
         "company_billing_unsubmitted_money": company_billing_unsubmitted_money,
         "company_unsubmitted_entries": company_unsubmitted_entries,
         "company_billing_unapproved_money": company_billing_unapproved_money,

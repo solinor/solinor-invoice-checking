@@ -22,12 +22,19 @@ $.get("{% url "frontpage_stats" %}", function(data) {
   var fields = [
     ["your_hours_this_week", 2, "h"],
     ["your_billing_ratio", 0, "%"],
-    ["company_billing_money", 0, "&euro;"],
+    ["company_billing_money_30d", 0, "&euro;"],
+    ["company_billing_ratio_30d", 0, "%"],
+    ["company_billing_money_365d", 0, "&euro;"],
+    ["company_billing_ratio_365d", 0, "%"],
+    ["company_avg_invoicing_30d", 0, "&euro;/h"],
+    ["company_avg_invoicing_365d", 0, "&euro;/h"],
+    ["company_large_accounts_365d", 0, ""],
     ["company_billing_unsubmitted_money", 0, "&euro;"],
     ["company_unsubmitted_entries", 0, " - "],
     ["company_billing_unapproved_money", 0, "&euro;"],
     ["company_unapproved_entries", 0, " - "],
-    ["company_billing_ratio", 0, "%"],
+    ["company_no_descriptions_30d", 0, ""],
+    ["company_no_phases_categories_30d", 0, ""]
   ]
   for (var i in fields) {
     if (typeof data[fields[i][0]] === "number") {
@@ -81,6 +88,73 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
 
 <h3>Company</h3>
 
+<h5>Past 365d - company-wide objectives</h5>
+
+<div class="row py-2">
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Billing %</h5>
+        <p class="lead" id="company_billing_ratio_365d">Loading</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Billing &euro;</h5>
+        <p class="lead" id="company_billing_money_365d">Loading</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Avg invoicing/h</h3>
+        <p class="lead" id="company_avg_invoicing_365d">Loading</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Accounts &gt;300k&euro;</h3>
+        <p class="lead" id="company_large_accounts_365d">Loading</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5>Past 30d</h5>
+
+<div class="row py-2">
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Billing %</h5>
+        <p class="lead" id="company_billing_ratio_30d">Loading</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Billing &euro;</h3>
+        <p class="lead" id="company_billing_money_30d">Loading</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-4">
+    <div class="card your-information-card">
+      <div class="card-body">
+        <h5 class="card-title">Avg invoicing/h</h3>
+        <p class="lead" id="company_avg_invoicing_30d">Loading</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5>Hour markings</h5>
 <div class="row py-2">
   <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&status=Unsubmitted&date__gte={{ company_error_entries_date_gte }}');">
     <div class="card your-information-card">
@@ -101,16 +175,16 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
   <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
-        <h5 class="card-title">Billing % <small>Past 30d</small></h5>
-        <p class="lead" id="company_billing_ratio">Loading</p>
+        <h5 class="card-title">No descriptions <small>Past 30d</small></h3>
+        <p class="lead" id="company_no_descriptions_30d">Loading</p>
       </div>
     </div>
   </div>
   <div class="col-md-3 mb-4">
     <div class="card your-information-card">
       <div class="card-body">
-        <h5 class="card-title">Billing &euro; <small>Past 30d</small></h3>
-        <p class="lead" id="company_billing_money">Loading</p>
+        <h5 class="card-title">No phases/categories <small>Past 30d</small></h3>
+        <p class="lead" id="company_no_phases_categories_30d">Loading</p>
       </div>
     </div>
   </div>
