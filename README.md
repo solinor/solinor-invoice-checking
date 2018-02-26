@@ -142,6 +142,18 @@ Config variables:
 - `python manage.py cleanup --type event` - nightly
 - `python manage.py cleanup --type dataupdate` - nightly
 
+## Papertrail configuration
+
+Incoming event filtering: `Pingdom\.com_bot_version_|"/accounts/login/\?next=/"|PingdomPageSpeed|at=info\ method=GET\ path="/".*status=302|at=info\\\ method=GET\\\ path="/"\.\*status=301` - remove Pingdom messages, login and HTTPS redirect messages.
+
+Alerts:
+
+- Query: `"error code=H" OR "Error R" OR "Error L"` - platform errors
+- Query: `"No matching invoice available - skip entry"` - hour entries without invoices. Caused either by non-synced projects, or a bug. If this disappears after running `sync_data 10000ft projects`, it was the former. If it does not disappear, something else is wrong.
+- Query: `"State changed from up to crashed"` - something crashed. Just a fallback check in case Sentry did not catch something.
+- Query: `"error"` - something went wrong. This catches pretty much everything, and is usually redundant to Sentry tracking.
+
+Set correct timezone, both in general configuration and for alerts.
 
 ## Setting up development environment
 
