@@ -690,6 +690,34 @@ def users_charts(request):
 
 
 @login_required
+def company_stats(request):
+    def calc_billing_ratio(entry):
+        if entry["billable_hours"] or entry["non_billable_hours"]:
+            total_hours = (entry["billable_hours"] or 0) + (entry["non_billable_hours"] or 0)
+            return (entry["billable_hours"] or 0) / total_hours
+        return 0
+
+    today = datetime.date.today()
+    last_day = today.replace(day=1) - datetime.timedelta(days=1)
+    first_day = (last_day - datetime.timedelta(days=730)).replace(day=1)
+
+    base_query = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=first_day, date__lte=last_day)
+
+    monthly_stats_excluding_leaves = base_query.filter(leave_type="[project]").annotate(month=TruncMonth("date")).values("month").order_by("month").annotate(billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=True))).annotate(non_billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=False))).annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(non_billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+    monthly_stats_including_leaves = base_query.annotate(month=TruncMonth("date")).values("month").order_by("month").annotate(billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=True))).annotate(non_billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=False))).annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(non_billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
+
+    billing_ratio_including_leaves = [["Date", "Billing ratio %"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), calc_billing_ratio(entry)] for entry in monthly_stats_including_leaves]
+    billing_ratio_excluding_leaves = [["Date", "Billing ratio %"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), calc_billing_ratio(entry)] for entry in monthly_stats_excluding_leaves]
+    monthly_billing = [["Date", "Billing €"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["billable_money"]] for entry in monthly_stats_excluding_leaves]
+
+    linecharts = []
+    linecharts.append(("billing_ratio_including_leaves", "Billing ratio including leaves", json.dumps(billing_ratio_including_leaves)))
+    linecharts.append(("billing_ratio_excluding_leaves", "Billing ratio excluding leaves", json.dumps(billing_ratio_excluding_leaves)))
+    linecharts.append(("monthly_billing", "Monthly billing", json.dumps(monthly_billing)))
+    return render(request, "company/stats.html", {"line_charts": linecharts})
+
+
+@login_required
 def hours_overview(request):
     today = datetime.date.today()
     period_start = today - datetime.timedelta(days=30)

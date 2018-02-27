@@ -40,6 +40,7 @@ urlpatterns = [
     path("you/flexhours/json", flex_hours.views.your_flex_hours_json, name="your_flex_hours_json"),
     path("frontpage/stats", invoices.views.frontpage_stats, name="frontpage_stats"),
     path("you/hours/unsubmitted", invoices.views.your_unsubmitted_hours, name="your_unsubmitted_hours"),
+    path("company/stats", invoices.views.company_stats, name="company_stats"),
 
     path("search", invoices.views.search, name="search"),
 

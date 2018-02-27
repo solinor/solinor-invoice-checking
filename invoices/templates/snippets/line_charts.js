@@ -6,6 +6,9 @@
    height: 400,
    legend: {
      position: "none",
+   },
+   vAxis: {
+     minValue: 0,
    }
   };
   var chart = new google.visualization.LineChart(document.getElementById("{{ linechart.0 }}"));
