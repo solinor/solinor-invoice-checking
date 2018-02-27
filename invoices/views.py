@@ -694,7 +694,7 @@ def company_stats(request):
     def calc_billing_ratio(entry):
         if entry["billable_hours"] or entry["non_billable_hours"]:
             total_hours = (entry["billable_hours"] or 0) + (entry["non_billable_hours"] or 0)
-            return (entry["billable_hours"] or 0) / total_hours
+            return (entry["billable_hours"] or 0) / total_hours * 100
         return 0
 
     def calc_billing_rate(entry):
