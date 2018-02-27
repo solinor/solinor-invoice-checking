@@ -1046,9 +1046,9 @@
       <tr>
         <td class="nowrap-column">{{ entry.date }}
         <td class="nowrap-column">{{ entry.user_name }}</td>
-        <td class="number-column">{{ entry.bill_rate|floatformat:2 }}&euro;</td>
+        <td class="number-column">{% if entry.calculated_is_billable %}{{ entry.bill_rate|floatformat:2 }}&euro;{% else %}-{% endif %}</td>
         <td class="number-column">{{ entry.incurred_hours|floatformat:2 }}h</td>
-        <td class="number-column">{{ entry.incurred_money|floatformat:2 }}&euro;</td>
+        <td class="number-column">{% if entry.calculated_is_billable %}{{ entry.incurred_money|floatformat:2 }}&euro;{% else %}-{% endif %}</td>
         <td>{{ entry.notes }}</td>
       </tr>
     {% endfor %}

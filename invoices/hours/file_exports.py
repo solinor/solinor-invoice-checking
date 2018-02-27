@@ -41,9 +41,13 @@ def generate_hours_xls_for_invoice(invoice_id):
             row_number = i + 1
             worksheet.write_datetime(row_number, 0, datetime.datetime.combine(entry.date, datetime.datetime.min.time()), date_format)
             worksheet.write_string(row_number, 1, entry.user_name)
-            worksheet.write(row_number, 2, entry.bill_rate, money)
+            if entry.calculated_is_billable:
+                worksheet.write(row_number, 2, entry.bill_rate, money)
+                worksheet.write(row_number, 4, entry.incurred_money, money)
+            else:
+                worksheet.write(row_number, 2, 0, money)
+                worksheet.write(row_number, 4, 0, money)
             worksheet.write(row_number, 3, entry.incurred_hours)
-            worksheet.write(row_number, 4, entry.incurred_money, money)
             worksheet.write_string(row_number, 5, entry.phase_name)
             worksheet.write_string(row_number, 6, entry.category)
             worksheet.write_string(row_number, 7, entry.notes)
@@ -85,12 +89,13 @@ def generate_hours_pdf_for_invoice(request, invoice_id):
     for entry in entries:
         phases[entry.phase_name]["items"].append(entry)
         phases[entry.phase_name]["hours_sum"] += entry.incurred_hours
-        phases[entry.phase_name]["money_sum"] += entry.incurred_money
+        if entry.calculated_is_billable:
+            phases[entry.phase_name]["money_sum"] += entry.incurred_money
 
     context = {
         "invoice": invoice,
         "phases": dict(phases),
-        "money_sum": sum(entry.incurred_money for entry in entries),
+        "money_sum": sum(entry.incurred_money for entry in entries if entry.calculated_is_billable),
         "hours_sum": sum(entry.incurred_hours for entry in entries),
     }
 
