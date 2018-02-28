@@ -712,6 +712,12 @@ def company_stats(request):
     monthly_stats_excluding_leaves = base_query.filter(leave_type="[project]").annotate(month=TruncMonth("date")).values("month").order_by("month").annotate(billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=True))).annotate(non_billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=False))).annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(non_billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
     monthly_stats_including_leaves = base_query.annotate(month=TruncMonth("date")).values("month").order_by("month").annotate(billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=True))).annotate(non_billable_money=Sum("incurred_money", filter=Q(calculated_is_billable=False))).annotate(billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=True))).annotate(non_billable_hours=Sum("incurred_hours", filter=Q(calculated_is_billable=False)))
 
+    months = defaultdict(int)
+    for entry in base_query.annotate(month=TruncMonth("date")).values("month", "user_email").order_by("month", "user_email").annotate(hours_per_user=Sum("incurred_hours")).filter(hours_per_user__gte=37.5):
+        months[entry["month"]] += 1
+
+    employees_per_month = [["Date", "Employees"]] + [["{}-{}".format(month.year, month.month), cnt] for month, cnt in months.items()]
+
     billing_ratio_including_leaves = [["Date", "Billing ratio %"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), calc_billing_ratio(entry)] for entry in monthly_stats_including_leaves]
     billing_ratio_excluding_leaves = [["Date", "Billing ratio %"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), calc_billing_ratio(entry)] for entry in monthly_stats_excluding_leaves]
     monthly_billing = [["Date", "Billing €"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), entry["billable_money"]] for entry in monthly_stats_excluding_leaves]
@@ -723,6 +729,7 @@ def company_stats(request):
     linecharts.append(("billing_rate", "Billing rate €/h - excluding fixed-price, non-billable, internal, and leaves", json.dumps(billing_money_per_hour)))
     linecharts.append(("monthly_billing", "Monthly billing - excluding fixed-price projects and discounts/refunds", json.dumps(monthly_billing)))
     linecharts.append(("monthly_non_billable", "Non-billable customer work done (h)", json.dumps(monthly_non_billable)))
+    linecharts.append(("employees_per_month", "Number of employees marking hours - everyone with at least 25% working time", json.dumps(employees_per_month)))
     linecharts.append(("billing_ratio_excluding_leaves", "Billing ratio excluding leaves", json.dumps(billing_ratio_excluding_leaves)))
     linecharts.append(("billing_ratio_including_leaves", "Billing ratio including leaves", json.dumps(billing_ratio_including_leaves)))
     return render(request, "company/stats.html", {"line_charts": linecharts})

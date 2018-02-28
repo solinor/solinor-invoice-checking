@@ -87,9 +87,17 @@ def hours_overview_stats(email):
     base_query = HourEntry.objects.exclude(status="Unsubmitted").filter(user_email=email).exclude(incurred_hours=0)
     try:
         d = base_query.values_list("date", flat=True).latest("date")
-        your_last_hour_marking = naturaltime(timezone.now().replace(day=d.day, month=d.month, year=d.year))
-        if your_last_hour_marking == "now":
+        your_last_hour_marking = datetime.date.today() - d
+        if your_last_hour_marking.days == 0:
             your_last_hour_marking = "today"
+        elif your_last_hour_marking.days < 0:
+            your_last_hour_marking = "in the future"
+        elif your_last_hour_marking.days == 1:
+            your_last_hour_marking = "yesterday"
+        elif your_last_hour_marking.days == 2:
+            your_last_hour_marking = "day before yesterday"
+        else:
+            your_last_hour_marking = f"{your_last_hour_marking.days} days ago"
     except HourEntry.DoesNotExist:
         your_last_hour_marking = "No entries"
 
