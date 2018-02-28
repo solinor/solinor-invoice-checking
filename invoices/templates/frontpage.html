@@ -180,7 +180,7 @@ $(".sparkline-inline-content").sparkline('html', {"width": "100%", "type": "bar"
         </div>
     </div>
   </div>
-  <div class="col-md-3 mb-4">
+  <div class="col-md-3 mb-4 clickable-area" onclick="Turbolinks.visit('{% url "hours_browser" %}?sort=-date&date__gte={{ company_error_entries_date_gte }}&calculated_has_notes=3&status=Approved&status=Pending+Approval');">
     <div class="card your-information-card">
       <div class="card-body text-center">
         <p class="card-title">No descriptions <small>Past 30d</small></p>
