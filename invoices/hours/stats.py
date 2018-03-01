@@ -145,7 +145,7 @@ def hours_overview_stats(email):
     company_billing_ratio_30d = "?"
     if company_billable_hours_30d or company_nonbillable_hours_30d:
         total_hours = company_nonbillable_hours_30d + company_billable_hours_30d
-        company_billing_ratio_30d = company_nonbillable_hours_30d / total_hours * 100
+        company_billing_ratio_30d = company_billable_hours_30d / total_hours * 100
 
     company_billable_hours_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago, date__lte=today).filter(calculated_is_billable=True).aggregate(item=Sum("incurred_hours"))["item"] or 0
     company_nonbillable_hours_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(date__gte=year_ago, date__lte=today).filter(calculated_is_billable=False).aggregate(item=Sum("incurred_hours"))["item"] or 0
@@ -153,7 +153,7 @@ def hours_overview_stats(email):
     company_billing_ratio_365d = "?"
     if company_billable_hours_365d or company_nonbillable_hours_365d:
         total_hours = company_nonbillable_hours_365d + company_billable_hours_365d
-        company_billing_ratio_365d = company_nonbillable_hours_365d / total_hours * 100
+        company_billing_ratio_365d = company_billable_hours_365d / total_hours * 100
 
     incurred_hours_365d = HourEntry.objects.exclude(status="Unsubmitted").filter(calculated_is_billable=True).filter(date__gte=year_ago, date__lte=today).aggregate(item=Sum("incurred_hours"))["item"] or 0
     if incurred_hours_365d > 0:
