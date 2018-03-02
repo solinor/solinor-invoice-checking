@@ -725,14 +725,15 @@ def company_stats(request):
 
     billing_money_per_hour = [["Date", "Billing rate €/h"]] + [["{}-{}".format(entry["month"].year, entry["month"].month), calc_billing_rate(entry)] for entry in monthly_stats_excluding_leaves]
 
+    columncharts = []
     linecharts = []
-    linecharts.append(("billing_rate", "Billing rate €/h - excluding fixed-price, non-billable, internal, and leaves", json.dumps(billing_money_per_hour)))
-    linecharts.append(("monthly_billing", "Monthly billing - excluding fixed-price projects and discounts/refunds", json.dumps(monthly_billing)))
-    linecharts.append(("monthly_non_billable", "Non-billable customer work done (h)", json.dumps(monthly_non_billable)))
-    linecharts.append(("employees_per_month", "Number of employees marking hours - everyone with at least 25% working time", json.dumps(employees_per_month)))
+    columncharts.append(("billing_rate", "Billing rate €/h - excluding fixed-price, non-billable, internal, and leaves", json.dumps(billing_money_per_hour)))
+    columncharts.append(("monthly_billing", "Monthly billing - excluding fixed-price projects and discounts/refunds", json.dumps(monthly_billing)))
+    columncharts.append(("monthly_non_billable", "Non-billable customer work done (h)", json.dumps(monthly_non_billable)))
+    columncharts.append(("employees_per_month", "Number of employees marking hours - everyone with at least 25% working time", json.dumps(employees_per_month)))
     linecharts.append(("billing_ratio_excluding_leaves", "Billing ratio excluding leaves", json.dumps(billing_ratio_excluding_leaves)))
     linecharts.append(("billing_ratio_including_leaves", "Billing ratio including leaves", json.dumps(billing_ratio_including_leaves)))
-    return render(request, "company/stats.html", {"line_charts": linecharts})
+    return render(request, "company/stats.html", {"column_charts": columncharts, "line_charts": linecharts})
 
 
 @login_required

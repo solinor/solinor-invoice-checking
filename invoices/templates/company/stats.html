@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
 {% block pageJs %}
-google.charts.load("current", {packages:["treemap", "corechart", "calendar"]});
+google.charts.load("current", {packages:["treemap", "corechart", "calendar", "bar"]});
 google.charts.setOnLoadCallback(drawChart);
 
 function drawChart() {
   {% include "snippets/treemap_charts.js" %}
   {% include "snippets/line_charts.js" %}
+  {% include "snippets/column_charts.js" %}
   {% include "snippets/calendar_charts.js" %}
 }
 {% endblock %}
@@ -22,6 +23,7 @@ function drawChart() {
 <div class="row">
   <div class="col-md-12">
     {% include "snippets/treemap_charts.html" %}
+    {% include "snippets/column_charts.html" %}
     {% include "snippets/line_charts.html" %}
     {% include "snippets/calendar_charts.html" %}
   </div>
