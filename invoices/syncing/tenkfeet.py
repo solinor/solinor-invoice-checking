@@ -223,13 +223,13 @@ class HourEntryUpdate(object):
                 logger.debug("Skipping hour entry with 0 incurred hours: %s", entry)
                 continue
             entry_date = parse_date(entry[40])
-            logger.debug("Hour entry date: %s", entry_date)
+            logger.info("Hour entry date: %s", entry_date)
             entry_data = {"reporting": entry, "api": tenkfeet_api_entries.get(parse_upstream_id(entry[59]), {})}
             per_date_data[entry_date]["sha256"].update(json.dumps(entry_data).encode())
             per_date_data[entry_date]["items"].append(entry_data)
 
         for key in per_date_data:
-            logger.debug("Date key: %s", key)
+            logger.info("Date key: %s", key)
 
         dates = list(daterange(self.start_date, self.end_date))
         checksums = {k.date: k.sha256 for k in HourEntryChecksum.objects.filter(date__in=dates)}
