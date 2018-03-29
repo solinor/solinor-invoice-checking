@@ -10,7 +10,7 @@ from invoices.utils import month_end_date, month_start_date
 
 
 def is_phase_billable(phase_name, project):
-    if project in ("[Leave Type]", "Solinor"):
+    if project in ("LeaveType", "Solinor"):
         return False
     phase_name = phase_name.lower()
 

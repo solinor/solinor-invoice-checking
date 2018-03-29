@@ -1,19 +1,20 @@
-import datetime
 import hashlib
 import json
 import logging
 from collections import defaultdict
+from datetime import date, datetime
 
 from django.conf import settings
 from django.db import transaction
 from django.db.utils import IntegrityError
+from django.forms.models import model_to_dict
 from django.utils import timezone
 
 from invoices.invoice_utils import calculate_entry_stats, get_aws_entries
 from invoices.models import Client, Event, HourEntry, HourEntryChecksum, Invoice, Project, TenkfUser, is_phase_billable
 from invoices.slack import send_new_project_to_slack
 from invoices.tenkfeet_api import TenkFeetApi
-from invoices.utils import daterange, parse_date, parse_datetime, parse_float
+from invoices.utils import daterange
 
 tenkfeet_api = TenkFeetApi(settings.TENKFEET_AUTH)  # pylint: disable=invalid-name
 
@@ -155,6 +156,33 @@ def parse_upstream_id(upstream_id):
     return int(upstream_id.split("-")[-1])
 
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (datetime, date)):
+            return o.isoformat()
+
+        return json.JSONEncoder.default(self, o)
+
+
+def fetch_assignables():
+    result = {}
+    phases = {phase["id"]: phase for phase in tenkfeet_api.fetch_phases()}
+
+    for id, phase in phases.items():
+        if phase.get("parent_id"):
+            result[id] = {
+                "project": phases[phase["parent_id"]],
+                "phase": phase
+            }
+        else:
+            result[id] = {
+                "project": phase,
+                "phase": {}
+            }
+
+    return result
+
+
 class HourEntryUpdate(object):
     def __init__(self, start_date, end_date):
         self.logger = logging.getLogger(__name__)
@@ -165,8 +193,8 @@ class HourEntryUpdate(object):
         self.user_data = get_users()
         self.start_date = start_date
         self.end_date = end_date
-        self.first_entry = datetime.date(2100, 1, 1)
-        self.last_entry = datetime.date(1970, 1, 1)
+        self.first_entry = date(2100, 1, 1)
+        self.last_entry = date(1970, 1, 1)
 
     def update_range(self, date):
         self.last_entry = max(self.last_entry, date)
@@ -181,7 +209,7 @@ class HourEntryUpdate(object):
 
     def match_project(self, project_id, client, project):
         if not project_id:
-            if project == "[Leave Type]":  # TODO: this should not be hardcoded
+            if project in ["[Leave Type]", "LeaveType"]:  # TODO: this should not be hardcoded
                 return self.leave_project
             # 10000ft returns some entries without project IDs
             try:
@@ -210,119 +238,188 @@ class HourEntryUpdate(object):
         return self.user_data.get(email)
 
     def update(self):
+        def fetch_per_date_data():
+            date_data = defaultdict(lambda: {"items": [], "sha256": hashlib.sha256()})
+            for entry in tenkfeet_api.fetch_api_hour_entries(self.start_date, self.end_date):
+                if entry["hours"] in (0, None):
+                    logger.debug("Skipping hour entry with 0 incurred hours: %s", entry)
+                else:
+                    entry_date = entry["date"]
+                    date_data[entry_date]["sha256"].update(json.dumps(entry, cls=DateTimeEncoder).encode())
+                    date_data[entry_date]["items"].append(entry)
+
+            return date_data
+
+        def merge_data(entry, users, assignables):
+            def datetime_to_date(dt):
+                if dt:
+                    return dt.date()
+                return None
+
+            def legacy_leave_type():
+                if entry["assignable_type"] == "Project":
+                    return "[project]"
+                return entry["assignable_type"]
+
+            def status(approval):
+                if not approval:
+                    return "Unsubmitted"
+                if approval.get("approved_at"):
+                    return "Approved"
+                return "Pending Approval"
+
+            approvals = entry.get("approvals") or {}
+            approval_data = approvals.get("data")
+            if approval_data:
+                approval = approval_data[0]
+            else:
+                approval = {}
+
+            user = users[entry["user_id"]]
+            assignable = assignables.get(entry["assignable_id"]) or {}
+            project = assignable.get("project") or {}
+
+            data = {
+                "date": entry["date"],
+                "user_id": entry["user_id"],
+                "user_name": user["display_name"],
+                "assignable_id": entry["assignable_id"],
+                "approved_at": datetime_to_date(approval.get("approved_at")),
+                "upstream_id": entry["id"],
+                "approved_by": approval.get("approved_by"),
+                "submitted_by": approval.get("submitted_by"),
+                "updated_at": entry.get("updated_at"),
+                "created_at": entry.get("created_at"),
+                "project": project.get("name") or "[Leave Type]",
+                "client": project.get("client") or "[none]",
+                "incurred_hours": entry["hours"],
+                "incurred_money": entry["bill_rate"] * entry["hours"],
+                "category": entry.get("task") or "[none]",
+                "notes": entry.get("notes"),
+                "entry_type": "Confirmed" if not entry["is_suggestion"] else "Suggestion",
+                "discipline": user.get("discipline") or "[none]",
+                "role": user.get("role") or "[none]",
+                "bill_rate": entry["bill_rate"],
+                "leave_type": legacy_leave_type(),
+                "phase_name": assignable.get("phase", {}).get("phase_name") or "[Non Phase Specific]",
+                "billable": is_phase_billable(
+                    phase_name="",
+                    project=project.get("name") or "[Leave Type]"
+                ),  # TODO Check what is this value and is it meaningful at all. Only 'billable' in API is from user
+                "approved": approval is not None,
+                "status": status(approval),
+                "user_email": user["email"].lower(),
+                "last_updated_at": now,
+                "calculated_is_billable": is_phase_billable(
+                    phase_name=assignable.get("phase", {}).get("phase_name") or "[Non Phase Specific]",
+                    project=project.get("name") or "[Leave Type]"
+                ),
+                "upstream_approvable_id": approval.get("id"),
+                "upstream_approvable_updated_at": approval.get("updated_at"),
+            }
+
+            assert data["date"].year > 2000
+            assert data["date"].year < 2050
+            assert data["bill_rate"] >= 0
+            assert data["incurred_money"] >= 0
+            assert data["incurred_hours"] >= 0
+
+            # Reset billing rates and money for all leaves
+            if data["leave_type"] != "[project]":
+                data["incurred_money"] = data["bill_rate"] = 0
+
+            return data
+
         self.logger.info("Starting hour entry update: %s - %s", self.start_date, self.end_date)
-        now = timezone.now()
-        tenkfeet_entries = tenkfeet_api.fetch_hour_entries(self.start_date, self.end_date)
-        tenkfeet_api_entries = {entry["id"]: entry for entry in tenkfeet_api.fetch_api_hour_entries(self.start_date, self.end_date)}
-        entries = []
 
-        per_date_data = defaultdict(lambda: {"items": [], "sha256": hashlib.sha256()})
+        users = {user.user_id: model_to_dict(user) for user in TenkfUser.objects.all()}
 
-        for entry in tenkfeet_entries:
-            if parse_float(entry[8]) in (0, None):  # incurred_hours
-                logger.debug("Skipping hour entry with 0 incurred hours: %s", entry)
-                continue
-            entry_date = parse_date(entry[40])
-            entry_data = {"reporting": entry, "api": tenkfeet_api_entries.get(parse_upstream_id(entry[59]), {})}
-            per_date_data[entry_date]["sha256"].update(json.dumps(entry_data).encode())
-            per_date_data[entry_date]["items"].append(entry_data)
+        self.logger.info("Fetch assignables.")
+        assignables = fetch_assignables()  # TODO cache this
 
+        self.logger.info("Fetch per date data.")
+        per_date_data = fetch_per_date_data()
         dates = list(daterange(self.start_date, self.end_date))
         checksums = {k.date: k.sha256 for k in HourEntryChecksum.objects.filter(date__in=dates)}
-        deleted_entries = 0
+
+        now = timezone.now()
+        entries = []
         delete_days = set()
         updated_days = set()
+        checksum_updates = []
         for date in dates:
             if date not in per_date_data:
                 logger.info("No entries for %s - delete all existing entries.", date)
                 delete_days.add(date)
-                continue
-            sha256 = per_date_data[date]["sha256"].hexdigest()
-            if checksums.get(date) != sha256:
-                logger.info("Something changed for %s", date)
-
-                for entry in per_date_data[date]["items"]:
-                    entry_date = parse_date(entry["reporting"][40])
-                    upstream_approvable_id = upstream_approvable_updated_at = None
-                    approval_data = entry.get("api", {}).get("approvals", {}).get("data", None)
-                    if approval_data:
-                        upstream_approvable_id = approval_data[0]["id"]
-                        upstream_approvable_updated_at = parse_datetime(approval_data[0]["updated_at"])
-                    data = {
-                        "date": entry_date,
-                        "user_id": int(entry["reporting"][0]),
-                        "user_name": entry["reporting"][1],
-                        "assignable_id": entry["reporting"][2],
-                        "approved_at": parse_date(entry["reporting"][55]),
-                        "upstream_id": parse_upstream_id(entry["reporting"][59]),
-                        "approved_by": entry["reporting"][53],
-                        "submitted_by": entry["reporting"][54],
-                        "updated_at": parse_datetime(entry["api"].get("updated_at")),
-                        "created_at": parse_datetime(entry["api"].get("created_at")),
-                        "project": entry["reporting"][3],
-                        "client": entry["reporting"][6],
-                        "incurred_hours": parse_float(entry["reporting"][8]),
-                        "incurred_money": parse_float(entry["reporting"][11]),
-                        "category": entry["reporting"][14],
-                        "notes": entry["reporting"][15],
-                        "entry_type": entry["reporting"][17],
-                        "discipline": entry["reporting"][18],
-                        "role": entry["reporting"][19],
-                        "bill_rate": parse_float(entry["reporting"][28]),
-                        "leave_type": entry["reporting"][16],
-                        "phase_name": entry["reporting"][31],
-                        "billable": entry["reporting"][21] in ("1", 1),
-                        "approved": entry["reporting"][52] == "Approved",
-                        "status": entry["reporting"][52],
-                        "user_email": entry["reporting"][29].lower(),
-                        "last_updated_at": now,
-                        "calculated_is_billable": is_phase_billable(entry["reporting"][31], entry["reporting"][3]),
-                        "upstream_approvable_id": upstream_approvable_id,
-                        "upstream_approvable_updated_at": upstream_approvable_updated_at,
-                    }
-
-                    assert data["date"].year > 2000
-                    assert data["date"].year < 2050
-                    assert data["bill_rate"] >= 0
-                    assert data["incurred_money"] >= 0
-                    assert data["incurred_hours"] >= 0
-
-                    # Reset billing rates and money for all leaves
-                    if data["leave_type"] != "[project]":
-                        data["incurred_money"] = data["bill_rate"] = 0
-
-                    self.update_range(entry_date)
-
-                    try:
-                        project_id = int(entry["reporting"][32])
-                    except (ValueError, TypeError):
-                        project_id = None
-                    invoice = self.match_invoice(entry_date, project_id, data["client"], data["project"])
-                    if not invoice:
-                        logger.warning("No matching invoice available - skip entry. data=%s; entry=%s", data, entry)
-                        sha256 = "-" * 64  # Reset checksum to ensure reprocessing
-                    else:
-                        data["invoice"] = invoice
-                        data["user_m"] = self.match_user(data["user_email"])
-                        hour_entry = HourEntry(**data)
-                        hour_entry.update_calculated_fields()
-                        entries.append(hour_entry)
-                        delete_days.add(entry_date)
-                        updated_days.add(entry_date)
-
-                HourEntryChecksum.objects.update_or_create(date=date, defaults={"sha256": sha256})  # TODO: create these only if update succeeds, not after processing each day.
             else:
-                logger.info("Nothing was changed for %s - skip updating", date)
+                sha256 = per_date_data[date]["sha256"].hexdigest()
+                if checksums.get(date) != sha256:
+                    logger.info("Something changed for %s", date)
+
+                    for entry in per_date_data[date]["items"]:
+                        data = merge_data(entry, users, assignables)
+                        project_id = assignables\
+                            .get(entry["assignable_id"], {})\
+                            .get("project", {})\
+                            .get("id")
+
+                        self.update_range(data["date"])
+
+                        invoice = self.match_invoice(
+                            date=data["date"],
+                            project_id=project_id,
+                            client=data["client"],
+                            project=data["project"]
+                        )
+
+                        if not invoice:
+                            logger.warning("No matching invoice available - skip entry. data=%s; entry=%s", data, entry)
+                            sha256 = "-" * 64  # Reset checksum to ensure reprocessing
+                        else:
+                            data["invoice"] = invoice
+                            data["user_m"] = self.match_user(data["user_email"])
+                            hour_entry = HourEntry(**data)
+                            hour_entry.update_calculated_fields()
+                            entries.append(hour_entry)
+                            delete_days.add(data["date"])
+                            updated_days.add(data["date"])
+
+                    checksum_updates.append({"date": date, "defaults": {"sha256": sha256}})
+                else:
+                    logger.info("Nothing was changed for %s - skip updating", date)
 
         logger.info("Processed all 10k entries. Inserting %s entries to database.", len(entries))
-        with transaction.atomic():  # It is very important to run these operations inside a transaction to avoid non-consistent views.
+
+        # It is very important to run these operations inside a transaction to avoid non-consistent views.
+        with transaction.atomic():
             logger.info("Deleting old 10k entries.")
-            deleted_entries, _ = HourEntry.objects.filter(date__gte=self.first_entry, date__lte=self.last_entry, date__in=list(delete_days), last_updated_at__lt=now).delete()
+            deleted_entries, _ = HourEntry.objects.filter(
+                date__gte=self.first_entry,
+                date__lte=self.last_entry,
+                date__in=list(delete_days),
+                last_updated_at__lt=now
+            ).delete()
+
+            logger.info("Update hour entry checksums.")
+            for checksum in checksum_updates:
+                HourEntryChecksum.objects.update_or_create(date=checksum["date"], defaults=checksum["defaults"])
+
             logger.info("All old 10k entries deleted: %s.", deleted_entries)
             # Note: this does not call .save() for entries.
             HourEntry.objects.bulk_create(entries)
             logger.info("All 10k entries added: %s.", len(entries))
-        Event(event_type="sync_10000ft_report_hours", succeeded=True, message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(self.start_date, self.end_date, len(entries), deleted_entries, ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))).save()
+
+        Event(
+            event_type="sync_10000ft_report_hours",
+            succeeded=True,
+            message="Entries between {:%Y-%m-%d} and {:%Y-%m-%d}. Added {}, deleted {}; processed dates: {}.".format(
+                self.start_date,
+                self.end_date,
+                len(entries),
+                deleted_entries,
+                ", ".join([day.strftime("%Y-%m-%d") for day in delete_days]))
+        ).save()
+
         return (self.first_entry, self.last_entry, deleted_entries + len(entries))
 
 
