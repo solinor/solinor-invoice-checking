@@ -2,205 +2,225 @@ import logging
 
 import requests
 import schema
-from django.utils import timezone
-from django.utils.dateparse import parse_date, parse_datetime
+from schema import And, Or, Schema, Use
+
+from invoices.utils import parse_date, parse_datetime, parse_float
+
+
+def opt(t):
+    return Or(type(None), t)
 
 
 class TenkFeetApi(object):
-    NONETYPE = type(None)
+    API_HOST = "https://api.10000ft.com"
 
-    USERS_SCHEMA = schema.Schema([{
+    USERS_SCHEMA = Schema([{
         "account_owner": bool,
         "archived": bool,
-        "archived_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "archived_at": opt(Use(parse_datetime)),
         "billability_target": float,
         "billable": bool,
         "billrate": float,
-        "created_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "created_at": opt(Use(parse_datetime)),
         "deleted": bool,
-        "deleted_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
-        "discipline": schema.Or(str, NONETYPE),
+        "deleted_at": opt(Use(parse_datetime)),
+        "discipline": opt(str),
         "display_name": str,
-        "email": schema.Or(NONETYPE, schema.And(str, schema.Use(str.lower))),
-        "employee_number": schema.Or(str, NONETYPE),
+        "email": opt(And(str, Use(str.lower))),
+        "employee_number": opt(str),
         "first_name": str,
         "guid": str,  # Can be validated
         "has_login": bool,
-        "hire_date": schema.Or(schema.Use(parse_date), NONETYPE),
+        "hire_date": opt(Use(parse_date)),
         "id": int,
         "invitation_pending": bool,
         "last_name": str,
-        "location": schema.Or(str, NONETYPE),
-        "login_type": schema.Or(str, NONETYPE),
-        "mobile_phone": schema.Or(str, NONETYPE),
-        "office_phone": schema.Or(str, NONETYPE),
-        "role": schema.Or(str, NONETYPE),
-        "termination_date": schema.Or(schema.Use(parse_date), NONETYPE),
-        "thumbnail": schema.Or(str, NONETYPE),  # URL - can be validated
+        "location": opt(str),
+        "login_type": opt(str),
+        "mobile_phone": opt(str),
+        "office_phone": opt(str),
+        "role": opt(str),
+        "termination_date": opt(Use(parse_date)),
+        "thumbnail": opt(str),  # URL - can be validated
         "type": str,
-        "updated_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "updated_at": opt(Use(parse_datetime)),
         "user_settings": int,
         "user_type_id": int
     }])
 
-    PROJECTS_SCHEMA = schema.Schema([{
+    PROJECT_SCHEMA = Schema({
         "archived": bool,
-        "archived_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
-        "client": schema.Or(str, NONETYPE),
-        "created_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
-        "deleted_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
-        "description": schema.Or(str, NONETYPE),
-        "ends_at": schema.Or(schema.Use(parse_date), NONETYPE),
+        "archived_at": opt(Use(parse_datetime)),
+        "client": opt(str),
+        "created_at": opt(Use(parse_datetime)),
+        "deleted_at": opt(schema.Use(parse_datetime)),
+        "description": opt(str),
+        "ends_at": opt(schema.Use(parse_date)),
         "guid": str,  # should be validated
         "has_pending_updates": bool,
         "id": int,
         "name": str,
-        "parent_id": schema.Or(int, NONETYPE),
-        "phase_name": schema.Or(str, NONETYPE),
+        "parent_id": opt(int),
+        "phase_name": opt(str),
         "project_code": str,
         "project_state": str,
-        "secureurl": schema.Or(str, NONETYPE),  # should be validated
-        "secureurl_expiration": schema.Or(str, NONETYPE),  # should be parsed
+        "secureurl": opt(str),  # should be validated
+        "secureurl_expiration": opt(str),  # should be parsed
         "settings": int,
-        "starts_at": schema.Or(schema.Use(parse_date), NONETYPE),
+        "starts_at": opt(Use(parse_date)),
         "tags": {
             "data": [{"id": int, "value": str}],
             "paging": {
-                "next": schema.Or(str, NONETYPE),
+                "next": opt(str),
                 "page": int,
                 "per_page": int,
-                "previous": schema.Or(str, NONETYPE),
+                "previous": opt(str),
                 "self": str,
             },
         },
-        "thumbnail": schema.Or(str, NONETYPE),
+        "thumbnail": opt(str),
         "timeentry_lockout": int,
         "type": str,
-        "updated_at": schema.Or(schema.Use(parse_datetime), NONETYPE),
+        "updated_at": opt(Use(parse_datetime)),
+        "use_parent_bill_rates": bool
+    })
+
+    PROJECTS_SCHEMA = Schema([PROJECT_SCHEMA])
+
+    PHASES_SCHEMA = Schema([{
+        "archived": bool,
+        "archived_at": opt(Use(parse_datetime)),
+        "client": opt(str),
+        "created_at": opt(Use(parse_datetime)),
+        "deleted_at": opt(Use(parse_datetime)),
+        "description": opt(str),
+        "ends_at": opt(Use(parse_date)),
+        "guid": str,  # should be validated
+        "has_pending_updates": bool,
+        "id": int,
+        "name": str,
+        "parent_id": opt(int),
+        "phase_name": opt(str),
+        "project_code": opt(str),
+        "project_state": opt(str),
+        "secureurl": opt(str),  # should be validated
+        "secureurl_expiration": opt(str),  # should be parsed
+        "settings": int,
+        "starts_at": opt(Use(parse_date)),
+        "tags": {
+            "data": [{"id": int, "value": str}],
+            "paging": {
+                "next": opt(str),
+                "page": int,
+                "per_page": int,
+                "previous": opt(str),
+                "self": str,
+            },
+        },
+        "thumbnail": opt(str),
+        "timeentry_lockout": int,
+        "type": str,
+        "updated_at": opt(Use(parse_datetime)),
         "use_parent_bill_rates": bool
     }])
 
-    HOUR_ENTRIES_SCHEMA = schema.Schema([
-        [
-            int,
-            str,
-            int,
-            str,
-            str,
-            str,
-            str,
-            str,  # Date (Friday, 29.12.2017), could be parsed
-            float,
-            float,
-            float,
-            float,
-            float,
-            float,
-            str,
-            schema.Or(str, NONETYPE),
-            str,
-            str,
-            str,
-            str,
-            str,
-            int,
-            str,
-            schema.Or(str, NONETYPE),
-            schema.Or(str, NONETYPE),
-            str,  # Date (2017-01-01)
-            str,  # Date (2017-01-01)
-            schema.Or(str, NONETYPE),
-            float,
-            str,  # email
-            int,
-            str,
-            schema.Or(str, NONETYPE),
-            str,
-            schema.Or(str, NONETYPE),
-            str,
-            str,
-            int,
-            int,
-            int,
-            str,  # Date (2017-01-01)
-            str,
-            str,
-            str,
-            int,
-            int,
-            int,
-            str,
-            float,
-            str,  # YYYY-MM
-            str,
-            int,
-            str,
-            schema.Or(str, NONETYPE),
-            schema.Or(str, NONETYPE),
-            str,
-            str,
-            str,
-            str,
-            str,
-        ]
-    ])
+    TIME_ENTRIES_SCHEMA = Schema([{
+        "id": int,
+        "assignable_id": int,
+        "assignable_type": str,
+        "user_id": int,
+        "bill_rate": Use(parse_float),
+        "bill_rate_id": opt(int),
+        "date": Use(parse_date),
+        "hours": Use(parse_float),
+        "scheduled_hours": Use(parse_float),
+        "notes": opt(str),
+        "task": opt(str),
+        "is_suggestion": bool,
+        "created_at": Use(parse_datetime),
+        "updated_at": Use(parse_datetime),
+        "approvals": {
+            "data": [{
+                "id": int,
+                "status": str,
+                "approvable_id": int,
+                "approvable_type": str,
+                "submitted_by": int,
+                "submitted_at": Use(parse_datetime),
+                "approved_by": opt(int),
+                "approved_at": opt(Use(parse_datetime)),
+                "created_at": Use(parse_datetime),
+                "updated_at": Use(parse_datetime)
+            }],
+            "paging": {
+                "next": opt(str),
+                "page": int,
+                "per_page": int,
+                "previous": opt(str),
+                "self": str,
+            }
+        }
+    }])
 
     def __init__(self, apikey):
         self.apikey = apikey
         self.logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
     def submit_hours(self, entries):
-        url = f"https://api.10000ft.com/api/v1/approvals?auth={self.apikey}"
         approvables = [{"id": entry["id"], "type": "TimeEntry", "updated_at": entry["updated_at"]} for entry in entries]
 
-        data = {
-            "approvables": approvables,
-            "status": "pending",
-        }
-        return requests.post(url, json=data).json()
+        return requests.post(
+            url=f"{self.API_HOST}/api/v1/approvals",
+            json={
+                "approvables": approvables,
+                "status": "pending",
+            },
+            params={"auth": self.apikey}
+        ).json()
 
     def fetch_endpoint(self, next_page):
         entries = []
         while next_page:
             self.logger.debug("Processing page %s", next_page)
-            url = f"https://api.10000ft.com{next_page}&auth={self.apikey}"
-            tenkfeet_data = requests.get(url).json()
+            tenkfeet_data = requests.get(self.API_HOST + next_page, params={"auth": self.apikey}).json()
             next_page = tenkfeet_data["paging"]["next"]
             entries.extend(tenkfeet_data["data"])
+
         self.logger.info("Fetched %s entries from 10kf", len(entries))
         return entries
 
     def fetch_holidays(self):
         self.logger.info("Fetching holidays")
-        url = "/api/v1/holidays?per_page=250"
-        return self.fetch_endpoint(url)
+        return self.fetch_endpoint("/api/v1/holidays?per_page=1000")
 
     def fetch_api_hour_entries(self, start_date, end_date):
         self.logger.info("Fetching hour entries from the API: %s - %s", start_date, end_date)
-        url = f"/api/v1/time_entries?fields=approvals&with_suggestions=false&from={start_date:%Y-%m-%d}&to={end_date:%Y-%m-%d}&per_page=250"
-        return self.fetch_endpoint(url)
+        return self.TIME_ENTRIES_SCHEMA.validate(self.fetch_endpoint(
+            f"/api/v1/time_entries?fields=approvals&from={start_date:%Y-%m-%d}&to={end_date:%Y-%m-%d}&per_page=10000"
+        ))
 
     def fetch_projects(self):
         self.logger.info("Fetching projects")
-        next_page = "/api/v1/projects?per_page=250&page=1&with_archived=true"
-        return self.PROJECTS_SCHEMA.validate(self.fetch_endpoint(next_page))
+        return self.PROJECTS_SCHEMA.validate(self.fetch_endpoint(
+            "/api/v1/projects?per_page=1000&with_archived=true"
+        ))
+
+    def fetch_phases(self):
+        self.logger.info("Fetching phases")
+        return self.PHASES_SCHEMA.validate(self.fetch_endpoint(
+            "/api/v1/projects?per_page=1000&with_archived=true&with_phases=true"
+        ))
 
     def fetch_project(self, project_id):
-        url = f"https://api.10000ft.com/api/v1/projects/{project_id}?auth={self.apikey}"
-        return requests.get(url).json()
-
-    def fetch_hour_entries(self, start_date, end_date, validate_schema=False):
-        # This defaults to validate_schema=False, as validation does not add much value, and takes quite a while (~15sec for 5000 entries)
-        self.logger.info("Fetching hour entries reporting API: %s - %s", start_date, end_date)
-        now = timezone.now()
-        url = f"https://api.10000ft.com/api/v1/reports.json?startdate={start_date:%Y-%m-%d}&enddate={end_date:%Y-%m-%d}&today={now:%Y-%m-%d}&auth={self.apikey}"
-        tenkfeet_data = requests.get(url).json()["time_entries"]
-        self.logger.info("Fetched %s hour entries", len(tenkfeet_data))
-        if validate_schema:
-            return self.HOUR_ENTRIES_SCHEMA.validate(tenkfeet_data)
-        return tenkfeet_data
+        return self.PROJECT_SCHEMA.validate(
+            requests.get(
+                url=f"{self.API_HOST}/api/v1/projects/{project_id}",
+                params={"auth": self.apikey}
+            ).json()
+        )
 
     def fetch_users(self):
         self.logger.info("Fetching users")
-        next_page = "/api/v1/users?per_page=250&page=1&with_archived=true"
-        return self.USERS_SCHEMA.validate(self.fetch_endpoint(next_page))
+        return self.USERS_SCHEMA.validate(self.fetch_endpoint(
+            "/api/v1/users?per_page=1000&with_archived=true"
+        ))

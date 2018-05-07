@@ -1,5 +1,4 @@
 import datetime
-from collections import defaultdict
 
 from invoices.models import AmazonInvoiceRow
 from invoices.syncing.aws import AWS_URLS
