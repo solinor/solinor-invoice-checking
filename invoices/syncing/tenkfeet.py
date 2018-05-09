@@ -183,6 +183,10 @@ def fetch_assignables():
     return result
 
 
+def fetch_leave_types():
+    return {a['id']: a['name'] for a in tenkfeet_api.fetch_leave_types()}
+
+
 class HourEntryUpdate(object):
     def __init__(self, start_date, end_date):
         self.logger = logging.getLogger(__name__)
@@ -250,7 +254,7 @@ class HourEntryUpdate(object):
 
             return date_data
 
-        def merge_data(entry, users, assignables):
+        def merge_data(entry, users, assignables, leave_types):
             def datetime_to_date(dt):
                 if dt:
                     return dt.date()
@@ -259,7 +263,7 @@ class HourEntryUpdate(object):
             def legacy_leave_type():
                 if entry["assignable_type"] == "Project":
                     return "[project]"
-                return entry["assignable_type"]
+                return leave_types.get(entry["assignable_id"])
 
             def status(approval):
                 if not approval:
@@ -336,6 +340,7 @@ class HourEntryUpdate(object):
 
         self.logger.info("Fetch assignables.")
         assignables = fetch_assignables()  # TODO cache this
+        leave_types = fetch_leave_types()  # TODO cache this
 
         self.logger.info("Fetch per date data.")
         per_date_data = fetch_per_date_data()
@@ -357,7 +362,7 @@ class HourEntryUpdate(object):
                     logger.info("Something changed for %s", date)
 
                     for entry in per_date_data[date]["items"]:
-                        data = merge_data(entry, users, assignables)
+                        data = merge_data(entry, users, assignables, leave_types)
                         project_id = assignables\
                             .get(entry["assignable_id"], {})\
                             .get("project", {})\

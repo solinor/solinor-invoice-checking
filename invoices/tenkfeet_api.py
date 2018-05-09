@@ -224,3 +224,7 @@ class TenkFeetApi(object):
         return self.USERS_SCHEMA.validate(self.fetch_endpoint(
             "/api/v1/users?per_page=1000&with_archived=true"
         ))
+
+    def fetch_leave_types(self):
+        self.logger.info("Fetching leave types")
+        return self.fetch_endpoint("/api/v1/leave_types")
